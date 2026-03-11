@@ -6,25 +6,25 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -400.0
-offset_top = -280.0
-offset_right = 400.0
-offset_bottom = 280.0
+offset_left = -600.0
+offset_top = -420.0
+offset_right = 600.0
+offset_bottom = 420.0
 
 [node name="HelpMargin" type="MarginContainer" parent="."]
 layout_mode = 2
-theme_override_constants/margin_left = 32
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 32
-theme_override_constants/margin_bottom = 24
+theme_override_constants/margin_left = 48
+theme_override_constants/margin_top = 36
+theme_override_constants/margin_right = 48
+theme_override_constants/margin_bottom = 36
 
 [node name="HelpVBox" type="VBoxContainer" parent="HelpMargin"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 24
 
 [node name="Title" type="Label" parent="HelpMargin/HelpVBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 36
+theme_override_font_sizes/font_size = 54
 text = "How to Play"
 horizontal_alignment = 1
 
@@ -36,14 +36,14 @@ size_flags_vertical = 3
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/separation = 12
+theme_override_constants/separation = 18
 
 [node name="MovementSection" type="VBoxContainer" parent="HelpMargin/HelpVBox/ScrollContainer/Content"]
 layout_mode = 2
 
 [node name="MovementTitle" type="Label" parent="HelpMargin/HelpVBox/ScrollContainer/Content/MovementSection"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 42
 text = "Movement"
 
 [node name="MovementText" type="RichTextLabel" parent="HelpMargin/HelpVBox/ScrollContainer/Content/MovementSection"]
@@ -58,7 +58,7 @@ layout_mode = 2
 
 [node name="CombatTitle" type="Label" parent="HelpMargin/HelpVBox/ScrollContainer/Content/CombatSection"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 42
 text = "Combat"
 
 [node name="CombatText" type="RichTextLabel" parent="HelpMargin/HelpVBox/ScrollContainer/Content/CombatSection"]
@@ -76,7 +76,7 @@ layout_mode = 2
 
 [node name="TerrainTitle" type="Label" parent="HelpMargin/HelpVBox/ScrollContainer/Content/TerrainSection"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 42
 text = "Terrain"
 
 [node name="TerrainText" type="RichTextLabel" parent="HelpMargin/HelpVBox/ScrollContainer/Content/TerrainSection"]
@@ -93,7 +93,7 @@ layout_mode = 2
 
 [node name="ExperienceTitle" type="Label" parent="HelpMargin/HelpVBox/ScrollContainer/Content/ExperienceSection"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 42
 text = "Experience & Leveling"
 
 [node name="ExperienceText" type="RichTextLabel" parent="HelpMargin/HelpVBox/ScrollContainer/Content/ExperienceSection"]
@@ -112,7 +112,7 @@ layout_mode = 2
 
 [node name="TurnsTitle" type="Label" parent="HelpMargin/HelpVBox/ScrollContainer/Content/TurnsSection"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 42
 text = "Turns & Actions"
 
 [node name="TurnsText" type="RichTextLabel" parent="HelpMargin/HelpVBox/ScrollContainer/Content/TurnsSection"]
@@ -130,7 +130,7 @@ layout_mode = 2
 
 [node name="ControlsTitle" type="Label" parent="HelpMargin/HelpVBox/ScrollContainer/Content/ControlsSection"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 42
 text = "Controls"
 
 [node name="ControlsText" type="RichTextLabel" parent="HelpMargin/HelpVBox/ScrollContainer/Content/ControlsSection"]

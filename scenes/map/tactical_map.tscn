@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/controllers/tactical_map.gd" id="1"]
 [ext_resource type="PackedScene" path="res://ui/action_menu.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://ui/combat_forecast_panel.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/shared/help_panel.tscn" id="99"]
 
 [node name="TacticalMap" type="Control"]
 layout_mode = 3
@@ -26,21 +27,21 @@ color = Color(0.0901961, 0.133333, 0.105882, 1)
 
 [node name="Header" type="PanelContainer" parent="."]
 layout_mode = 0
-offset_left = 18.0
-offset_top = 16.0
-offset_right = 1260.0
-offset_bottom = 66.0
+offset_left = 27.0
+offset_top = 24.0
+offset_right = 1890.0
+offset_bottom = 99.0
 
 [node name="HeaderMargin" type="MarginContainer" parent="Header"]
 layout_mode = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 10
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 15
 
 [node name="HeaderRow" type="HBoxContainer" parent="Header/HeaderMargin"]
 layout_mode = 2
-theme_override_constants/separation = 18
+theme_override_constants/separation = 27
 
 [node name="ChapterLabel" type="Label" parent="Header/HeaderMargin/HeaderRow"]
 layout_mode = 2
@@ -60,21 +61,21 @@ text = "Defeat Boss"
 
 [node name="Footer" type="PanelContainer" parent="."]
 layout_mode = 0
-offset_left = 18.0
-offset_top = 620.0
-offset_right = 1260.0
-offset_bottom = 702.0
+offset_left = 27.0
+offset_top = 930.0
+offset_right = 1890.0
+offset_bottom = 1053.0
 
 [node name="FooterMargin" type="MarginContainer" parent="Footer"]
 layout_mode = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 10
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 15
 
 [node name="FooterVBox" type="VBoxContainer" parent="Footer/FooterMargin"]
 layout_mode = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 6
 
 [node name="StatusLabel" type="Label" parent="Footer/FooterMargin/FooterVBox"]
 layout_mode = 2
@@ -88,13 +89,7 @@ text = "Enter/Space confirm, Esc cancel, T end turn, mouse click supported."
 
 [node name="ForecastPanel" parent="." instance=ExtResource("3")]
 
-[node name="BattleLayer" type="Control" parent="."
-[ext_resource type="PackedScene" path="res://scenes/shared/help_panel.tscn" id="99"]
-
-[node name="HelpPanel" parent="." instance=ExtResource("99")]
-visible = false
-
-]
+[node name="BattleLayer" type="Control" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -102,3 +97,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+
+[node name="HelpPanel" parent="." instance=ExtResource("99")]
+visible = false

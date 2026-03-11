@@ -27,18 +27,18 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 64
-theme_override_constants/margin_top = 64
-theme_override_constants/margin_right = 64
-theme_override_constants/margin_bottom = 64
+theme_override_constants/margin_left = 96
+theme_override_constants/margin_top = 96
+theme_override_constants/margin_right = 96
+theme_override_constants/margin_bottom = 96
 
 [node name="VBox" type="VBoxContainer" parent="Margin"]
 layout_mode = 2
-theme_override_constants/separation = 24
+theme_override_constants/separation = 36
 
 [node name="ChapterLabel" type="Label" parent="Margin/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 36
+theme_override_font_sizes/font_size = 54
 text = "Chapter"
 
 [node name="SpeakerPanel" type="PanelContainer" parent="Margin/VBox"]
@@ -47,17 +47,17 @@ size_flags_vertical = 3
 
 [node name="SpeakerMargin" type="MarginContainer" parent="Margin/VBox/SpeakerPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 16
-theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 16
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
 
 [node name="SpeakerHBox" type="HBoxContainer" parent="Margin/VBox/SpeakerPanel/SpeakerMargin"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 24
 
 [node name="PortraitFrame" type="ColorRect" parent="Margin/VBox/SpeakerPanel/SpeakerMargin/SpeakerHBox"]
-custom_minimum_size = Vector2(180, 180)
+custom_minimum_size = Vector2(270, 270)
 layout_mode = 2
 color = Color(0.247059, 0.309804, 0.376471, 1)
 
@@ -74,25 +74,25 @@ stretch_mode = 5
 
 [node name="PortraitLabel" type="Label" parent="Margin/VBox/SpeakerPanel/SpeakerMargin/SpeakerHBox/PortraitFrame"]
 layout_mode = 0
-offset_left = 20.0
-offset_top = 72.0
-offset_right = 160.0
-offset_bottom = 104.0
+offset_left = 30.0
+offset_top = 108.0
+offset_right = 240.0
+offset_bottom = 156.0
 text = "PORTRAIT"
 horizontal_alignment = 1
 
 [node name="TextVBox" type="VBoxContainer" parent="Margin/VBox/SpeakerPanel/SpeakerMargin/SpeakerHBox"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 12
+theme_override_constants/separation = 18
 
 [node name="SpeakerLabel" type="Label" parent="Margin/VBox/SpeakerPanel/SpeakerMargin/SpeakerHBox/TextVBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 33
+theme_override_font_sizes/font_size = 50
 text = "Speaker"
 
 [node name="DialogueLabel" type="RichTextLabel" parent="Margin/VBox/SpeakerPanel/SpeakerMargin/SpeakerHBox/TextVBox"]
-custom_minimum_size = Vector2(0, 180)
+custom_minimum_size = Vector2(0, 270)
 layout_mode = 2
 bbcode_enabled = false
 fit_content = true

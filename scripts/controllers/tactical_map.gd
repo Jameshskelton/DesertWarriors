@@ -5,6 +5,7 @@ signal chapter_cleared(summary: Dictionary)
 signal chapter_failed(summary: Dictionary)
 
 const BATTLE_SCENE := preload("res://scenes/battle/battle_scene.tscn")
+const UI_SCALE := 1.5
 
 var _chapter_id: String = ""
 var _chapter: ChapterData
@@ -12,8 +13,8 @@ var _terrain_grid: Array = []
 var _units: Array[UnitState] = []
 var _grid_size: Vector2i = Vector2i(20, 15)
 var _cursor_tile: Vector2i = Vector2i(0, 0)
-var _cell_size: float = 32.0
-var _board_origin: Vector2 = Vector2(56, 96)
+var _cell_size: float = 32.0 * UI_SCALE
+var _board_origin: Vector2 = Vector2(56.0, 96.0) * UI_SCALE
 var _selection: SelectionController = SelectionController.new()
 var _grid: GridService = GridService.new()
 var _pathfinding: PathfindingService = PathfindingService.new()
@@ -36,6 +37,7 @@ var _spawned_reinforcements: PackedStringArray = PackedStringArray()
 @onready var _forecast_panel = $ForecastPanel
 @onready var _battle_layer: Control = $BattleLayer
 @onready var _help_panel = $HelpPanel
+@onready var _help_close_button: Button = $HelpPanel/HelpMargin/HelpVBox/CloseButton
 
 
 func setup(chapter_id: String) -> void:
@@ -45,10 +47,12 @@ func setup(chapter_id: String) -> void:
 func _ready() -> void:
 	add_child(_battle_transition)
 	_help_panel.visible = false
-	if _help_panel.CloseButton:
-		_help_panel.CloseButton.pressed.connect(_on_help_close)
-	_battle_transition.battle_overlay_requested.connect(_show_battle_overlay)
-	_action_menu.action_selected.connect(_on_action_menu_selected)
+	if _help_close_button != null:
+		_help_close_button.pressed.connect(func() -> void:
+			_help_panel.visible = false
+		)
+	_battle_transition.battle_overlay_requested.connect(Callable(self, "_show_battle_overlay"))
+	_action_menu.action_selected.connect(Callable(self, "_on_action_menu_selected"))
 	_load_chapter()
 	AudioDirector.play_track("forest_realm")
 
@@ -103,25 +107,29 @@ func _draw_board() -> void:
 			var terrain: TerrainData = DataRegistry.get_terrain_data(terrain_id)
 			var rect := Rect2(_board_origin + Vector2(x, y) * _cell_size, Vector2.ONE * _cell_size)
 			draw_rect(rect, terrain.map_color)
-			draw_rect(rect, Color(0, 0, 0, 0.2), false, 1.0)
+			draw_rect(rect, Color(0, 0, 0, 0.2), false, 1.5)
 			if _selection.highlighted_tiles.has(tile):
-				draw_rect(rect.grow(-2), Color(0.309804, 0.686275, 0.929412, 0.35))
+				draw_rect(rect.grow(-3.0), Color(0.309804, 0.686275, 0.929412, 0.35))
 			if _selection.target_tiles.has(tile):
-				draw_rect(rect.grow(-4), Color(0.929412, 0.4, 0.360784, 0.45))
+				draw_rect(rect.grow(-6.0), Color(0.929412, 0.4, 0.360784, 0.45))
 	var cursor_rect := Rect2(_board_origin + Vector2(_cursor_tile.x, _cursor_tile.y) * _cell_size, Vector2.ONE * _cell_size)
-	draw_rect(cursor_rect.grow(-1), Color(0.980392, 0.941176, 0.745098, 1), false, 3.0)
+	draw_rect(cursor_rect.grow(-1.5), Color(0.980392, 0.941176, 0.745098, 1), false, 4.5)
 
 
 func _draw_units() -> void:
 	var font := ThemeDB.fallback_font
+	var unit_padding := 5.0 * UI_SCALE
 	for unit in _units:
 		if not unit.is_alive() or not unit.has_joined:
 			continue
-		var rect := Rect2(_board_origin + Vector2(unit.position.x, unit.position.y) * _cell_size + Vector2(5, 5), Vector2.ONE * (_cell_size - 10))
+		var rect := Rect2(
+			_board_origin + Vector2(unit.position.x, unit.position.y) * _cell_size + Vector2.ONE * unit_padding,
+			Vector2.ONE * (_cell_size - unit_padding * 2.0)
+		)
 		draw_rect(rect, _unit_color(unit))
-		draw_string(font, rect.position + Vector2(6, 18), unit.display_name.left(1), HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color.WHITE)
+		draw_string(font, rect.position + Vector2(6.0, 18.0) * UI_SCALE, unit.display_name.left(1), HORIZONTAL_ALIGNMENT_LEFT, -1, 24, Color.WHITE)
 		if unit.moved and unit.faction == "player":
-			draw_rect(rect.grow(-3), Color(0, 0, 0, 0.4), false, 2.0)
+			draw_rect(rect.grow(-4.5), Color(0, 0, 0, 0.4), false, 3.0)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -282,7 +290,7 @@ func _execute_staff(source: UnitState, target: UnitState) -> void:
 func _show_battle_overlay(payload: Dictionary) -> void:
 	var battle_scene: Control = BATTLE_SCENE.instantiate()
 	battle_scene.setup(payload)
-	battle_scene.battle_finished.connect(_on_battle_finished)
+	battle_scene.battle_finished.connect(Callable(self, "_on_battle_finished"))
 	_active_battle = battle_scene
 	_battle_layer.add_child(battle_scene)
 

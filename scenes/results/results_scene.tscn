@@ -30,22 +30,22 @@ grow_vertical = 2
 
 [node name="Panel" type="PanelContainer" parent="Center"]
 layout_mode = 2
-custom_minimum_size = Vector2(540, 380)
+custom_minimum_size = Vector2(810, 570)
 
 [node name="Margin" type="MarginContainer" parent="Center/Panel"]
 layout_mode = 2
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 20
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 30
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 30
 
 [node name="VBox" type="VBoxContainer" parent="Center/Panel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 18
 
 [node name="TitleLabel" type="Label" parent="Center/Panel/Margin/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 42
+theme_override_font_sizes/font_size = 63
 text = "Results"
 
 [node name="SummaryLabel" type="Label" parent="Center/Panel/Margin/VBox"]
