@@ -113,8 +113,8 @@ If you use sprite sheets:
 
 Current placeholder location:
 
-- Scene: [dialogue_scene.tscn](/Users/jamesskelton/Downloads/FlameSymbol/scenes/dialogue/dialogue_scene.tscn)
-- Script: [dialogue_scene.gd](/Users/jamesskelton/Downloads/FlameSymbol/scripts/ui/dialogue_scene.gd)
+- Scene: [dialogue_scene.tscn](/Users/jamesskelton/Downloads/DesertWarriors/scenes/dialogue/dialogue_scene.tscn)
+- Script: [dialogue_scene.gd](/Users/jamesskelton/Downloads/DesertWarriors/scripts/ui/dialogue_scene.gd)
 
 Right now the dialogue scene uses:
 
@@ -175,7 +175,7 @@ _portrait_label.visible = _portrait_texture.texture == null
 
 Current placeholder location:
 
-- Script: [tactical_map.gd](/Users/jamesskelton/Downloads/FlameSymbol/scripts/controllers/tactical_map.gd)
+- Script: [tactical_map.gd](/Users/jamesskelton/Downloads/DesertWarriors/scripts/controllers/tactical_map.gd)
 
 Right now units are drawn here:
 
@@ -226,7 +226,7 @@ else:
 
 Current placeholder location:
 
-- Script: [tactical_map.gd](/Users/jamesskelton/Downloads/FlameSymbol/scripts/controllers/tactical_map.gd)
+- Script: [tactical_map.gd](/Users/jamesskelton/Downloads/DesertWarriors/scripts/controllers/tactical_map.gd)
 - Method: `_draw_board()`
 
 Right now terrain is drawn using `terrain.map_color`.
@@ -272,8 +272,8 @@ They still work well over art.
 
 Current placeholder location:
 
-- Scene: [battle_scene.tscn](/Users/jamesskelton/Downloads/FlameSymbol/scenes/battle/battle_scene.tscn)
-- Script: [battle_scene.gd](/Users/jamesskelton/Downloads/FlameSymbol/scripts/ui/battle_scene.gd)
+- Scene: [battle_scene.tscn](/Users/jamesskelton/Downloads/DesertWarriors/scenes/battle/battle_scene.tscn)
+- Script: [battle_scene.gd](/Users/jamesskelton/Downloads/DesertWarriors/scripts/ui/battle_scene.gd)
 
 Right now the battle scene uses:
 
@@ -312,7 +312,7 @@ If you want animation:
 
 ## 8. Use `portrait_id` Properly
 
-The data model already has `portrait_id` on [unit_data.gd](/Users/jamesskelton/Downloads/FlameSymbol/scripts/models/unit_data.gd).
+The data model already has `portrait_id` on [unit_data.gd](/Users/jamesskelton/Downloads/DesertWarriors/scripts/models/unit_data.gd).
 
 Use it consistently:
 

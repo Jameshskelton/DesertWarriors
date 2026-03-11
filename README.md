@@ -1,6 +1,6 @@
-# Flame Symbol
+# Desert Warriors
 
-`Flame Symbol` is a Godot 4 tactical RPG prototype inspired by classic Fire Emblem structure: tile-based battles, full-screen combat cutaways, portrait dialogue, and a first chapter built around Woody's exile through the Greenwood.
+`Desert Warriors` is a Godot 4 tactical RPG prototype inspired by classic Fire Emblem structure: tile-based battles, full-screen combat cutaways, portrait dialogue, and a first chapter built around Woody's exile through the Greenwood.
 
 ## Current Slice
 

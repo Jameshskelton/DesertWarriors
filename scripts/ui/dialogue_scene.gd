@@ -53,7 +53,7 @@ func _render_line() -> void:
 		dialogue_finished.emit(_next_tag)
 		return
 	
-	_chapter_label.text = str(line.get("chapter", "Flame Symbol"))
+	_chapter_label.text = str(line.get("chapter", "Desert Warriors"))
 	var speaker: String = str(line.get("speaker", "Narrator"))
 	_speaker_label.text = speaker
 	_dialogue_label.text = str(line.get("text", ""))

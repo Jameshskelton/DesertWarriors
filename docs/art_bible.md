@@ -1,4 +1,4 @@
-# Flame Symbol Art Bible
+# Desert Warriors Art Bible
 
 ## Visual Direction
 

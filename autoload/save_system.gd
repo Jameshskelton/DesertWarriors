@@ -1,6 +1,6 @@
 extends Node
 
-const SAVE_PATH := "user://flame_symbol_save.json"
+const SAVE_PATH := "user://desert_warriors_save.json"
 
 
 func save_game(payload: Dictionary) -> bool:
