@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="UnitData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/unit_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "brigand_grunt"
+display_name = "Brigand"
+class_id = "brigand"
+level = 1
+stats = {
+"def": 3,
+"hp": 20,
+"lck": 1,
+"mag": 0,
+"max_hp": 20,
+"res": 0,
+"skl": 4,
+"spd": 4,
+"str": 7
+}
+xp = 0
+inventory = PackedStringArray("iron_axe")
+portrait_id = "brigand"
+faction = "enemy"
+ai_profile = "rush"
+join_event_id = ""
+story_flags = PackedStringArray()

@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="ClassData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/class_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "priest"
+display_name = "Priest"
+move_type = "infantry"
+move_range = 5
+base_stats = {
+"def": 2,
+"lck": 4,
+"mag": 5,
+"max_hp": 17,
+"res": 7,
+"skl": 6,
+"spd": 5,
+"str": 0
+}
+growth_rates = {
+"def": 15,
+"lck": 40,
+"mag": 50,
+"max_hp": 55,
+"res": 55,
+"skl": 40,
+"spd": 35,
+"str": 0
+}
+weapon_types = PackedStringArray("staff")
+can_use_staves = true
+battle_anim_set = "priest_staff"

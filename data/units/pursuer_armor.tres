@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="UnitData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/unit_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "pursuer_armor"
+display_name = "Pursuer"
+class_id = "knight"
+level = 2
+stats = {
+"def": 9,
+"hp": 22,
+"lck": 1,
+"mag": 0,
+"max_hp": 22,
+"res": 1,
+"skl": 4,
+"spd": 3,
+"str": 8
+}
+xp = 0
+inventory = PackedStringArray("iron_lance")
+portrait_id = "pursuer"
+faction = "enemy"
+ai_profile = "guard"
+join_event_id = ""
+story_flags = PackedStringArray()

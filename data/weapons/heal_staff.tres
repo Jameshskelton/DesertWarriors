@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/weapon_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "heal_staff"
+name = "Heal Staff"
+weapon_type = "staff"
+damage_type = "magic"
+might = 0
+hit = 100
+crit = 0
+weight = 0
+min_range = 1
+max_range = 1
+uses = 30
+triangle_group = "support"
+anim_id = "heal"
+heal_power = 10

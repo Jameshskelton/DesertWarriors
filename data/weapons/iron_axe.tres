@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/weapon_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "iron_axe"
+name = "Iron Axe"
+weapon_type = "axe"
+damage_type = "physical"
+might = 8
+hit = 68
+crit = 0
+weight = 4
+min_range = 1
+max_range = 1
+uses = 40
+triangle_group = "melee"
+anim_id = "cleave"
+heal_power = 10

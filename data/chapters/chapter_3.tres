@@ -1,0 +1,152 @@
+[gd_resource type="Resource" script_class="ChapterData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/chapter_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "chapter_3"
+display_name = "Chapter 3: The Unbroken"
+objective_type = "defeat_boss"
+map_width = 20
+map_height = 15
+terrain_rows = PackedStringArray("FFFFFFFFFFFFFFFFFFFF", "FFFFFFFFFFFFFFFFFFFF", "FFFFFFFFFFFFFFFFFFFF", "FFPPPPPPPPPPPPFFFFF", "FFPPPPPPPPPPPPFFFFF", "FFPPPPPPPPPPPPFFFFF", "FFFFPPPPPPPPPPFFFFF", "FFFFPPPPPPPPPPFFFFF", "FFFFPPPPPPPPPPFFFFF", "FFFFVVVVVVVVVVVFFFFF", "FFFFVVVVVVVVVVVFFFFF", "FFFFFRRRRRRRRFFFFFF", "FFFFFRRRRRRRRFFFFFF", "FFFFFRRRRRRRRFFFFFF", "FFFFFRRRRRRRRFFFFFF")
+terrain_legend = {
+"F": "forest",
+"P": "plains",
+"R": "road",
+"S": "shrine",
+"V": "village"
+}
+deployment_slots = 8
+starting_units = [{
+"faction": "player",
+"position": Vector2i(2, 12),
+"unit_id": "woody"
+}, {
+"faction": "player",
+"position": Vector2i(1, 11),
+"unit_id": "bram"
+}, {
+"faction": "player",
+"position": Vector2i(3, 12),
+"unit_id": "brother_hale"
+}, {
+"faction": "player",
+"position": Vector2i(0, 12),
+"unit_id": "ember"
+}, {
+"faction": "player",
+"position": Vector2i(1, 13),
+"unit_id": "rowan"
+}]
+enemy_units = [{
+"faction": "enemy",
+"instance_id": "silverguard_1",
+"position": Vector2i(8, 9),
+"unit_id": "knight"
+}, {
+"faction": "enemy",
+"instance_id": "silverguard_2",
+"position": Vector2i(10, 7),
+"unit_id": "knight"
+}, {
+"faction": "enemy",
+"instance_id": "silverguard_3",
+"position": Vector2i(12, 5),
+"unit_id": "knight"
+}, {
+"faction": "enemy",
+"instance_id": "silverguard_4",
+"position": Vector2i(11, 9),
+"unit_id": "knight"
+}, {
+"faction": "enemy",
+"instance_id": "silverguard_5",
+"position": Vector2i(14, 6),
+"unit_id": "knight"
+}, {
+"faction": "enemy",
+"instance_id": "captain_1",
+"position": Vector2i(13, 8),
+"unit_id": "captain"
+}, {
+"faction": "enemy",
+"instance_id": "sir_aldric",
+"position": Vector2i(16, 4),
+"unit_id": "cavalier"
+}]
+reinforcements = [{
+"faction": "player",
+"instance_id": "monk_mage",
+"message": "A battle mage escapes the monastery and joins your cause!",
+"position": Vector2i(0, 14),
+"turn": 2,
+"unit_id": "mage"
+}, {
+"faction": "enemy",
+"instance_id": "silverguard_6",
+"message": "Another Silverguard knight emerges from the canyon!",
+"position": Vector2i(19, 3),
+"turn": 4,
+"unit_id": "knight"
+}]
+event_triggers = []
+opening_dialogue = [{
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Narrator",
+"text": "The southern canyons open into a hidden valley—a patchwork of farms and watchtowers, half-reclaimed by nature. Here, the Silverguard's remnants have made their final stand: thirteen knights who refused the usurper's oath, led by Sir Aldric of the Verdant Guard."
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Woody",
+"text": "I see their banners. The silver stag, once the symbol of the king's own guard. They must have torn those from their armor when they fled."
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Ember",
+"text": "They call themselves the Unbroken. Not out of pride—but as a promise. They will not bend again, not for king, not for prince, not for anyone who would ask them to break their oaths."
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Sir Aldric",
+"text": "Halt, travelers. This valley belongs to the Unbroken. State your business, or depart in peace—we have no quarrel with wandering souls."
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Woody",
+"text": "I am Woody, son of King Alden, heir to the Verdant Throne. I come to claim the allegiance of the Silverguard—as my father once commanded them."
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Sir Aldric",
+"text": "You are either mad or brave—perhaps both. The king's price for your head would feed my men for a year. Why should I not take it?"
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Bram",
+"text": "Because you know in your bones that the throne was stolen. You know the usurper's oath is poison. You've been hiding in this hole, waiting for exactly this moment—for someone worth fighting for."
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Sir Aldric",
+"text": "Words. My brothers in arms have died for less than a traitor's promises. If you want the Unbroken, come and take them. Defeat me in single combat, and my blade—and my oath—will be yours.If you cannot... then flee back to your monastery and leave us to our fate."
+}]
+victory_dialogue = [{
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Sir Aldric",
+"text": "Enough... enough. You fight like your father. He was the only man who ever bested me in the training yard.I swore an oath to defend the Verdant line—not to any crown, but to the blood itself. That blood flows in you. I see that now."
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Woody",
+"text": "Then the oath is renewed?"
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Sir Aldric",
+"text": "A new oath, my prince. The Unbroken are yours. Thirteen blades, ready to ride against the usurper—and whatever armies he sends after us.The road ahead leads to the Valley of Echoes, where the old resistance makes its stand. I will send word ahead. Your father saved lives there, once. They will not forget."
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Brother Hale",
+"text": "The spirits of the valley whisper welcome. This is no longer a flight—it is a crusade. Word will spread. Other exiles, other broken oaths—they will come.We are no longer fugitives, Woody. We are the seed of a new army."
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Rowan",
+"text": "I've never seen anything like this. In a single campaign, you've gathered a knight, a mage, a priest, and warriors beyond counting.When we ride on the Valley of Echoes, the usurper will know fear."
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Ember",
+"text": "The first chapter ends, but the story continues. The king sits on a throne of lies—we will show him the truth of steel.My village burns no more. Its people may yet return, when the kingdom is whole again. That is enough for me."
+}]
+next_chapter_id = null

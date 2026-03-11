@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="TerrainData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/terrain_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "shrine"
+name = "Shrine"
+move_cost_by_type = {
+"armored": 1,
+"cavalry": 1,
+"infantry": 1
+}
+avoid_bonus = 10
+def_bonus = 2
+is_blocking = false
+tile_tags = PackedStringArray("boss_tile")
+map_color = Color(0.631373, 0.631373, 0.709804, 1)

@@ -1,0 +1,174 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/title_screen.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/ui/menu_start.png" id="2"]
+
+[node name="TitleScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2")
+expand_mode = 1
+stretch_mode = 6
+mouse_filter = 2
+
+[node name="MenuPanel" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 824.0
+offset_top = 440.0
+offset_right = 1228.0
+offset_bottom = 700.0
+
+[node name="MenuMargin" type="MarginContainer" parent="MenuPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="MenuVBox" type="VBoxContainer" parent="MenuPanel/MenuMargin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="NewGameButton" type="Button" parent="MenuPanel/MenuMargin/MenuVBox"]
+layout_mode = 2
+text = "New Game"
+
+[node name="ContinueButton" type="Button" parent="MenuPanel/MenuMargin/MenuVBox"]
+layout_mode = 2
+text = "Continue"
+
+[node name="ChapterSelectButton" type="Button" parent="MenuPanel/MenuMargin/MenuVBox"]
+layout_mode = 2
+text = "Chapter Select"
+
+[node name="OptionsButton" type="Button" parent="MenuPanel/MenuMargin/MenuVBox"]
+layout_mode = 2
+text = "Options"
+
+[node name="HSeparator" type="HSeparator" parent="MenuPanel/MenuMargin/MenuVBox"]
+layout_mode = 2
+
+[node name="QuitButton" type="Button" parent="MenuPanel/MenuMargin/MenuVBox"]
+layout_mode = 2
+text = "Quit"
+
+[node name="OptionsPanel" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 724.0
+offset_top = 280.0
+offset_right = 1328.0
+offset_bottom = 620.0
+
+[node name="OptionsMargin" type="MarginContainer" parent="OptionsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 24
+
+[node name="OptionsVBox" type="VBoxContainer" parent="OptionsPanel/OptionsMargin"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="OptionsTitle" type="Label" parent="OptionsPanel/OptionsMargin/OptionsVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "Options"
+horizontal_alignment = 1
+
+[node name="MusicLabel" type="Label" parent="OptionsPanel/OptionsMargin/OptionsVBox"]
+layout_mode = 2
+text = "Music Volume:"
+
+[node name="MusicSlider" type="HSlider" parent="OptionsPanel/OptionsMargin/OptionsVBox"]
+layout_mode = 2
+min_value = 0.0
+max_value = 1.0
+step = 0.1
+value = 0.8
+
+[node name="SFXLabel" type="Label" parent="OptionsPanel/OptionsMargin/OptionsVBox"]
+layout_mode = 2
+text = "SFX Volume:"
+
+[node name="SFXSlider" type="HSlider" parent="OptionsPanel/OptionsMargin/OptionsVBox"]
+layout_mode = 2
+min_value = 0.0
+max_value = 1.0
+step = 0.1
+value = 0.9
+
+[node name="SpeedLabel" type="Label" parent="OptionsPanel/OptionsMargin/OptionsVBox"]
+layout_mode = 2
+text = "Battle Speed:"
+
+[node name="SpeedSlider" type="HSlider" parent="OptionsPanel/OptionsMargin/OptionsVBox"]
+layout_mode = 2
+min_value = 0.5
+max_value = 2.0
+step = 0.25
+value = 1.0
+
+[node name="BackButton" type="Button" parent="OptionsPanel/OptionsMargin/OptionsVBox"]
+layout_mode = 2
+text = "Back"
+
+[node name="ChapterSelectPanel" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 524.0
+offset_top = 180.0
+offset_right = 1528.0
+offset_bottom = 720.0
+
+[node name="ChapterSelectMargin" type="MarginContainer" parent="ChapterSelectPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 24
+
+[node name="ChapterSelectVBox" type="VBoxContainer" parent="ChapterSelectPanel/ChapterSelectMargin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="ChapterSelectTitle" type="Label" parent="ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "Select Chapter"
+horizontal_alignment = 1
+
+[node name="ChaptersContainer" type="VBoxContainer" parent="ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Chapter1Button" type="Button" parent="ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer"]
+layout_mode = 2
+text = "Chapter 1: Exile in the Greenwood"
+
+[node name="Chapter2Button" type="Button" parent="ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer"]
+layout_mode = 2
+text = "Chapter 2: The Old Monastery"
+
+[node name="Chapter3Button" type="Button" parent="ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer"]
+layout_mode = 2
+text = "Chapter 3: The Unbroken"
+
+[node name="BackButton2" type="Button" parent="ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox"]
+layout_mode = 2
+text = "Back"

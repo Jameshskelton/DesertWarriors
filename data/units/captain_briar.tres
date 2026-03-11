@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="UnitData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/unit_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "captain_briar"
+display_name = "Captain Briar"
+class_id = "captain"
+level = 3
+stats = {
+"def": 6,
+"hp": 26,
+"lck": 4,
+"mag": 0,
+"max_hp": 26,
+"res": 2,
+"skl": 7,
+"spd": 6,
+"str": 9
+}
+xp = 0
+inventory = PackedStringArray("captain_axe")
+portrait_id = "briar"
+faction = "enemy"
+ai_profile = "boss"
+join_event_id = ""
+story_flags = PackedStringArray("boss")

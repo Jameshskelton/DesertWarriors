@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="UnitData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/unit_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "rowan"
+display_name = "Rowan"
+class_id = "cavalier"
+level = 1
+stats = {
+"def": 6,
+"hp": 20,
+"lck": 4,
+"mag": 0,
+"max_hp": 20,
+"res": 2,
+"skl": 6,
+"spd": 8,
+"str": 7
+}
+xp = 0
+inventory = PackedStringArray("iron_lance")
+portrait_id = "rowan"
+faction = "player"
+ai_profile = "charge"
+join_event_id = "rowan_arrival"
+story_flags = PackedStringArray()

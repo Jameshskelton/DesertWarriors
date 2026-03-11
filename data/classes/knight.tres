@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="ClassData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/class_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "knight"
+display_name = "Knight"
+move_type = "armored"
+move_range = 4
+base_stats = {
+"def": 10,
+"lck": 2,
+"mag": 0,
+"max_hp": 24,
+"res": 1,
+"skl": 5,
+"spd": 3,
+"str": 8
+}
+growth_rates = {
+"def": 55,
+"lck": 30,
+"mag": 5,
+"max_hp": 80,
+"res": 15,
+"skl": 35,
+"spd": 20,
+"str": 50
+}
+weapon_types = PackedStringArray("lance")
+can_use_staves = false
+battle_anim_set = "knight_lance"

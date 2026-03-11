@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="ClassData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/class_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "cavalier"
+display_name = "Cavalier"
+move_type = "cavalry"
+move_range = 7
+base_stats = {
+"def": 6,
+"lck": 4,
+"mag": 0,
+"max_hp": 20,
+"res": 2,
+"skl": 6,
+"spd": 8,
+"str": 7
+}
+growth_rates = {
+"def": 30,
+"lck": 40,
+"mag": 5,
+"max_hp": 70,
+"res": 20,
+"skl": 45,
+"spd": 50,
+"str": 45
+}
+weapon_types = PackedStringArray("lance")
+can_use_staves = false
+battle_anim_set = "cavalier_lance"

@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="ClassData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/class_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "lord"
+display_name = "Lord"
+move_type = "infantry"
+move_range = 5
+base_stats = {
+"def": 5,
+"lck": 5,
+"mag": 0,
+"max_hp": 18,
+"res": 2,
+"skl": 7,
+"spd": 7,
+"str": 6
+}
+growth_rates = {
+"def": 35,
+"lck": 50,
+"mag": 10,
+"max_hp": 75,
+"res": 25,
+"skl": 55,
+"spd": 55,
+"str": 45
+}
+weapon_types = PackedStringArray("sword")
+can_use_staves = false
+battle_anim_set = "lord_sword"

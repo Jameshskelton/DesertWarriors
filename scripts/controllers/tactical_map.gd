@@ -1,0 +1,506 @@
+extends Control
+
+signal request_dialogue(lines: Array, next_tag: String)
+signal chapter_cleared(summary: Dictionary)
+signal chapter_failed(summary: Dictionary)
+
+const BATTLE_SCENE := preload("res://scenes/battle/battle_scene.tscn")
+
+var _chapter_id: String = ""
+var _chapter: ChapterData
+var _terrain_grid: Array = []
+var _units: Array[UnitState] = []
+var _grid_size: Vector2i = Vector2i(20, 15)
+var _cursor_tile: Vector2i = Vector2i(0, 0)
+var _cell_size: float = 32.0
+var _board_origin: Vector2 = Vector2(56, 96)
+var _selection: SelectionController = SelectionController.new()
+var _grid: GridService = GridService.new()
+var _pathfinding: PathfindingService = PathfindingService.new()
+var _turn_controller: TurnController = TurnController.new()
+var _objective_controller: ObjectiveController = ObjectiveController.new()
+var _event_director: EventDirector = EventDirector.new()
+var _combat_resolver: CombatResolver = CombatResolver.new()
+var _ai_controller: AIController = AIController.new()
+var _battle_transition: BattleTransitionController = BattleTransitionController.new()
+var _active_battle: Control
+var _spawned_reinforcements: PackedStringArray = PackedStringArray()
+
+@onready var _chapter_label: Label = $Header/HeaderMargin/HeaderRow/ChapterLabel
+@onready var _turn_label: Label = $Header/HeaderMargin/HeaderRow/TurnLabel
+@onready var _phase_label: Label = $Header/HeaderMargin/HeaderRow/PhaseLabel
+@onready var _objective_label: Label = $Header/HeaderMargin/HeaderRow/ObjectiveLabel
+@onready var _status_label: Label = $Footer/FooterMargin/FooterVBox/StatusLabel
+@onready var _hint_label: Label = $Footer/FooterMargin/FooterVBox/HintLabel
+@onready var _action_menu = $ActionMenu
+@onready var _forecast_panel = $ForecastPanel
+@onready var _battle_layer: Control = $BattleLayer
+@onready var _help_panel = $HelpPanel
+
+
+func setup(chapter_id: String) -> void:
+	_chapter_id = chapter_id
+
+
+func _ready() -> void:
+	add_child(_battle_transition)
+	_help_panel.visible = false
+	if _help_panel.CloseButton:
+		_help_panel.CloseButton.pressed.connect(_on_help_close)
+	_battle_transition.battle_overlay_requested.connect(_show_battle_overlay)
+	_action_menu.action_selected.connect(_on_action_menu_selected)
+	_load_chapter()
+	AudioDirector.play_track("forest_realm")
+
+
+func _load_chapter() -> void:
+	_chapter = DataRegistry.get_chapter_data(_chapter_id)
+	_grid_size = Vector2i(_chapter.map_width, _chapter.map_height)
+	_terrain_grid.clear()
+	_spawned_reinforcements.clear()
+	for row in _chapter.terrain_rows:
+		var parsed_row: Array = []
+		for index in range(row.length()):
+			var character: String = row.substr(index, 1)
+			parsed_row.append(_chapter.terrain_legend.get(character, "plains"))
+		_terrain_grid.append(parsed_row)
+	_units.clear()
+	for entry in _chapter.starting_units:
+		_spawn_unit(entry)
+	for entry in _chapter.enemy_units:
+		_spawn_unit(entry)
+	_turn_controller.begin_battle(_units)
+	_event_director.reset()
+	_cursor_tile = Vector2i(1, _grid_size.y - 2)
+	_update_header()
+	_update_status("Guide Woody through the Greenwood and defeat Captain Briar.")
+	queue_redraw()
+
+
+func _spawn_unit(entry: Dictionary) -> void:
+	var unit_id: String = str(entry.get("unit_id", ""))
+	var unit_data: UnitData = DataRegistry.get_unit_data(unit_id)
+	if unit_data == null:
+		return
+	var position = entry.get("position", Vector2i.ZERO)
+	var faction_override: String = str(entry.get("faction", ""))
+	var state: UnitState = UnitState.from_unit_data(unit_data, position, faction_override)
+	if entry.has("instance_id"):
+		state.unit_id = entry["instance_id"]
+	_units.append(state)
+
+
+func _draw() -> void:
+	_draw_board()
+	_draw_units()
+
+
+func _draw_board() -> void:
+	for y in range(_grid_size.y):
+		for x in range(_grid_size.x):
+			var tile := Vector2i(x, y)
+			var terrain_id: String = _terrain_grid[y][x]
+			var terrain: TerrainData = DataRegistry.get_terrain_data(terrain_id)
+			var rect := Rect2(_board_origin + Vector2(x, y) * _cell_size, Vector2.ONE * _cell_size)
+			draw_rect(rect, terrain.map_color)
+			draw_rect(rect, Color(0, 0, 0, 0.2), false, 1.0)
+			if _selection.highlighted_tiles.has(tile):
+				draw_rect(rect.grow(-2), Color(0.309804, 0.686275, 0.929412, 0.35))
+			if _selection.target_tiles.has(tile):
+				draw_rect(rect.grow(-4), Color(0.929412, 0.4, 0.360784, 0.45))
+	var cursor_rect := Rect2(_board_origin + Vector2(_cursor_tile.x, _cursor_tile.y) * _cell_size, Vector2.ONE * _cell_size)
+	draw_rect(cursor_rect.grow(-1), Color(0.980392, 0.941176, 0.745098, 1), false, 3.0)
+
+
+func _draw_units() -> void:
+	var font := ThemeDB.fallback_font
+	for unit in _units:
+		if not unit.is_alive() or not unit.has_joined:
+			continue
+		var rect := Rect2(_board_origin + Vector2(unit.position.x, unit.position.y) * _cell_size + Vector2(5, 5), Vector2.ONE * (_cell_size - 10))
+		draw_rect(rect, _unit_color(unit))
+		draw_string(font, rect.position + Vector2(6, 18), unit.display_name.left(1), HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color.WHITE)
+		if unit.moved and unit.faction == "player":
+			draw_rect(rect.grow(-3), Color(0, 0, 0, 0.4), false, 2.0)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if _active_battle != null or _turn_controller.phase != "player":
+		return
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		var clicked_tile := _screen_to_tile(event.position)
+		if _grid.in_bounds(clicked_tile, _grid_size):
+			_cursor_tile = clicked_tile
+			_confirm_cursor()
+			queue_redraw()
+			return
+	if event.is_action_pressed("ui_up"):
+		_cursor_tile.y = maxi(0, _cursor_tile.y - 1)
+	elif event.is_action_pressed("ui_down"):
+		_cursor_tile.y = mini(_grid_size.y - 1, _cursor_tile.y + 1)
+	elif event.is_action_pressed("ui_left"):
+		_cursor_tile.x = maxi(0, _cursor_tile.x - 1)
+	elif event.is_action_pressed("ui_right"):
+		_cursor_tile.x = mini(_grid_size.x - 1, _cursor_tile.x + 1)
+	elif event.is_action_pressed("ui_accept"):
+		_confirm_cursor()
+	elif event.is_action_pressed("ui_cancel"):
+		_cancel_selection()
+	elif event is InputEventKey and event.pressed:
+		if event.keycode == KEY_H or event.keycode == KEY_F1:
+			_help_panel.visible = not _help_panel.visible
+			return
+	elif event.is_action_pressed("end_turn") and _selection.mode == SelectionController.Mode.IDLE:
+		_begin_enemy_phase()
+	queue_redraw()
+	_update_hover_status()
+
+
+func _confirm_cursor() -> void:
+	match _selection.mode:
+		SelectionController.Mode.IDLE:
+			_select_unit_at_cursor()
+		SelectionController.Mode.UNIT_SELECTED:
+			_try_move_selected_unit()
+		SelectionController.Mode.TARGETING:
+			_try_target_action()
+
+
+func _cancel_selection() -> void:
+	if _selection.mode == SelectionController.Mode.ACTION_MENU or _selection.mode == SelectionController.Mode.TARGETING:
+		if _selection.selected_unit != null:
+			_selection.selected_unit.position = _selection.origin_tile
+			_selection.selected_unit.moved = false
+	_action_menu.hide_menu()
+	_forecast_panel.hide_panel()
+	_selection.reset()
+	_update_status("Selection cancelled.")
+	queue_redraw()
+
+
+func _select_unit_at_cursor() -> void:
+	var unit := _get_unit_at(_cursor_tile)
+	if unit == null or unit.faction != "player" or unit.moved or not unit.is_alive():
+		return
+	var class_data: ClassData = DataRegistry.get_class_data(unit.class_id)
+	var reachability := _pathfinding.compute_reachable(unit.position, class_data.move_range, _terrain_grid, class_data.move_type, _build_occupied_lookup(unit))
+	_selection.mode = SelectionController.Mode.UNIT_SELECTED
+	_selection.selected_unit = unit
+	_selection.origin_tile = unit.position
+	_selection.highlighted_tiles = reachability.get("costs", {})
+	_update_status("%s selected. Choose a destination." % unit.display_name)
+
+
+func _try_move_selected_unit() -> void:
+	var selected: UnitState = _selection.selected_unit
+	if selected == null:
+		return
+	if not _selection.highlighted_tiles.has(_cursor_tile):
+		return
+	selected.position = _cursor_tile
+	selected.moved = true
+	_selection.mode = SelectionController.Mode.ACTION_MENU
+	_show_action_menu(selected)
+
+
+func _show_action_menu(unit: UnitState) -> void:
+	var action_states := {
+		"attack": _has_attack_targets(unit),
+		"staff": _has_heal_targets(unit),
+		"wait": true,
+		"cancel": true,
+	}
+	_action_menu.show_actions(action_states)
+	_update_status("Choose an action for %s." % unit.display_name)
+
+
+func _on_action_menu_selected(action_name: String) -> void:
+	var unit: UnitState = _selection.selected_unit
+	if unit == null:
+		return
+	match action_name:
+		"attack":
+			_selection.mode = SelectionController.Mode.TARGETING
+			_selection.pending_action = "attack"
+			_selection.target_tiles = _valid_attack_tiles(unit)
+			_action_menu.hide_menu()
+			_update_status("Select an enemy target.")
+		"staff":
+			_selection.mode = SelectionController.Mode.TARGETING
+			_selection.pending_action = "staff"
+			_selection.target_tiles = _valid_heal_tiles(unit)
+			_action_menu.hide_menu()
+			_update_status("Select an ally to heal.")
+		"wait":
+			unit.consume_turn()
+			_finish_unit_action()
+		"cancel":
+			_cancel_selection()
+	queue_redraw()
+
+
+func _try_target_action() -> void:
+	if not _selection.target_tiles.has(_cursor_tile):
+		return
+	var source: UnitState = _selection.selected_unit
+	var target := _get_unit_at(_cursor_tile)
+	if source == null or target == null:
+		return
+	match _selection.pending_action:
+		"attack":
+			await _execute_attack(source, target)
+		"staff":
+			_execute_staff(source, target)
+
+
+func _execute_attack(source: UnitState, target: UnitState) -> void:
+	source.consume_turn()
+	var attacker_terrain := _get_terrain_at(source.position)
+	var defender_terrain := _get_terrain_at(target.position)
+	var payload := {
+		"attacker": source,
+		"defender": target,
+		"attacker_start_hp": source.get_current_hp(),
+		"defender_start_hp": target.get_current_hp(),
+		"result": _combat_resolver.resolve_battle(source, target, attacker_terrain, defender_terrain),
+	}
+	_selection.mode = SelectionController.Mode.BATTLE
+	_forecast_panel.hide_panel()
+	_selection.target_tiles.clear()
+	_battle_transition.begin_battle(payload)
+	await _battle_completed()
+	_finish_unit_action()
+
+
+func _execute_staff(source: UnitState, target: UnitState) -> void:
+	var outcome := _combat_resolver.resolve_staff(source, target)
+	source.consume_turn()
+	_update_status("%s heals %s for %d HP." % [outcome.get("user_name", source.display_name), outcome.get("target_name", target.display_name), outcome.get("heal_amount", 0)])
+	_finish_unit_action()
+
+
+func _show_battle_overlay(payload: Dictionary) -> void:
+	var battle_scene: Control = BATTLE_SCENE.instantiate()
+	battle_scene.setup(payload)
+	battle_scene.battle_finished.connect(_on_battle_finished)
+	_active_battle = battle_scene
+	_battle_layer.add_child(battle_scene)
+
+
+func _battle_completed() -> void:
+	while _active_battle != null:
+		await get_tree().process_frame
+
+
+func _on_battle_finished() -> void:
+	if _active_battle != null:
+		_active_battle.queue_free()
+		_active_battle = null
+	queue_redraw()
+
+
+func _finish_unit_action() -> void:
+	_action_menu.hide_menu()
+	_forecast_panel.hide_panel()
+	_handle_tile_events(_selection.selected_unit)
+	_selection.reset()
+	_update_hover_status()
+	queue_redraw()
+	if _check_end_conditions():
+		return
+	if _all_player_units_acted():
+		_begin_enemy_phase()
+
+
+func _begin_enemy_phase() -> void:
+	_turn_controller.enter_enemy_phase()
+	_selection.mode = SelectionController.Mode.ENEMY_PHASE
+	_update_header()
+	_update_status("Enemy phase...")
+	await _run_enemy_phase()
+	if _check_end_conditions():
+		return
+	_turn_controller.enter_player_phase(_units)
+	_process_turn_events()
+	_selection.reset()
+	_update_header()
+	_update_status("Player phase. Press T to end turn if needed.")
+	queue_redraw()
+
+
+func _run_enemy_phase() -> void:
+	for unit in _units:
+		if unit.faction != "enemy" or not unit.is_alive():
+			continue
+		var action := _ai_controller.choose_action(unit, _units, _terrain_grid)
+		match action.get("type", "wait"):
+			"move_wait":
+				unit.position = action.get("destination", unit.position)
+				await get_tree().create_timer(0.15).timeout
+			"move_attack":
+				unit.position = action.get("destination", unit.position)
+				var target := action.get("target") as UnitState
+				if target != null and target.is_alive():
+					var payload := {
+						"attacker": unit,
+						"defender": target,
+						"attacker_start_hp": unit.get_current_hp(),
+						"defender_start_hp": target.get_current_hp(),
+						"result": _combat_resolver.resolve_battle(unit, target, _get_terrain_at(unit.position), _get_terrain_at(target.position)),
+					}
+					_battle_transition.begin_battle(payload)
+					await _battle_completed()
+		queue_redraw()
+		if _check_end_conditions():
+			return
+
+
+func _process_turn_events() -> void:
+	for reinforcement in _chapter.reinforcements:
+		var reinforcement_id: String = str(reinforcement.get("instance_id", reinforcement.get("unit_id", "")))
+		if int(reinforcement.get("turn", -1)) == _turn_controller.turn_number and not _spawned_reinforcements.has(reinforcement_id):
+			_spawned_reinforcements.append(reinforcement_id)
+			_spawn_unit(reinforcement)
+			if reinforcement.has("message"):
+				_update_status(str(reinforcement.get("message", "")))
+	var turn_events := _event_director.consume_turn_events(_turn_controller.turn_number, _chapter)
+	for event in turn_events:
+		_execute_event(event)
+	queue_redraw()
+
+
+func _handle_tile_events(unit: UnitState) -> void:
+	if unit == null:
+		return
+	var events := _event_director.consume_tile_events(unit.unit_id, unit.position, _chapter)
+	for event in events:
+		_execute_event(event)
+
+
+func _execute_event(event: Dictionary) -> void:
+	match event.get("action", ""):
+		"spawn_join":
+			_spawn_unit(event.get("spawn", {}))
+			_update_status(str(event.get("message", "A new ally joins the cause.")))
+		"message":
+			_update_status(str(event.get("message", "")))
+
+
+func _has_attack_targets(unit: UnitState) -> bool:
+	return not _valid_attack_tiles(unit).is_empty()
+
+
+func _has_heal_targets(unit: UnitState) -> bool:
+	return not _valid_heal_tiles(unit).is_empty()
+
+
+func _valid_attack_tiles(unit: UnitState) -> Array[Vector2i]:
+	var tiles: Array[Vector2i] = []
+	for target in _units:
+		if _combat_resolver.can_unit_attack_from_tile(unit, target, unit.position):
+			tiles.append(target.position)
+	return tiles
+
+
+func _valid_heal_tiles(unit: UnitState) -> Array[Vector2i]:
+	var tiles: Array[Vector2i] = []
+	for target in _units:
+		if _combat_resolver.can_unit_heal_from_tile(unit, target, unit.position):
+			tiles.append(target.position)
+	return tiles
+
+
+func _check_end_conditions() -> bool:
+	if _objective_controller.check_defeat(_units):
+		chapter_failed.emit(_build_summary(false))
+		return true
+	if _objective_controller.check_victory(_units, _chapter):
+		for unit in _units:
+			if unit.faction == "player" and unit.downed:
+				unit.downed = false
+				unit.set_current_hp(maxi(1, int(unit.get_max_hp() / 2)))
+		chapter_cleared.emit(_build_summary(true))
+		return true
+	return false
+
+
+func _build_summary(success: bool) -> Dictionary:
+	var survivors: PackedStringArray = PackedStringArray()
+	for unit in _units:
+		if unit.faction == "player" and unit.is_alive():
+			survivors.append(unit.display_name)
+	return {
+		"success": success,
+		"chapter_id": _chapter.id,
+		"chapter_name": _chapter.display_name,
+		"turns": _turn_controller.turn_number,
+		"objective": "Defeat Boss",
+		"survivors": survivors,
+		"next_chapter_id": _chapter.next_chapter_id if _chapter else "",
+	}
+
+
+func _all_player_units_acted() -> bool:
+	for unit in _units:
+		if unit.faction == "player" and unit.is_alive() and not unit.acted:
+			return false
+	return true
+
+
+func _build_occupied_lookup(excluded: UnitState = null) -> Dictionary:
+	var occupied: Dictionary = {}
+	for unit in _units:
+		if unit == excluded or not unit.is_alive():
+			continue
+		occupied[unit.position] = unit
+	return occupied
+
+
+func _get_unit_at(tile: Vector2i) -> UnitState:
+	for unit in _units:
+		if unit.position == tile and unit.is_alive() and unit.has_joined:
+			return unit
+	return null
+
+
+func _get_terrain_at(tile: Vector2i) -> TerrainData:
+	return DataRegistry.get_terrain_data(_terrain_grid[tile.y][tile.x])
+
+
+func _screen_to_tile(screen_position: Vector2) -> Vector2i:
+	var local := screen_position - _board_origin
+	return Vector2i(floori(local.x / _cell_size), floori(local.y / _cell_size))
+
+
+func _update_header() -> void:
+	_chapter_label.text = _chapter.display_name
+	_turn_label.text = "Turn %d" % _turn_controller.turn_number
+	_phase_label.text = "Player Phase" if _turn_controller.phase == "player" else "Enemy Phase"
+	_objective_label.text = "Defeat Boss"
+
+
+func _update_status(message: String) -> void:
+	_status_label.text = message
+
+
+func _update_hover_status() -> void:
+	var unit := _get_unit_at(_cursor_tile)
+	if _selection.mode == SelectionController.Mode.TARGETING and _selection.selected_unit != null and unit != null:
+		if _selection.pending_action == "attack" and unit.faction != _selection.selected_unit.faction:
+			var forecast := _combat_resolver.build_forecast(_selection.selected_unit, unit, _get_terrain_at(_selection.selected_unit.position), _get_terrain_at(unit.position))
+			_forecast_panel.show_battle_forecast(_selection.selected_unit, unit, forecast, _get_terrain_at(unit.position))
+			return
+		if _selection.pending_action == "staff" and unit.faction == _selection.selected_unit.faction:
+			var weapon := DataRegistry.get_weapon_data(_selection.selected_unit.get_equipped_weapon_id())
+			var amount = int(weapon.heal_power) + int(_selection.selected_unit.stats.get("mag", 0))
+			_forecast_panel.show_heal_preview(_selection.selected_unit, unit, amount)
+			return
+	_forecast_panel.hide_panel()
+	if unit != null:
+		_status_label.text = "%s Lv.%d HP %d/%d" % [unit.display_name, unit.level, unit.get_current_hp(), unit.get_max_hp()]
+
+
+func _unit_color(unit: UnitState) -> Color:
+	if unit.faction == "player":
+		return Color(0.286275, 0.486275, 0.768627, 1)
+	return Color(0.733333, 0.286275, 0.239216, 1)

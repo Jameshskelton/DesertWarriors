@@ -1,0 +1,141 @@
+[gd_resource type="Resource" script_class="ChapterData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/chapter_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "chapter_1"
+display_name = "Chapter 1: Exile in the Greenwood"
+objective_type = "defeat_boss"
+map_width = 20
+map_height = 15
+terrain_rows = PackedStringArray("FFFFFFFFFFFFFSSFFFFF", "FFFFRRRRPPFFFRSSFFFF", "FFFRRPPPPPRRFFFSFFFF", "FFFRPPFFFPRRFFFVFFFF", "FFRRPFFFFPPRRFFFFFFF", "FRRPPFFFFPPRRFFFFFFF", "RRPPPPFFFPPRRFFFFFFF", "RPPFFFFFPPPRRFFFFFFF", "RPPFFFFPPPRRFFFFFFFF", "RPPFFFPPPRRFFFFFFFFF", "RPPFPPPRRFFFFFFFFFFF", "RPPPPPRRFFFFFFFFFFFF", "RRPPPRRFFFFFFFFFFFFF", "FRRRRRFFFFFFFFFFFFFF", "FFRRRFFFFFFFFFFFFFFF")
+terrain_legend = {
+"F": "forest",
+"P": "plains",
+"R": "road",
+"S": "shrine",
+"V": "village"
+}
+deployment_slots = 5
+starting_units = [{
+"faction": "player",
+"position": Vector2i(2, 13),
+"unit_id": "woody"
+}, {
+"faction": "player",
+"position": Vector2i(1, 12),
+"unit_id": "bram"
+}, {
+"faction": "player",
+"position": Vector2i(3, 13),
+"unit_id": "brother_hale"
+}]
+enemy_units = [{
+"faction": "enemy",
+"instance_id": "brigand_1",
+"position": Vector2i(7, 11),
+"unit_id": "brigand_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "brigand_2",
+"position": Vector2i(10, 8),
+"unit_id": "brigand_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "brigand_3",
+"position": Vector2i(14, 5),
+"unit_id": "brigand_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "hunter_1",
+"position": Vector2i(12, 9),
+"unit_id": "hunter_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "hunter_2",
+"position": Vector2i(16, 6),
+"unit_id": "hunter_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "pursuer_1",
+"position": Vector2i(15, 3),
+"unit_id": "pursuer_armor"
+}, {
+"faction": "enemy",
+"instance_id": "captain_briar",
+"position": Vector2i(14, 1),
+"unit_id": "captain_briar"
+}]
+reinforcements = [{
+"faction": "player",
+"instance_id": "rowan_arrival",
+"message": "Rowan gallops in from the southern road to reinforce Woody.",
+"position": Vector2i(0, 10),
+"turn": 2,
+"unit_id": "rowan"
+}, {
+"faction": "enemy",
+"instance_id": "brigand_ambush",
+"message": "Another brigand slips out from the eastern brush!",
+"position": Vector2i(19, 7),
+"turn": 3,
+"unit_id": "brigand_grunt"
+}]
+event_triggers = [{
+"action": "spawn_join",
+"id": "ember_join",
+"message": "Ember steps from the village and vows to burn back Woody's hunters.",
+"position": Vector2i(15, 3),
+"spawn": {
+"faction": "player",
+"instance_id": "ember_joined",
+"position": Vector2i(16, 3),
+"unit_id": "ember"
+},
+"trigger": "tile",
+"unit_id": "woody"
+}]
+opening_dialogue = [{
+"chapter": "Chapter 1: Exile in the Greenwood",
+"speaker": "Narrator",
+"text": "The autumn wind carries the last echoes of kingdom bells—bells that once rang for Prince Woody, now stripped of crown and lineage.Three moons ago, he stood as heir to the Verdant Throne. Tonight, he flees through the Greenwood with nothing but a worn blade and three loyal souls."
+}, {
+"chapter": "Chapter 1: Exile in the Greenwood",
+"speaker": "Woody",
+"text": "They called me 'your highness' when my father's head still wore the circlet. Now I am nothing but a name in a royal warrant, a prince turned outlaw in his own kingdom.Bram... Brother Hale... I swear on my father's memory—we will return. Not as exiles, but as conquerors. The throne that cast me out will learn to tremble."
+}, {
+"chapter": "Chapter 1: Exile in the Greenwood",
+"speaker": "Bram",
+"text": "I've guarded the Verdant Throne for twelve winters, my prince. I watched your father sit upon it, and I watched the usurpers drag him to the dungeons. They thought they'd silenced me when they burned my manor.I'll carry this shield until my arms fail. No brigand or royal hunter will touch you—not while I draw breath."
+}, {
+"chapter": "Chapter 1: Exile in the Greenwood",
+"speaker": "Brother Hale",
+"text": "The Greenwood has always been sacred to the old ways—long before crowns and castles scarred this land. The trees remember when our ancestors communed with spirits beneath the canopy.My prayers may not fill battle standards, but the forest itself can be our ally. Every oak is a potential wall; every thicket, a hidden path. We move like shadows, and the hunt passes over us."
+}, {
+"chapter": "Chapter 1: Exile in the Greenwood",
+"speaker": "Narrator",
+"text": "A distant horn sounds from the north—the royal hunters, tracking their prey through the undergrowth. Somewhere ahead, a village smokes on the horizon. And beyond that, legends speak of an ancient monastery, a place where the exiled might find refuge... and vengeance."
+}]
+victory_dialogue = [{
+"chapter": "Chapter 1: Exile in the Greenwood",
+"speaker": "Captain Briar",
+"text": "Impressive... truly impressive. You've bested my hunters, outmaneuvered my brigands, and claimed the shrine's blessing as your own. But hear me well, boy—my king's reach extends far beyond this forest.He has armies in the east, navies in the west, and allies in every court from here to the Shattered Coast. You flee today, but there is no corner of this realm where you can hide."
+}, {
+"chapter": "Chapter 1: Exile in the Greenwood",
+"speaker": "Woody",
+"text": "Tell your king this: a prince without a crown is still a prince. And every day I walk free, I gather those who know the weight of injustice. Today it was three. Tomorrow, it may be three hundred.Come, allies—we have far to travel, and the road only grows harder."
+}, {
+"chapter": "Chapter 1: Exile in the Greenwood",
+"speaker": "Ember",
+"text": "I watched my village burn twice—once by bandits, once by 'orderly' royal troops who called it pacification. When your lot came through, I thought more of the same.But you... you stopped. You asked, not demanded. That's rare enough in this kingdom to be remarkable.I know the old monastery to the east. They harbor those the crown has wronged—and they remember old debts to the Verdant line. If we ride now, we'll reach it by moonrise."
+}, {
+"chapter": "Chapter 1: Exile in the Greenwood",
+"speaker": "Rowan",
+"text": "Word travels fast in the Greenwood. They say an exiled prince fights back, and I ride to see it with my own eyes. A cavalryman without a cause is just a sellsword—I'm glad to have found a cause again."
+}, {
+"chapter": "Chapter 1: Exile in the Greenwood",
+"speaker": "Brother Hale",
+"text": "The shrine's spirits whisper of danger ahead, but also hope. A remnant of the old resistance gathers in the east—knights who refused the usurper's oath, peasants who remember the true crown.We are no longer three fugitives wandering in the dark. We are the beginning of something larger."
+}]
+next_chapter_id = "chapter_2"

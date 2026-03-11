@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="UnitData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/unit_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "brother_hale"
+display_name = "Brother Hale"
+class_id = "priest"
+level = 1
+stats = {
+"def": 2,
+"hp": 17,
+"lck": 4,
+"mag": 5,
+"max_hp": 17,
+"res": 7,
+"skl": 6,
+"spd": 5,
+"str": 0
+}
+xp = 0
+inventory = PackedStringArray("heal_staff")
+portrait_id = "hale"
+faction = "player"
+ai_profile = "support"
+join_event_id = ""
+story_flags = PackedStringArray()

@@ -1,0 +1,140 @@
+[gd_resource type="Resource" script_class="ChapterData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/chapter_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "chapter_2"
+display_name = "Chapter 2: The Old Monastery"
+objective_type = "defeat_boss"
+map_width = 20
+map_height = 15
+terrain_rows = PackedStringArray("FFFFFFFFPPFFFFFFFFFFF", "FFFFFRRRRRRFFFFFFF", "FFFFRRRRRRRRRFFFFFFF", "FFFFFRRRRRRRRFFFFFFF", "FFFFFFFFPRRRRFFFFFFF", "FFFFFPPPRRRRFFFFFF", "FFFFPPPRRRRRRFFFFFF", "FFPPPPPRRRRRRRFFFFF", "FFPPPPPRRRRRRRFFFFFF", "FFFFPPPPRRRRRRFFFFF", "FFFFFPPPPRRRRRFFFFF", "FFFFFFFPPPRRRRFFFFF", "FFFFFFFRRRRRRRFFFFF", "FFFFFFFRRRRRRRFFFFFF", "FFFFFFFPRRRRRFFFFFFF")
+terrain_legend = {
+"F": "forest",
+"P": "plains",
+"R": "road",
+"S": "shrine",
+"V": "village"
+}
+deployment_slots = 7
+starting_units = [{
+"faction": "player",
+"position": Vector2i(1, 14),
+"unit_id": "woody"
+}, {
+"faction": "player",
+"position": Vector2i(0, 13),
+"unit_id": "bram"
+}, {
+"faction": "player",
+"position": Vector2i(2, 14),
+"unit_id": "brother_hale"
+}, {
+"faction": "player",
+"position": Vector2i(0, 14),
+"unit_id": "ember"
+}, {
+"faction": "player",
+"position": Vector2i(1, 13),
+"unit_id": "rowan"
+}]
+enemy_units = [{
+"faction": "enemy",
+"instance_id": "scout_1",
+"position": Vector2i(6, 12),
+"unit_id": "hunter_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "scout_2",
+"position": Vector2i(8, 10),
+"unit_id": "hunter_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "brigand_1",
+"position": Vector2i(10, 8),
+"unit_id": "brigand_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "brigand_2",
+"position": Vector2i(12, 6),
+"unit_id": "brigand_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "knight_1",
+"position": Vector2i(14, 4),
+"unit_id": "knight"
+}, {
+"faction": "enemy",
+"instance_id": "knight_2",
+"position": Vector2i(15, 3),
+"unit_id": "knight"
+}, {
+"faction": "enemy",
+"instance_id": "abbot_vermis",
+"position": Vector2i(17, 1),
+"unit_id": "captain"
+}]
+reinforcements = [{
+"faction": "player",
+"instance_id": "monk_reinforce",
+"message": "Monks from the monastery emerge to aid the prince!",
+"position": Vector2i(19, 2),
+"turn": 3,
+"unit_id": "brother_hale"
+}, {
+"faction": "enemy",
+"instance_id": "scout_3",
+"message": "A royal scout spots your party from the ridge!",
+"position": Vector2i(0, 5),
+"turn": 4,
+"unit_id": "hunter_grunt"
+}]
+event_triggers = []
+opening_dialogue = [{
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Narrator",
+"text": "The road east stretches through open plains, the Greenwood thinning behind them. Ember leads the way, her eyes scanning for familiar landmarks—a burned mill, a hollow oak, the stone marker of an old covenant."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Ember",
+"text": "The monastery stands at the crossroads of old trade routes. When the Verdant Kingdom was young, the monks there served as healers for both king and commoner alike.The current abbot... Abbot Vermis. He was a friend to your father once. Whether he remains a friend to your memory, I cannot say."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Woody",
+"text": "We have little choice but to try. The resistance Brother Hale spoke of—if it exists—we need their numbers. We cannot win this with five souls."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Rowan",
+"text": "Cavalry scouts ahead, my prince. Royal lancers by their banners, not mere brigands. They know we're coming."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Bram",
+"text": "Then we ride through them. My shield has stopped better blades than theirs. Let them come."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Brother Hale",
+"text": "The spirits of the road whisper warning. I sense treachery ahead—not from the knights, but from within the monastery walls themselves.Trust nothing until you see the abbot's true face, Woody. Old alliances rot quickly in the shadow of crowns."
+}]
+victory_dialogue = [{
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Abbot Vermis",
+"text": "Enough! I did not become abbot by being a fool. Your father saved my life twenty years ago during the Border Rebellion—I have not forgotten.But neither have I forgotten what happened to him. He was betrayed by those he trusted. If I shelter you, the king's armies will burn this monastery to ash."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Woody",
+"text": "Then we will not stay. We only need your blessing, Abbot—and the names of those who still remember the true crown."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Abbot Vermis",
+"text": "There is a knight named Sir Aldric, formerly of the Silverguard. He and twelve loyal men have hidden in the canyons to the south. They call themselves the Unbroken.He will not come to you easily—he carries the weight of his oath to the usurper king. But if you can defeat him in fair combat... he may listen."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Ember",
+"text": "The southern canyons. I know them well—my family once farmed in the valley below. The Silverguard's shame runs deep; they will not accept a new master easily."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Brother Hale",
+"text": "The monks offer provisions and healing. We rest here one night, then ride south. Sir Aldric awaits—and with him, the first true test of your claim to the throne."
+}]
+next_chapter_id = "chapter_3"

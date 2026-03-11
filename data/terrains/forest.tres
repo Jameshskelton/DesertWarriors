@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="TerrainData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/terrain_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "forest"
+name = "Forest"
+move_cost_by_type = {
+"armored": 2,
+"cavalry": 3,
+"infantry": 2
+}
+avoid_bonus = 20
+def_bonus = 1
+is_blocking = false
+tile_tags = PackedStringArray("wooded", "cover")
+map_color = Color(0.203922, 0.415686, 0.239216, 1)

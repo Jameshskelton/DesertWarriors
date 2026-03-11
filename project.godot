@@ -1,0 +1,44 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[animation]
+
+compatibility/default_parent_skeleton_in_mesh_instance_3d=true
+
+[application]
+
+config/name="Flame Symbol"
+run/main_scene="res://scenes/shared/main.tscn"
+config/features=PackedStringArray("4.6", "GL Compatibility")
+config/icon="res://icon.svg"
+
+[autoload]
+
+GameState="*res://autoload/game_state.gd"
+SaveSystem="*res://autoload/save_system.gd"
+DataRegistry="*res://autoload/data_registry.gd"
+AudioDirector="*res://autoload/audio_director.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/stretch/scale_mode="integer"
+
+[gui]
+
+theme/custom="res://ui/flame_theme.tres"
+
+[rendering]
+
+textures/canvas_textures/default_texture_filter=0
+2d/snapping/use_gpu_pixel_snap=true
+environment/default_clear_color=Color(0.0470588, 0.0823529, 0.109804, 1)

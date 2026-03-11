@@ -1,0 +1,148 @@
+[gd_scene format=3]
+
+[node name="HelpPanel" type="PanelContainer"]
+visible = false
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -280.0
+offset_right = 400.0
+offset_bottom = 280.0
+
+[node name="HelpMargin" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 24
+
+[node name="HelpVBox" type="VBoxContainer" parent="HelpMargin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="HelpMargin/HelpVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "How to Play"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="HelpMargin/HelpVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Content" type="VBoxContainer" parent="HelpMargin/HelpVBox/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="MovementSection" type="VBoxContainer" parent="HelpMargin/HelpVBox/ScrollContainer/Content"]
+layout_mode = 2
+
+[node name="MovementTitle" type="Label" parent="HelpMargin/HelpVBox/ScrollContainer/Content/MovementSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Movement"
+
+[node name="MovementText" type="RichTextLabel" parent="HelpMargin/HelpVBox/ScrollContainer/Content/MovementSection"]
+layout_mode = 2
+bbcode_enabled = false
+fit_content = true
+text = "Use Arrow Keys or WASD to move the cursor. Press Z or Enter to select a unit. Each unit can move once per turn.
+\nMovement range is shown by highlighted tiles in blue. Move to the desired tile and press Z to confirm."
+
+[node name="CombatSection" type="VBoxContainer" parent="HelpMargin/HelpVBox/ScrollContainer/Content"]
+layout_mode = 2
+
+[node name="CombatTitle" type="Label" parent="HelpMargin/HelpVBox/ScrollContainer/Content/CombatSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Combat"
+
+[node name="CombatText" type="RichTextLabel" parent="HelpMargin/HelpVBox/ScrollContainer/Content/CombatSection"]
+layout_mode = 2
+bbcode_enabled = false
+fit_content = true
+text = "To attack an enemy, move next to them and select \"Attack\" from the action menu. Combat is automatic based on your unit's stats and weapon.
+\n
+Weapon Triangle: Sword beats Axe, Axe beats Lance, Lance beats Sword.
+\n
+Magic attacks use RESISTANCE, physical attacks use DEFENSE."
+
+[node name="TerrainSection" type="VBoxContainer" parent="HelpMargin/HelpVBox/ScrollContainer/Content"]
+layout_mode = 2
+
+[node name="TerrainTitle" type="Label" parent="HelpMargin/HelpVBox/ScrollContainer/Content/TerrainSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Terrain"
+
+[node name="TerrainText" type="RichTextLabel" parent="HelpMargin/HelpVBox/ScrollContainer/Content/TerrainSection"]
+layout_mode = 2
+bbcode_enabled = false
+fit_content = true
+text = "Forest: +20 AVOID, +1 DEF
+Road: Standard terrain
+Village: Visit to recruit new units
+Shrine: +30 AVOID, +2 DEF (Boss location)"
+
+[node name="ExperienceSection" type="VBoxContainer" parent="HelpMargin/HelpVBox/ScrollContainer/Content"]
+layout_mode = 2
+
+[node name="ExperienceTitle" type="Label" parent="HelpMargin/HelpVBox/ScrollContainer/Content/ExperienceSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Experience & Leveling"
+
+[node name="ExperienceText" type="RichTextLabel" parent="HelpMargin/HelpVBox/ScrollContainer/Content/ExperienceSection"]
+layout_mode = 2
+bbcode_enabled = false
+fit_content = true
+text = "Defeating enemies grants Experience Points (XP). Collecting 100 XP levels up a unit, increasing their stats based on class growth rates.
+\n
+Knights: High HP/DEF growth
+Mages: High MAG growth
+Cavaliers: Balanced growth
+Hunters: High SKL growth"
+
+[node name="TurnsSection" type="VBoxContainer" parent="HelpMargin/HelpVBox/ScrollContainer/Content"]
+layout_mode = 2
+
+[node name="TurnsTitle" type="Label" parent="HelpMargin/HelpVBox/ScrollContainer/Content/TurnsSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Turns & Actions"
+
+[node name="TurnsText" type="RichTextLabel" parent="HelpMargin/HelpVBox/ScrollContainer/Content/TurnsSection"]
+layout_mode = 2
+bbcode_enabled = false
+fit_content = true
+text = "Your Turn: Move and act with each of your units once. When done, press T or select \"End Turn\".
+\n
+Enemy Turn: Enemy AI will move and attack. Defeat all enemies to win!
+\n
+Reinforcements may arrive on certain turns - watch for messages!"
+
+[node name="ControlsSection" type="VBoxContainer" parent="HelpMargin/HelpVBox/ScrollContainer/Content"]
+layout_mode = 2
+
+[node name="ControlsTitle" type="Label" parent="HelpMargin/HelpVBox/ScrollContainer/Content/ControlsSection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Controls"
+
+[node name="ControlsText" type="RichTextLabel" parent="HelpMargin/HelpVBox/ScrollContainer/Content/ControlsSection"]
+layout_mode = 2
+bbcode_enabled = false
+fit_content = true
+text = "Arrow Keys / WASD: Move cursor
+Z / Enter: Select / Confirm
+X / Escape: Cancel / Back
+T: End Turn
+Space: Skip battle animation"
+
+[node name="CloseButton" type="Button" parent="HelpMargin/HelpVBox"]
+layout_mode = 2
+text = "Close (Press X or Escape)"

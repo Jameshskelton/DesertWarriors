@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="ClassData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/class_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "brigand"
+display_name = "Brigand"
+move_type = "infantry"
+move_range = 5
+base_stats = {
+"def": 3,
+"lck": 1,
+"mag": 0,
+"max_hp": 20,
+"res": 0,
+"skl": 4,
+"spd": 4,
+"str": 7
+}
+growth_rates = {
+"def": 25,
+"lck": 20,
+"mag": 0,
+"max_hp": 60,
+"res": 5,
+"skl": 25,
+"spd": 25,
+"str": 35
+}
+weapon_types = PackedStringArray("axe")
+can_use_staves = false
+battle_anim_set = "brigand_axe"
