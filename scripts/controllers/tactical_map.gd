@@ -10,8 +10,19 @@ const CASTLE_TEXTURE := preload("res://assets/terrain/castle.png")
 const THICKET_TEXTURE := preload("res://assets/terrain/thicket.png")
 const UI_FONT := preload("res://font/new_font.ttf")
 const UI_SCALE := 1.5
+const MAP_UNIT_TEXTURE_DIR := "res://assets/map_units"
 const MOVEMENT_PATH_COLOR := Color(0.462745, 0.815686, 0.960784, 0.72)
 const MOVEMENT_PATH_SHADOW := Color(0.0392157, 0.0745098, 0.121569, 0.28)
+const MAP_UNIT_CLASS_FALLBACKS := {
+	"brigand": "brigand_grunt",
+	"captain": "captain_briar",
+	"cavalier": "rowan",
+	"hunter": "hunter_grunt",
+	"knight": "knight_grunt",
+	"lord": "george",
+	"mage": "ember",
+	"priest": "hale",
+}
 
 var _chapter_id: String = ""
 var _chapter: ChapterData
@@ -32,6 +43,7 @@ var _ai_controller: AIController = AIController.new()
 var _battle_transition: BattleTransitionController = BattleTransitionController.new()
 var _active_battle: Control
 var _active_dialogue: Control
+var _map_unit_texture_cache: Dictionary = {}
 var _spawned_reinforcements: PackedStringArray = PackedStringArray()
 
 @onready var _chapter_label: Label = $Header/HeaderMargin/HeaderRow/ChapterLabel
@@ -203,8 +215,12 @@ func _draw_units() -> void:
 			_board_origin + Vector2(unit.position.x, unit.position.y) * _cell_size + Vector2.ONE * unit_padding,
 			Vector2.ONE * (_cell_size - unit_padding * 2.0)
 		)
-		draw_rect(rect, _unit_color(unit))
-		draw_string(font, rect.position + Vector2(6.0, 18.0) * UI_SCALE, unit.display_name.left(1), HORIZONTAL_ALIGNMENT_LEFT, -1, 24, Color.WHITE)
+		var texture: Texture2D = _load_map_unit_texture_for_unit(unit)
+		if texture != null:
+			draw_texture_rect(texture, rect, false)
+		else:
+			draw_rect(rect, _unit_color(unit))
+			draw_string(font, rect.position + Vector2(6.0, 18.0) * UI_SCALE, unit.display_name.left(1), HORIZONTAL_ALIGNMENT_LEFT, -1, 24, Color.WHITE)
 		if unit.moved and unit.faction == "player":
 			draw_rect(rect.grow(-4.5), Color(0, 0, 0, 0.4), false, 3.0)
 
@@ -690,3 +706,37 @@ func _load_portrait_by_id(portrait_id: String) -> Texture2D:
 	if not ResourceLoader.exists(path):
 		return null
 	return load(path) as Texture2D
+
+
+func _load_map_unit_texture_for_unit(unit: UnitState) -> Texture2D:
+	if unit == null:
+		return null
+	var candidates: PackedStringArray = PackedStringArray()
+	for candidate in [
+		unit.portrait_id,
+		unit.portrait_id.to_lower(),
+		unit.unit_id,
+		unit.display_name.to_lower().replace(" ", "_"),
+		str(MAP_UNIT_CLASS_FALLBACKS.get(unit.class_id, "")),
+	]:
+		if not candidate.is_empty() and not candidates.has(candidate):
+			candidates.append(candidate)
+	for candidate in candidates:
+		var texture: Texture2D = _load_map_unit_texture_by_id(candidate)
+		if texture != null:
+			return texture
+	return null
+
+
+func _load_map_unit_texture_by_id(texture_id: String) -> Texture2D:
+	if texture_id.is_empty():
+		return null
+	if _map_unit_texture_cache.has(texture_id):
+		var cached_texture: Texture2D = _map_unit_texture_cache[texture_id] as Texture2D
+		return cached_texture
+	var path: String = "%s/%s_map_sprite.png" % [MAP_UNIT_TEXTURE_DIR, texture_id]
+	var texture: Texture2D = null
+	if ResourceLoader.exists(path):
+		texture = load(path) as Texture2D
+	_map_unit_texture_cache[texture_id] = texture
+	return texture

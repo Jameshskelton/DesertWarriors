@@ -89,7 +89,7 @@ func _load_portrait_for_speaker(speaker: String) -> Texture2D:
 		var portrait := _load_portrait_by_id(unit.portrait_id)
 		if portrait != null:
 			return portrait
-		portrait = _load_portrait_by_id(unit.unit_id)
+		portrait = _load_portrait_by_id(unit.id)
 		if portrait != null:
 			return portrait
 	var fallback_id := speaker.to_lower().replace(" ", "_")
