@@ -1,43 +1,68 @@
 # Desert Warriors
 
-![image](https://github.com/Jameshskelton/DesertWarriors/blob/main/assets/ui/menu_start.png)
+![Title Screen](https://github.com/Jameshskelton/DesertWarriors/blob/main/assets/ui/menu_start.png)
 
-`Desert Warriors` is a Godot 4 tactical RPG prototype inspired by classic Fire Emblem structure: tile-based battles, full-screen combat cutaways, portrait dialogue, and a first chapter built around George's exile through the Greenwood.
+`Desert Warriors` is a Godot 4 tactical RPG prototype inspired by classic Fire Emblem structure. The current build includes a title screen, dialogue scenes with portraits, tactical map battles, recruitable allies, boss objectives, and battle cutaways with frame-based attack animations.
 
-## Current Slice
+## Current Game
 
-- Title screen, intro dialogue, tactical map, battle cutaway, victory dialogue, and results flow
-- Data-driven classes, weapons, units, terrain, and chapter setup under `res://data`
-- Chapter 1 forest realm with forest tile avoid/defense bonuses, a boss objective, one ally reinforcement, and one recruit event
-- Casual-mode defeat handling and placeholder retro-styled UI
+The playable campaign currently includes three linked chapters:
 
-## Project Structure
+- `Chapter 1: Exile in the Greenwood`
+- `Chapter 2: The Old Monastery`
+- `Chapter 3: The Unbroken`
 
-- `autoload/`: singleton state, save, registry, and audio managers
-- `systems/`: grid, pathfinding, AI, combat, event, and turn systems
-- `scripts/controllers/`: main scene flow and tactical map controller
-- `scripts/models/`: resource types and runtime state classes
+Current in-game features:
+
+- Tile-based tactical combat with movement, attacks, healing, and turn phases
+- Terrain effects and art for forests, castles, and villages
+- Recruit events, reinforcements, and chapter-specific dialogue overlays
+- Hover portraits on the tactical map
+- Custom map sprites from `assets/map_units/`
+- Portrait-driven battle scenes with extracted fight-animation frame sequences from `assets/fight_animations/`
+- Looping background music and a custom UI font
+- Save/load support through autoloaded game systems
+
+## Chapter Highlights
+
+- Chapter 1 introduces George's escape through the Greenwood and allows Ember to be recruited by visiting the village tile.
+- Chapter 2 moves the party to the monastery and brings Balt in as a turn-2 ally reinforcement.
+- Chapter 3 centers on the confrontation with Sir Aldric and the Unbroken.
+
+## Project Layout
+
+- `autoload/`: global systems such as game state, saves, data registry, and audio
+- `data/`: classes, weapons, terrains, units, and chapter resources
 - `scenes/`: title, dialogue, map, battle, results, and shared scenes
-- `ui/`: reusable menu and forecast panels plus theme
-- `data/`: chapter, terrain, weapon, class, and unit resources
-- `docs/`: chapter brief and art/style notes
-- `tests/`: lightweight validation scripts and smoke checks
+- `scripts/controllers/`: main flow and tactical map control
+- `scripts/models/`: runtime state and resource-backed data types
+- `systems/`: pathfinding, combat, AI, events, turn flow, and objectives
+- `assets/portraits/`: dialogue and hover portraits
+- `assets/map_units/`: tactical map character sprites
+- `assets/fight_animations/`: source attack clips and extracted frame folders used in battle
+- `assets/terrain/`: terrain art such as thicket, castle, and village tiles
+- `docs/`: game notes, art guide, and supporting documentation
+- `tests/`: lightweight validation scripts
 
 ## Running
 
-1. Install `Godot 4.3+`.
-2. Open this folder as a Godot project.
-3. Run `res://scenes/shared/main.tscn`.
+1. Open the project in `Godot 4.6`.
+2. Load this folder as a Godot project.
+3. Run the main scene at `res://scenes/shared/main.tscn`.
+
+The project is configured for a `1920x1080` base viewport with integer-scaled 2D rendering.
 
 ## Controls
 
-- `Arrow keys` or `WASD`: move cursor
-- `Enter` or `Space`: confirm
-- `Esc` / `X`: cancel
-- `T`: end player phase
-- Mouse left click: move cursor and confirm tile
-- `Enter` or `Space` during battle: skip battle animation playback
+- `Arrow keys`: move the cursor on the tactical map
+- `Enter` or `Space`: confirm / advance dialogue
+- `Esc`: cancel
+- `T`: end the player phase
+- `H` or `F1`: toggle the help panel on the map
+- Mouse left click: move the map cursor and confirm a tile
 
-## Tests
+## Notes
 
-The repo includes lightweight validation scripts under `res://tests` that load without external plugins. They are intended as smoke-check helpers until a full in-project test runner or GdUnit setup is added.
+- Dialogue, recruit events, reinforcements, and victory scenes are data-driven from the files in `data/chapters/`.
+- Character art currently flows through portraits, map sprites, and battle animation frame folders rather than full map-unit or battle-unit node scenes.
+- If you are editing content, the most useful files to start with are in `data/chapters/`, `data/units/`, and `docs/adding_artwork.md`.
