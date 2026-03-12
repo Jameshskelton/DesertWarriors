@@ -82,6 +82,10 @@ func _speaker_color(speaker: String) -> Color:
 
 
 func _load_portrait_for_speaker(speaker: String) -> Texture2D:
+	if speaker == "Narrator":
+		var narrator_portrait: Texture2D = _load_portrait_by_id("narrator")
+		if narrator_portrait != null:
+			return narrator_portrait
 	for entry in DataRegistry.units.values():
 		var unit := entry as UnitData
 		if unit == null or unit.display_name != speaker:
