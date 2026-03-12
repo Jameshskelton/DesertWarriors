@@ -59,7 +59,7 @@ enemy_units = [{
 }, {
 "faction": "enemy",
 "instance_id": "pursuer_1",
-"position": Vector2i(15, 3),
+"position": Vector2i(14, 3),
 "unit_id": "pursuer_armor"
 }, {
 "faction": "enemy",
@@ -84,6 +84,11 @@ reinforcements = [{
 }]
 event_triggers = [{
 "action": "spawn_join",
+"dialogue_lines": [{
+"chapter": "Chapter 1: Exile in the Greenwood",
+"speaker": "Ember",
+"text": "If you're fighting the brigands and the crown's hunters, then our goals align. I am Ember, and this village will not burn again. I'll fight with you."
+}],
 "id": "ember_join",
 "message": "Ember steps from the village and vows to burn back George's hunters.",
 "position": Vector2i(15, 3),
@@ -94,7 +99,7 @@ event_triggers = [{
 "unit_id": "ember"
 },
 "trigger": "tile",
-"unit_id": "george"
+"unit_id": ""
 }]
 opening_dialogue = [{
 "chapter": "Chapter 1: Exile in the Greenwood",

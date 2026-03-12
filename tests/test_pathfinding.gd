@@ -22,6 +22,18 @@ func run() -> PackedStringArray:
 	var blocked_occupied: Dictionary = {Vector2i(1, 0): true}
 	var result: Dictionary = pathfinding.compute_reachable(Vector2i(0, 0), 3, plains_grid, "infantry", blocked_occupied)
 	_assert_true(not result.get("costs", {}).has(Vector2i(1, 0)), "occupied tiles should not be reachable", failures)
+	var ally_a := UnitState.new()
+	ally_a.faction = "player"
+	var ally_b := UnitState.new()
+	ally_b.faction = "player"
+	var allied_occupied: Dictionary = {
+		Vector2i(1, 0): ally_a,
+		Vector2i(2, 0): ally_b,
+	}
+	var allied_result: Dictionary = pathfinding.compute_reachable(Vector2i(0, 0), 3, plains_grid, "infantry", allied_occupied, "player")
+	_assert_true(not allied_result.get("costs", {}).has(Vector2i(1, 0)), "friendly occupied tiles should not be legal destinations", failures)
+	_assert_true(not allied_result.get("costs", {}).has(Vector2i(2, 0)), "friendly occupied tiles should not become legal destinations further along the path", failures)
+	_assert_true(allied_result.get("costs", {}).has(Vector2i(2, 1)), "friendly occupied tiles should still be traversable to reach open tiles beyond them", failures)
 	return failures
 
 

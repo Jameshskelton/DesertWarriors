@@ -9,19 +9,26 @@ func compute_reachable(
 	move_points: int,
 	terrain_grid: Array,
 	move_type: String,
-	occupied_tiles: Dictionary
+	occupied_tiles: Dictionary,
+	moving_faction: String = ""
 ) -> Dictionary:
 	var grid_size: Vector2i = Vector2i(terrain_grid[0].size(), terrain_grid.size())
 	var frontier: Array[Vector2i] = [start]
 	var cost_so_far: Dictionary = {start: 0}
+	var destination_costs: Dictionary = {start: 0}
 	var came_from: Dictionary = {start: start}
 	var head: int = 0
 	while head < frontier.size():
 		var current: Vector2i = frontier[head]
 		head += 1
 		for next_tile in _grid.neighbors(current, grid_size):
+			var can_stop_on_tile: bool = true
 			if occupied_tiles.has(next_tile) and next_tile != start:
-				continue
+				var occupant = occupied_tiles[next_tile]
+				var occupant_state: UnitState = occupant as UnitState
+				if occupant_state == null or moving_faction.is_empty() or occupant_state.faction != moving_faction:
+					continue
+				can_stop_on_tile = false
 			var terrain_id: String = terrain_grid[next_tile.y][next_tile.x]
 			var terrain: TerrainData = DataRegistry.get_terrain_data(terrain_id)
 			if terrain == null or terrain.is_blocking:
@@ -34,8 +41,11 @@ func compute_reachable(
 				cost_so_far[next_tile] = new_cost
 				came_from[next_tile] = current
 				frontier.append(next_tile)
+			if can_stop_on_tile and (not destination_costs.has(next_tile) or new_cost < int(destination_costs[next_tile])):
+				destination_costs[next_tile] = new_cost
 	return {
-		"costs": cost_so_far,
+		"costs": destination_costs,
+		"traversal_costs": cost_so_far,
 		"came_from": came_from,
 	}
 

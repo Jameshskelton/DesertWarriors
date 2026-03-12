@@ -23,7 +23,8 @@ func choose_action(enemy: UnitState, units: Array[UnitState], terrain_grid: Arra
 		enemy_class.move_range,
 		terrain_grid,
 		enemy_class.move_type,
-		occupied
+		occupied,
+		enemy.faction
 	)
 	var best_attack: Dictionary = {}
 	for tile in reachable.get("costs", {}).keys():

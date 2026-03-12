@@ -8,9 +8,11 @@ const BATTLE_SCENE := preload("res://scenes/battle/battle_scene.tscn")
 const DIALOGUE_SCENE := preload("res://scenes/dialogue/dialogue_scene.tscn")
 const CASTLE_TEXTURE := preload("res://assets/terrain/castle.png")
 const THICKET_TEXTURE := preload("res://assets/terrain/thicket.png")
+const VILLAGE_TEXTURE := preload("res://assets/terrain/village.png")
 const UI_FONT := preload("res://font/new_font.ttf")
 const UI_SCALE := 1.5
 const MAP_UNIT_TEXTURE_DIR := "res://assets/map_units"
+const MAP_UNIT_SPRITE_SCALE := 1.5
 const MOVEMENT_PATH_COLOR := Color(0.462745, 0.815686, 0.960784, 0.72)
 const MOVEMENT_PATH_SHADOW := Color(0.0392157, 0.0745098, 0.121569, 0.28)
 const MAP_UNIT_CLASS_FALLBACKS := {
@@ -163,6 +165,8 @@ func _draw_board() -> void:
 				draw_texture_rect(CASTLE_TEXTURE, rect, false)
 			if terrain_id == "forest" and THICKET_TEXTURE != null:
 				draw_texture_rect(THICKET_TEXTURE, rect, false)
+			if terrain_id == "village" and VILLAGE_TEXTURE != null:
+				draw_texture_rect(VILLAGE_TEXTURE, rect, false)
 			draw_rect(rect, Color(0, 0, 0, 0.2), false, 1.5)
 			if _selection.highlighted_tiles.has(tile):
 				draw_rect(rect.grow(-3.0), Color(0.309804, 0.686275, 0.929412, 0.35))
@@ -216,13 +220,19 @@ func _draw_units() -> void:
 			Vector2.ONE * (_cell_size - unit_padding * 2.0)
 		)
 		var texture: Texture2D = _load_map_unit_texture_for_unit(unit)
+		var visual_rect: Rect2 = rect
 		if texture != null:
-			draw_texture_rect(texture, rect, false)
+			var sprite_size: Vector2 = rect.size * MAP_UNIT_SPRITE_SCALE
+			visual_rect = Rect2(
+				Vector2(rect.get_center().x - sprite_size.x / 2.0, rect.end.y - sprite_size.y),
+				sprite_size
+			)
+			draw_texture_rect(texture, visual_rect, false)
 		else:
 			draw_rect(rect, _unit_color(unit))
 			draw_string(font, rect.position + Vector2(6.0, 18.0) * UI_SCALE, unit.display_name.left(1), HORIZONTAL_ALIGNMENT_LEFT, -1, 24, Color.WHITE)
 		if unit.moved and unit.faction == "player":
-			draw_rect(rect.grow(-4.5), Color(0, 0, 0, 0.4), false, 3.0)
+			draw_rect(visual_rect.grow(-4.5), Color(0, 0, 0, 0.4), false, 3.0)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -297,7 +307,7 @@ func _select_unit_at_cursor() -> void:
 	if unit == null or unit.faction != "player" or unit.moved or not unit.is_alive():
 		return
 	var class_data: ClassData = DataRegistry.get_class_data(unit.class_id)
-	var reachability := _pathfinding.compute_reachable(unit.position, class_data.move_range, _terrain_grid, class_data.move_type, _build_occupied_lookup(unit))
+	var reachability := _pathfinding.compute_reachable(unit.position, class_data.move_range, _terrain_grid, class_data.move_type, _build_occupied_lookup(unit), unit.faction)
 	_selection.mode = SelectionController.Mode.UNIT_SELECTED
 	_selection.selected_unit = unit
 	_selection.origin_tile = unit.position
@@ -425,6 +435,8 @@ func _finish_unit_action() -> void:
 	queue_redraw()
 	if _check_end_conditions():
 		return
+	if _active_dialogue != null:
+		return
 	if _all_player_units_acted():
 		_begin_enemy_phase()
 
@@ -505,6 +517,12 @@ func _on_dialogue_overlay_finished(_next_tag: String) -> void:
 	if _active_dialogue != null:
 		_active_dialogue.queue_free()
 		_active_dialogue = null
+	queue_redraw()
+	_update_hover_status()
+	if _check_end_conditions():
+		return
+	if _turn_controller.phase == "player" and _selection.mode == SelectionController.Mode.IDLE and _all_player_units_acted():
+		_begin_enemy_phase()
 
 
 func _handle_tile_events(unit: UnitState) -> void:
@@ -520,6 +538,8 @@ func _execute_event(event: Dictionary) -> void:
 		"spawn_join":
 			_spawn_unit(event.get("spawn", {}))
 			_update_status(str(event.get("message", "A new ally joins the cause.")))
+			if event.has("dialogue_lines"):
+				_show_dialogue_overlay(event.get("dialogue_lines", []))
 		"message":
 			_update_status(str(event.get("message", "")))
 
