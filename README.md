@@ -1,6 +1,6 @@
 # Desert Warriors
 
-[image](assets/menu_start.png)
+[image](https://github.com/Jameshskelton/DesertWarriors/blob/main/assets/menu_start.png)
 
 `Desert Warriors` is a Godot 4 tactical RPG prototype inspired by classic Fire Emblem structure: tile-based battles, full-screen combat cutaways, portrait dialogue, and a first chapter built around Woody's exile through the Greenwood.
 
