@@ -41,6 +41,7 @@ var _turn_controller: TurnController = TurnController.new()
 var _objective_controller: ObjectiveController = ObjectiveController.new()
 var _event_director: EventDirector = EventDirector.new()
 var _combat_resolver: CombatResolver = CombatResolver.new()
+var _item_service: ItemService = ItemService.new()
 var _ai_controller: AIController = AIController.new()
 var _battle_transition: BattleTransitionController = BattleTransitionController.new()
 var _active_battle: Control
@@ -334,6 +335,7 @@ func _show_action_menu(unit: UnitState) -> void:
 	var action_states := {
 		"attack": _has_attack_targets(unit),
 		"staff": _has_heal_targets(unit),
+		"item": _has_usable_items(unit),
 		"wait": true,
 		"cancel": true,
 	}
@@ -358,6 +360,8 @@ func _on_action_menu_selected(action_name: String) -> void:
 			_selection.target_tiles = _valid_heal_tiles(unit)
 			_action_menu.hide_menu()
 			_update_status("Select an ally to heal.")
+		"item":
+			_execute_item(unit)
 		"wait":
 			unit.consume_turn()
 			_finish_unit_action()
@@ -403,6 +407,20 @@ func _execute_staff(source: UnitState, target: UnitState) -> void:
 	var outcome := _combat_resolver.resolve_staff(source, target)
 	source.consume_turn()
 	_update_status("%s heals %s for %d HP." % [outcome.get("user_name", source.display_name), outcome.get("target_name", target.display_name), outcome.get("heal_amount", 0)])
+	_finish_unit_action()
+
+
+func _execute_item(source: UnitState) -> void:
+	var outcome: Dictionary = _item_service.use_first_item(source)
+	if outcome.is_empty():
+		_update_status("%s has no usable items right now." % source.display_name)
+		return
+	source.consume_turn()
+	_update_status("%s uses %s and recovers %d HP." % [
+		outcome.get("user_name", source.display_name),
+		outcome.get("item_name", "an item"),
+		outcome.get("heal_amount", 0),
+	])
 	_finish_unit_action()
 
 
@@ -552,6 +570,10 @@ func _has_heal_targets(unit: UnitState) -> bool:
 	return not _valid_heal_tiles(unit).is_empty()
 
 
+func _has_usable_items(unit: UnitState) -> bool:
+	return _item_service.can_use_any_item(unit)
+
+
 func _valid_attack_tiles(unit: UnitState) -> Array[Vector2i]:
 	var tiles: Array[Vector2i] = []
 	for target in _units:
@@ -672,8 +694,11 @@ func _update_hover_status() -> void:
 			_forecast_panel.show_battle_forecast(_selection.selected_unit, unit, forecast, _get_terrain_at(unit.position))
 			return
 		if _selection.pending_action == "staff" and unit.faction == _selection.selected_unit.faction:
-			var weapon := DataRegistry.get_weapon_data(_selection.selected_unit.get_equipped_weapon_id())
-			var amount = int(weapon.heal_power) + int(_selection.selected_unit.stats.get("mag", 0))
+			var weapon: WeaponData = DataRegistry.get_weapon_data(_selection.selected_unit.get_equipped_weapon_id())
+			if weapon == null:
+				_forecast_panel.hide_panel()
+				return
+			var amount: int = int(weapon.heal_power) + int(_selection.selected_unit.stats.get("mag", 0))
 			_forecast_panel.show_heal_preview(_selection.selected_unit, unit, amount)
 			return
 	_forecast_panel.hide_panel()

@@ -45,6 +45,10 @@ text = "Attack"
 layout_mode = 2
 text = "Staff"
 
+[node name="ItemButton" type="Button" parent="Margin/Buttons"]
+layout_mode = 2
+text = "Item"
+
 [node name="WaitButton" type="Button" parent="Margin/Buttons"]
 layout_mode = 2
 text = "Wait"

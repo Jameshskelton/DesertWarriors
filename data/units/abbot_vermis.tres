@@ -20,7 +20,7 @@ stats = {
 "str": 9
 }
 xp = 0
-inventory = PackedStringArray("captain_axe")
+inventory = PackedStringArray("captain_axe", "health_potion")
 portrait_id = "abbot_vermis"
 faction = "enemy"
 ai_profile = "boss"

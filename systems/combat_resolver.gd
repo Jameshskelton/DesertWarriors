@@ -13,7 +13,7 @@ func can_unit_attack_from_tile(attacker: UnitState, defender: UnitState, tile: V
 		return false
 	if attacker.faction == defender.faction:
 		return false
-	var weapon := DataRegistry.get_weapon_data(attacker.get_equipped_weapon_id())
+	var weapon: WeaponData = _get_usable_weapon(attacker)
 	if weapon == null or weapon.weapon_type == "staff":
 		return false
 	var distance := absi(tile.x - defender.position.x) + absi(tile.y - defender.position.y)
@@ -23,7 +23,7 @@ func can_unit_attack_from_tile(attacker: UnitState, defender: UnitState, tile: V
 func can_unit_heal_from_tile(healer: UnitState, target: UnitState, tile: Vector2i) -> bool:
 	if healer.faction != target.faction or not healer.is_alive() or not target.is_alive():
 		return false
-	var weapon := DataRegistry.get_weapon_data(healer.get_equipped_weapon_id())
+	var weapon: WeaponData = _get_usable_weapon(healer)
 	if weapon == null or weapon.weapon_type != "staff":
 		return false
 	var distance := absi(tile.x - target.position.x) + absi(tile.y - target.position.y)
@@ -32,8 +32,10 @@ func can_unit_heal_from_tile(healer: UnitState, target: UnitState, tile: Vector2
 
 func build_forecast(attacker: UnitState, defender: UnitState, attacker_terrain: TerrainData, defender_terrain: TerrainData) -> CombatForecast:
 	var forecast := CombatForecast.new()
-	var attacker_weapon := DataRegistry.get_weapon_data(attacker.get_equipped_weapon_id())
-	var defender_weapon := DataRegistry.get_weapon_data(defender.get_equipped_weapon_id())
+	var attacker_weapon: WeaponData = _get_usable_weapon(attacker)
+	var defender_weapon: WeaponData = _get_usable_weapon(defender)
+	if attacker_weapon == null or attacker_weapon.weapon_type == "staff":
+		return forecast
 	forecast.attacker_damage = _calculate_damage(attacker, defender, attacker_weapon, defender_terrain)
 	forecast.attacker_hit = _calculate_hit(attacker, defender, attacker_weapon, defender_terrain)
 	forecast.attacker_crit = _calculate_crit(attacker, defender, attacker_weapon)
@@ -49,6 +51,9 @@ func build_forecast(attacker: UnitState, defender: UnitState, attacker_terrain: 
 
 func resolve_battle(attacker: UnitState, defender: UnitState, attacker_terrain: TerrainData, defender_terrain: TerrainData) -> BattleResult:
 	var result := BattleResult.new()
+	var attacker_weapon: WeaponData = _get_usable_weapon(attacker)
+	if attacker_weapon == null or attacker_weapon.weapon_type == "staff":
+		return result
 	var forecast := build_forecast(attacker, defender, attacker_terrain, defender_terrain)
 	var sequence: Array[Dictionary] = []
 	sequence.append({"source": attacker, "target": defender, "damage": forecast.attacker_damage, "hit": forecast.attacker_hit, "crit": forecast.attacker_crit})
@@ -61,7 +66,9 @@ func resolve_battle(attacker: UnitState, defender: UnitState, attacker_terrain: 
 	for strike in sequence:
 		var source: UnitState = strike["source"]
 		var target: UnitState = strike["target"]
-		if not source.is_alive() or not target.is_alive():
+		if not source.is_alive() or not target.is_alive() or not source.has_usable_equipped_weapon():
+			continue
+		if not source.consume_equipped_weapon_use():
 			continue
 		var did_hit := GameState.roll_percent(float(strike["hit"]))
 		var damage := 0
@@ -88,8 +95,10 @@ func resolve_battle(attacker: UnitState, defender: UnitState, attacker_terrain: 
 
 
 func resolve_staff(user: UnitState, target: UnitState) -> Dictionary:
-	var weapon := DataRegistry.get_weapon_data(user.get_equipped_weapon_id())
-	if weapon == null:
+	var weapon: WeaponData = _get_usable_weapon(user)
+	if weapon == null or weapon.weapon_type != "staff":
+		return {}
+	if not user.consume_equipped_weapon_use():
 		return {}
 	var heal_amount: int = int(weapon.heal_power) + int(user.stats.get("mag", 0))
 	var previous_hp := target.get_current_hp()
@@ -193,10 +202,19 @@ func _attack_speed(unit: UnitState, weapon: WeaponData) -> int:
 
 
 func _get_target_weapon_type(unit: UnitState) -> String:
-	var weapon := DataRegistry.get_weapon_data(unit.get_equipped_weapon_id())
+	var weapon: WeaponData = _get_usable_weapon(unit)
 	if weapon == null:
 		return "neutral"
 	return weapon.weapon_type
+
+
+func _get_usable_weapon(unit: UnitState) -> WeaponData:
+	if unit == null or not unit.has_usable_equipped_weapon():
+		return null
+	var weapon_id: String = unit.get_equipped_weapon_id()
+	if weapon_id.is_empty():
+		return null
+	return DataRegistry.get_weapon_data(weapon_id)
 
 
 func _triangle_bonus_hit(attacker_type: String, defender_type: String) -> int:

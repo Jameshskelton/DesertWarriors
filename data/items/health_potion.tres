@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/item_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "health_potion"
+name = "Health Potion"
+item_type = "healing"
+uses = 1
+heal_amount = 10

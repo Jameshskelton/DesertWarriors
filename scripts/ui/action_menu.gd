@@ -5,6 +5,7 @@ signal action_selected(action_name: String)
 @onready var _buttons: Dictionary = {
 	"attack": $Margin/Buttons/AttackButton,
 	"staff": $Margin/Buttons/StaffButton,
+	"item": $Margin/Buttons/ItemButton,
 	"wait": $Margin/Buttons/WaitButton,
 	"cancel": $Margin/Buttons/CancelButton,
 }
@@ -33,7 +34,7 @@ func hide_menu() -> void:
 
 
 func _get_first_focusable_action(action_states: Dictionary) -> String:
-	for action_name in ["attack", "staff", "wait", "cancel"]:
+	for action_name in ["attack", "staff", "item", "wait", "cancel"]:
 		if action_name == "cancel":
 			return action_name
 		if action_states.get(action_name, false):

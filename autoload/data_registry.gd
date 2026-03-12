@@ -2,12 +2,14 @@ extends Node
 
 const CLASS_DIR := "res://data/classes"
 const UNIT_DIR := "res://data/units"
+const ITEM_DIR := "res://data/items"
 const WEAPON_DIR := "res://data/weapons"
 const TERRAIN_DIR := "res://data/terrains"
 const CHAPTER_DIR := "res://data/chapters"
 
 var classes: Dictionary = {}
 var units: Dictionary = {}
+var items: Dictionary = {}
 var weapons: Dictionary = {}
 var terrains: Dictionary = {}
 var chapters: Dictionary = {}
@@ -20,6 +22,7 @@ func _ready() -> void:
 func reload_all() -> void:
 	classes = _load_resource_dir(CLASS_DIR)
 	units = _load_resource_dir(UNIT_DIR)
+	items = _load_resource_dir(ITEM_DIR)
 	weapons = _load_resource_dir(WEAPON_DIR)
 	terrains = _load_resource_dir(TERRAIN_DIR)
 	chapters = _load_resource_dir(CHAPTER_DIR)
@@ -53,6 +56,10 @@ func get_class_data(id_value: String) -> ClassData:
 
 func get_unit_data(id_value: String) -> UnitData:
 	return units.get(id_value)
+
+
+func get_item_data(id_value: String) -> ItemData:
+	return items.get(id_value)
 
 
 func get_weapon_data(id_value: String) -> WeaponData:
