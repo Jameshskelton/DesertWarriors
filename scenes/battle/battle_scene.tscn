@@ -22,40 +22,43 @@ color = Color(0.121569, 0.0941176, 0.0784314, 0.96)
 
 [node name="TitleLabel" type="Label" parent="."]
 layout_mode = 0
-offset_left = 630.0
-offset_top = 54.0
-offset_right = 1290.0
-offset_bottom = 120.0
+offset_left = 696.0
+offset_top = 30.0
+offset_right = 1224.0
+offset_bottom = 99.0
 theme_override_font_sizes/font_size = 63
 horizontal_alignment = 1
 text = "Battle"
 
 [node name="LeftPanel" type="PanelContainer" parent="."]
 layout_mode = 0
-offset_left = 126.0
-offset_top = 285.0
-offset_right = 666.0
-offset_bottom = 780.0
+offset_left = 54.0
+offset_top = 132.0
+offset_right = 930.0
+offset_bottom = 918.0
 
 [node name="LeftMargin" type="MarginContainer" parent="LeftPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 21
-theme_override_constants/margin_top = 21
-theme_override_constants/margin_right = 21
-theme_override_constants/margin_bottom = 21
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 18
 
 [node name="LeftVBox" type="VBoxContainer" parent="LeftPanel/LeftMargin"]
 layout_mode = 2
-theme_override_constants/separation = 15
+theme_override_constants/separation = 12
 
 [node name="LeftName" type="Label" parent="LeftPanel/LeftMargin/LeftVBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 54
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 48
+horizontal_alignment = 1
 text = "Attacker"
 
 [node name="LeftSprite" type="ColorRect" parent="LeftPanel/LeftMargin/LeftVBox"]
-custom_minimum_size = Vector2(0, 240)
+custom_minimum_size = Vector2(620, 620)
 layout_mode = 2
+size_flags_horizontal = 4
 color = Color(0.286275, 0.486275, 0.768627, 1)
 
 [node name="Texture" type="TextureRect" parent="LeftPanel/LeftMargin/LeftVBox/LeftSprite"]
@@ -66,7 +69,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 expand_mode = 1
-stretch_mode = 5
+stretch_mode = 6
 
 [node name="LeftHp" type="ProgressBar" parent="LeftPanel/LeftMargin/LeftVBox"]
 layout_mode = 2
@@ -79,30 +82,33 @@ text = "HP"
 
 [node name="RightPanel" type="PanelContainer" parent="."]
 layout_mode = 0
-offset_left = 1254.0
-offset_top = 285.0
-offset_right = 1794.0
-offset_bottom = 780.0
+offset_left = 990.0
+offset_top = 132.0
+offset_right = 1866.0
+offset_bottom = 918.0
 
 [node name="RightMargin" type="MarginContainer" parent="RightPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 21
-theme_override_constants/margin_top = 21
-theme_override_constants/margin_right = 21
-theme_override_constants/margin_bottom = 21
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 18
 
 [node name="RightVBox" type="VBoxContainer" parent="RightPanel/RightMargin"]
 layout_mode = 2
-theme_override_constants/separation = 15
+theme_override_constants/separation = 12
 
 [node name="RightName" type="Label" parent="RightPanel/RightMargin/RightVBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 54
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 48
+horizontal_alignment = 1
 text = "Defender"
 
 [node name="RightSprite" type="ColorRect" parent="RightPanel/RightMargin/RightVBox"]
-custom_minimum_size = Vector2(0, 240)
+custom_minimum_size = Vector2(620, 620)
 layout_mode = 2
+size_flags_horizontal = 4
 color = Color(0.733333, 0.286275, 0.239216, 1)
 
 [node name="Texture" type="TextureRect" parent="RightPanel/RightMargin/RightVBox/RightSprite"]
@@ -113,7 +119,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 expand_mode = 1
-stretch_mode = 5
+stretch_mode = 6
 
 [node name="RightHp" type="ProgressBar" parent="RightPanel/RightMargin/RightVBox"]
 layout_mode = 2
@@ -126,19 +132,19 @@ text = "HP"
 
 [node name="BattleLog" type="Label" parent="."]
 layout_mode = 0
-offset_left = 384.0
-offset_top = 849.0
-offset_right = 1542.0
-offset_bottom = 942.0
-theme_override_font_sizes/font_size = 50
+offset_left = 336.0
+offset_top = 948.0
+offset_right = 1584.0
+offset_bottom = 1023.0
+theme_override_font_sizes/font_size = 54
 horizontal_alignment = 1
 autowrap_mode = 2
 text = "Battle Log"
 
 [node name="SkipHint" type="Label" parent="."]
 layout_mode = 0
-offset_left = 1389.0
-offset_top = 987.0
-offset_right = 1842.0
-offset_bottom = 1038.0
+offset_left = 1356.0
+offset_top = 1014.0
+offset_right = 1845.0
+offset_bottom = 1059.0
 text = "Space / Enter to skip"
