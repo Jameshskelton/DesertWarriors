@@ -104,19 +104,19 @@ event_triggers = [{
 opening_dialogue = [{
 "chapter": "Chapter 1: Exile in the Greenwood",
 "speaker": "Narrator",
-"text": "The autumn wind carries the last echoes of kingdom bells—bells that once rang for Prince George, now stripped of crown and lineage.Three moons ago, he stood as heir to the Verdant Throne. Tonight, he flees through the Greenwood with nothing but a worn blade and three loyal souls."
+"text": "The autumn wind carries the last echoes of kingdom bells—bells that once rang for Prince George, now stripped of crown and lineage. Three moons ago, he stood as heir to the Verdant Throne. Tonight, he flees through the Greenwood with nothing but a worn blade and three loyal souls."
 }, {
 "chapter": "Chapter 1: Exile in the Greenwood",
 "speaker": "George",
-"text": "They called me 'your highness' when my father's head still wore the circlet. Now I am nothing but a name in a royal warrant, a prince turned outlaw in his own kingdom.Bram... Brother Hale... I swear on my father's memory—we will return. Not as exiles, but as conquerors. The throne that cast me out will learn to tremble."
+"text": "They called me 'your highness' when my father's head still wore the circlet. Now I am nothing but a name in a royal warrant, a prince turned outlaw in his own kingdom. Bram... Brother Hale... I swear on my father's memory — we will return. Not as exiles, but as conquerors. Those bastards that cast me out will learn to tremble."
 }, {
 "chapter": "Chapter 1: Exile in the Greenwood",
 "speaker": "Bram",
-"text": "I've guarded the Verdant Throne for twelve winters, my prince. I watched your father sit upon it, and I watched the usurpers drag him to the dungeons. They thought they'd silenced me when they burned my manor.I'll carry this shield until my arms fail. No brigand or royal hunter will touch you—not while I draw breath."
+"text": "I've guarded the Verdant Throne for twelve winters, my prince. I watched your father sit upon it, and I watched the usurpers drag him to the dungeons. They thought they'd silenced me when they burned my manor. But I'll carry this shield until my arms fail. No brigand or royal hunter will touch you — not while I draw breath!"
 }, {
 "chapter": "Chapter 1: Exile in the Greenwood",
 "speaker": "Brother Hale",
-"text": "The Greenwood has always been sacred to the old ways—long before crowns and castles scarred this land. The trees remember when our ancestors communed with spirits beneath the canopy.My prayers may not fill battle standards, but the forest itself can be our ally. Every oak is a potential wall; every thicket, a hidden path. We move like shadows, and the hunt passes over us."
+"text": "I stand with you, too, your highness. We may have fled, but there is hope. The Greenwood has always been sacred to the old ways — long before crowns and castles scarred this land. The trees remember when our ancestors communed with spirits beneath the canopy. My prayers may not fill battle standards, but the forest itself can be our ally. Every oak is a potential wall; every thicket, a hidden path. We move like shadows, and the hunt passes over us."
 }, {
 "chapter": "Chapter 1: Exile in the Greenwood",
 "speaker": "Narrator",
@@ -125,19 +125,19 @@ opening_dialogue = [{
 victory_dialogue = [{
 "chapter": "Chapter 1: Exile in the Greenwood",
 "speaker": "Captain Briar",
-"text": "Impressive... truly impressive. You've bested my hunters, outmaneuvered my brigands, and claimed the shrine's blessing as your own. But hear me well, boy—my king's reach extends far beyond this forest.He has armies in the east, navies in the west, and allies in every court from here to the Shattered Coast. You flee today, but there is no corner of this realm where you can hide."
+"text": "Impressive... truly impressive. You've bested my hunters, outmaneuvered my brigands, and claimed the shrine's blessing as your own. But hear me well, boy — my king's reach extends far beyond this forest. He has armies in the east, navies in the west, and allies in every court from here to the Shattered Coast. You flee today, but there is no corner of this realm where you can hide."
 }, {
 "chapter": "Chapter 1: Exile in the Greenwood",
 "speaker": "George",
-"text": "Tell your king this: a prince without a crown is still a prince. And every day I walk free, I gather those who know the weight of injustice. Today it was three. Tomorrow, it may be three hundred.Come, allies—we have far to travel, and the road only grows harder."
+"text": "Tell your king this: a prince without a crown is still a prince. And every day I walk free, I gather those who know the weight of injustice. Today it was three. Tomorrow, it may be three hundred. Come, allies — we have far to travel, and the road only grows harder."
 }, {
 "chapter": "Chapter 1: Exile in the Greenwood",
 "speaker": "Ember",
-"text": "I watched my village burn twice—once by bandits, once by 'orderly' royal troops who called it pacification. When your lot came through, I thought more of the same.But you... you stopped. You asked, not demanded. That's rare enough in this kingdom to be remarkable.I know the old monastery to the east. They harbor those the crown has wronged—and they remember old debts to the Verdant line. If we ride now, we'll reach it by moonrise."
+"text": "I watched my village burn twice—once by bandits, once by 'orderly' royal troops who called it pacification. When your lot came through, I thought more of the same. But you... you stopped them. You asked for aid, not demanded fealty. That's rare enough from a lord in this kingdom to be remarkable. I know the old monastery to the east. They harbor those the crown has wronged—and they remember old debts to the Verdant line. If we ride now, we'll reach it by moonrise."
 }, {
 "chapter": "Chapter 1: Exile in the Greenwood",
 "speaker": "Rowan",
-"text": "Word travels fast in the Greenwood. They say an exiled prince fights back, and I ride to see it with my own eyes. A cavalryman without a cause is just a sellsword—I'm glad to have found a cause again."
+"text": "Word travels fast in the Greenwood. They say an exiled prince fights back, and I ride to see it with my own eyes. A cavalryman without a cause is just a sellsword — I'm glad to have found a cause again."
 }, {
 "chapter": "Chapter 1: Exile in the Greenwood",
 "speaker": "Brother Hale",
