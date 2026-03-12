@@ -21,7 +21,7 @@ deployment_slots = 5
 starting_units = [{
 "faction": "player",
 "position": Vector2i(2, 13),
-"unit_id": "woody"
+"unit_id": "george"
 }, {
 "faction": "player",
 "position": Vector2i(1, 12),
@@ -70,7 +70,7 @@ enemy_units = [{
 reinforcements = [{
 "faction": "player",
 "instance_id": "rowan_arrival",
-"message": "Rowan gallops in from the southern road to reinforce Woody.",
+"message": "Rowan gallops in from the southern road to reinforce George.",
 "position": Vector2i(0, 10),
 "turn": 2,
 "unit_id": "rowan"
@@ -85,7 +85,7 @@ reinforcements = [{
 event_triggers = [{
 "action": "spawn_join",
 "id": "ember_join",
-"message": "Ember steps from the village and vows to burn back Woody's hunters.",
+"message": "Ember steps from the village and vows to burn back George's hunters.",
 "position": Vector2i(15, 3),
 "spawn": {
 "faction": "player",
@@ -94,15 +94,15 @@ event_triggers = [{
 "unit_id": "ember"
 },
 "trigger": "tile",
-"unit_id": "woody"
+"unit_id": "george"
 }]
 opening_dialogue = [{
 "chapter": "Chapter 1: Exile in the Greenwood",
 "speaker": "Narrator",
-"text": "The autumn wind carries the last echoes of kingdom bells—bells that once rang for Prince Woody, now stripped of crown and lineage.Three moons ago, he stood as heir to the Verdant Throne. Tonight, he flees through the Greenwood with nothing but a worn blade and three loyal souls."
+"text": "The autumn wind carries the last echoes of kingdom bells—bells that once rang for Prince George, now stripped of crown and lineage.Three moons ago, he stood as heir to the Verdant Throne. Tonight, he flees through the Greenwood with nothing but a worn blade and three loyal souls."
 }, {
 "chapter": "Chapter 1: Exile in the Greenwood",
-"speaker": "Woody",
+"speaker": "George",
 "text": "They called me 'your highness' when my father's head still wore the circlet. Now I am nothing but a name in a royal warrant, a prince turned outlaw in his own kingdom.Bram... Brother Hale... I swear on my father's memory—we will return. Not as exiles, but as conquerors. The throne that cast me out will learn to tremble."
 }, {
 "chapter": "Chapter 1: Exile in the Greenwood",
@@ -123,7 +123,7 @@ victory_dialogue = [{
 "text": "Impressive... truly impressive. You've bested my hunters, outmaneuvered my brigands, and claimed the shrine's blessing as your own. But hear me well, boy—my king's reach extends far beyond this forest.He has armies in the east, navies in the west, and allies in every court from here to the Shattered Coast. You flee today, but there is no corner of this realm where you can hide."
 }, {
 "chapter": "Chapter 1: Exile in the Greenwood",
-"speaker": "Woody",
+"speaker": "George",
 "text": "Tell your king this: a prince without a crown is still a prince. And every day I walk free, I gather those who know the weight of injustice. Today it was three. Tomorrow, it may be three hundred.Come, allies—we have far to travel, and the road only grows harder."
 }, {
 "chapter": "Chapter 1: Exile in the Greenwood",

@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="UnitData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/unit_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "george"
+display_name = "George"
+class_id = "lord"
+level = 1
+stats = {
+"def": 5,
+"hp": 18,
+"lck": 5,
+"mag": 0,
+"max_hp": 18,
+"res": 2,
+"skl": 7,
+"spd": 7,
+"str": 6
+}
+xp = 0
+inventory = PackedStringArray("bronze_sword")
+portrait_id = "george"
+faction = "player"
+ai_profile = "leader"
+join_event_id = ""
+story_flags = PackedStringArray("lord")

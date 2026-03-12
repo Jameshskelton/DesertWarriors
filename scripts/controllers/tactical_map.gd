@@ -10,6 +10,8 @@ const CASTLE_TEXTURE := preload("res://assets/terrain/castle.png")
 const THICKET_TEXTURE := preload("res://assets/terrain/thicket.png")
 const UI_FONT := preload("res://font/new_font.ttf")
 const UI_SCALE := 1.5
+const MOVEMENT_PATH_COLOR := Color(0.462745, 0.815686, 0.960784, 0.72)
+const MOVEMENT_PATH_SHADOW := Color(0.0392157, 0.0745098, 0.121569, 0.28)
 
 var _chapter_id: String = ""
 var _chapter: ChapterData
@@ -85,7 +87,7 @@ func _load_chapter() -> void:
 	_event_director.reset()
 	_cursor_tile = Vector2i(1, _grid_size.y - 2)
 	_update_header()
-	_update_status("Guide Woody through the Greenwood and defeat Captain Briar.")
+	_update_status("Guide George through the Greenwood and defeat Captain Briar.")
 	_update_hover_status()
 	queue_redraw()
 
@@ -133,6 +135,7 @@ func _spawn_unit(entry: Dictionary) -> void:
 
 func _draw() -> void:
 	_draw_board()
+	_draw_movement_preview()
 	_draw_units()
 
 
@@ -157,6 +160,39 @@ func _draw_board() -> void:
 	draw_rect(cursor_rect.grow(-1.5), Color(0.980392, 0.941176, 0.745098, 1), false, 4.5)
 
 
+func _draw_movement_preview() -> void:
+	if _selection.preview_path.size() < 2:
+		return
+	var points := PackedVector2Array()
+	for tile in _selection.preview_path:
+		points.append(_tile_center(tile))
+	draw_polyline(points, MOVEMENT_PATH_SHADOW, 13.5 * UI_SCALE, true)
+	draw_polyline(points, MOVEMENT_PATH_COLOR, 8.0 * UI_SCALE, true)
+	for point in points:
+		draw_circle(point, 4.0 * UI_SCALE, MOVEMENT_PATH_COLOR)
+	_draw_movement_arrowhead(points[points.size() - 2], points[points.size() - 1])
+
+
+func _draw_movement_arrowhead(from_point: Vector2, to_point: Vector2) -> void:
+	var direction := (to_point - from_point).normalized()
+	if direction == Vector2.ZERO:
+		return
+	var tip := to_point
+	var shadow_base := tip - direction * (18.0 * UI_SCALE)
+	var shadow_side := direction.orthogonal() * (10.0 * UI_SCALE)
+	draw_colored_polygon(
+		PackedVector2Array([tip, shadow_base + shadow_side, shadow_base - shadow_side]),
+		MOVEMENT_PATH_SHADOW
+	)
+	var base := tip - direction * (15.0 * UI_SCALE)
+	var side := direction.orthogonal() * (8.0 * UI_SCALE)
+	draw_colored_polygon(PackedVector2Array([tip, base + side, base - side]), MOVEMENT_PATH_COLOR)
+
+
+func _tile_center(tile: Vector2i) -> Vector2:
+	return _board_origin + (Vector2(tile) + Vector2.ONE * 0.5) * _cell_size
+
+
 func _draw_units() -> void:
 	var font := UI_FONT
 	var unit_padding := 5.0 * UI_SCALE
@@ -178,11 +214,21 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if _active_battle != null or _turn_controller.phase != "player":
 		return
+	if event is InputEventMouseMotion:
+		var hovered_tile := _screen_to_tile(event.position)
+		if _grid.in_bounds(hovered_tile, _grid_size) and hovered_tile != _cursor_tile:
+			_cursor_tile = hovered_tile
+			_update_movement_preview()
+			_update_hover_status()
+			queue_redraw()
+		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var clicked_tile := _screen_to_tile(event.position)
 		if _grid.in_bounds(clicked_tile, _grid_size):
 			_cursor_tile = clicked_tile
 			_confirm_cursor()
+			_update_movement_preview()
+			_update_hover_status()
 			queue_redraw()
 			return
 	if event.is_action_pressed("ui_up"):
@@ -203,6 +249,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 	elif event.is_action_pressed("end_turn") and _selection.mode == SelectionController.Mode.IDLE:
 		_begin_enemy_phase()
+	_update_movement_preview()
 	queue_redraw()
 	_update_hover_status()
 
@@ -238,7 +285,9 @@ func _select_unit_at_cursor() -> void:
 	_selection.mode = SelectionController.Mode.UNIT_SELECTED
 	_selection.selected_unit = unit
 	_selection.origin_tile = unit.position
+	_selection.reachability = reachability
 	_selection.highlighted_tiles = reachability.get("costs", {})
+	_update_movement_preview()
 	_update_status("%s selected. Choose a destination." % unit.display_name)
 
 
@@ -248,6 +297,7 @@ func _try_move_selected_unit() -> void:
 		return
 	if not _selection.highlighted_tiles.has(_cursor_tile):
 		return
+	_selection.preview_path = _pathfinding.build_path(_selection.origin_tile, _cursor_tile, _selection.reachability)
 	selected.position = _cursor_tile
 	selected.moved = true
 	_selection.mode = SelectionController.Mode.ACTION_MENU
@@ -549,6 +599,18 @@ func _get_terrain_at(tile: Vector2i) -> TerrainData:
 func _screen_to_tile(screen_position: Vector2) -> Vector2i:
 	var local := screen_position - _board_origin
 	return Vector2i(floori(local.x / _cell_size), floori(local.y / _cell_size))
+
+
+func _update_movement_preview() -> void:
+	if _selection.mode != SelectionController.Mode.UNIT_SELECTED:
+		return
+	if _selection.selected_unit == null or _selection.reachability.is_empty():
+		_selection.preview_path.clear()
+		return
+	if not _selection.highlighted_tiles.has(_cursor_tile) or _cursor_tile == _selection.origin_tile:
+		_selection.preview_path.clear()
+		return
+	_selection.preview_path = _pathfinding.build_path(_selection.origin_tile, _cursor_tile, _selection.reachability)
 
 
 func _update_header() -> void:

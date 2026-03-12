@@ -21,7 +21,7 @@ deployment_slots = 8
 starting_units = [{
 "faction": "player",
 "position": Vector2i(2, 12),
-"unit_id": "woody"
+"unit_id": "george"
 }, {
 "faction": "player",
 "position": Vector2i(1, 11),
@@ -97,7 +97,7 @@ opening_dialogue = [{
 "text": "The southern canyons open into a hidden valley—a patchwork of farms and watchtowers, half-reclaimed by nature. Here, the Silverguard's remnants have made their final stand: thirteen knights who refused the usurper's oath, led by Sir Aldric of the Verdant Guard."
 }, {
 "chapter": "Chapter 3: The Unbroken",
-"speaker": "Woody",
+"speaker": "George",
 "text": "I see their banners. The silver stag, once the symbol of the king's own guard. They must have torn those from their armor when they fled."
 }, {
 "chapter": "Chapter 3: The Unbroken",
@@ -109,8 +109,8 @@ opening_dialogue = [{
 "text": "Halt, travelers. This valley belongs to the Unbroken. State your business, or depart in peace—we have no quarrel with wandering souls."
 }, {
 "chapter": "Chapter 3: The Unbroken",
-"speaker": "Woody",
-"text": "I am Woody, son of King Alden, heir to the Verdant Throne. I come to claim the allegiance of the Silverguard—as my father once commanded them."
+"speaker": "George",
+"text": "I am George, son of King Alden, heir to the Verdant Throne. I come to claim the allegiance of the Silverguard—as my father once commanded them."
 }, {
 "chapter": "Chapter 3: The Unbroken",
 "speaker": "Sir Aldric",
@@ -130,7 +130,7 @@ victory_dialogue = [{
 "text": "Enough... enough. You fight like your father. He was the only man who ever bested me in the training yard.I swore an oath to defend the Verdant line—not to any crown, but to the blood itself. That blood flows in you. I see that now."
 }, {
 "chapter": "Chapter 3: The Unbroken",
-"speaker": "Woody",
+"speaker": "George",
 "text": "Then the oath is renewed?"
 }, {
 "chapter": "Chapter 3: The Unbroken",
@@ -139,7 +139,7 @@ victory_dialogue = [{
 }, {
 "chapter": "Chapter 3: The Unbroken",
 "speaker": "Brother Hale",
-"text": "The spirits of the valley whisper welcome. This is no longer a flight—it is a crusade. Word will spread. Other exiles, other broken oaths—they will come.We are no longer fugitives, Woody. We are the seed of a new army."
+"text": "The spirits of the valley whisper welcome. This is no longer a flight—it is a crusade. Word will spread. Other exiles, other broken oaths—they will come.We are no longer fugitives, George. We are the seed of a new army."
 }, {
 "chapter": "Chapter 3: The Unbroken",
 "speaker": "Rowan",

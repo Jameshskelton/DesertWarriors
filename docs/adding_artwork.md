@@ -17,14 +17,14 @@ Recommended file layout:
 ```text
 assets/
   portraits/
-    woody.png
+    george.png
     bram.png
     rowan.png
     ember.png
     hale.png
     briar.png
   map_units/
-    woody.png
+    george.png
     bram.png
     rowan.png
     ember.png
@@ -34,7 +34,7 @@ assets/
     pursuer_armor.png
     captain_briar.png
   battle_units/
-    woody.png
+    george.png
     bram.png
     rowan.png
     ember.png
@@ -59,7 +59,7 @@ Use these descriptions to keep the portraits, map sprites, and battle art aligne
 
 ### Player Characters
 
-- `Woody`: Lord, uses a `Bronze Sword`. He is the exiled prince and should read as young, determined, and heroic. Use royal blue, light gold trim, and a travel-worn cloak rather than full court regalia.
+- `George`: Lord, uses a `Bronze Sword`. He is the exiled prince and should read as young, determined, and heroic. Use royal blue, light gold trim, and a travel-worn cloak rather than full court regalia.
 - `Bram`: Knight, uses an `Iron Lance`. He is the tanky protector of the group. His art should emphasize heavy armor, a broad silhouette, and a dependable bodyguard presence.
 - `Rowan`: Cavalier, uses an `Iron Lance`. He is the fast mounted ally. Give him lighter armor than Bram, a quick rider silhouette, and warm road-dust colors that sell speed and mobility.
 - `Ember`: Mage, uses a `Fire Tome`. She is the glass cannon caster. Use bright red or ember-orange accents, lighter clothing, and a confident or sharp expression that suggests explosive magic.
@@ -70,7 +70,7 @@ Use these descriptions to keep the portraits, map sprites, and battle art aligne
 - `Captain Briar`: Captain, uses `Captain's Axe`. He is the Chapter 1 boss and should feel harsher and more threatening than the regular brigands. Use a stronger silhouette, darker armor or leathers, and details that imply command.
 - `Brigand`: Brigand, uses an `Iron Axe`. He is a rough melee raider. Use rugged clothes, simple gear, and an aggressive stance.
 - `Hunter`: Hunter, uses a `Hunter Bow`. He is a light ranged enemy. Use leaner proportions, practical forest gear, and colors that blend into woodland terrain.
-- `Pursuer`: Knight, uses an `Iron Lance`. He represents the royal forces hunting Woody. Make him read as disciplined and militarized, with armor that looks stricter and more formal than Bram's.
+- `Pursuer`: Knight, uses an `Iron Lance`. He represents the royal forces hunting George. Make him read as disciplined and militarized, with armor that looks stricter and more formal than Bram's.
 
 ### Visual Class Notes
 
@@ -147,8 +147,8 @@ Example dialogue entry:
 ```gdscript
 {
     "chapter": "Chapter 1: Exile in the Greenwood",
-    "speaker": "Woody",
-    "portrait_id": "woody",
+    "speaker": "George",
+    "portrait_id": "george",
     "text": "They have taken my crown, but not my name."
 }
 ```
@@ -316,7 +316,7 @@ The data model already has `portrait_id` on [unit_data.gd](/Users/jamesskelton/D
 
 Use it consistently:
 
-- `woody` -> `assets/portraits/woody.png`
+- `george` -> `assets/portraits/george.png`
 - `briar` -> `assets/portraits/briar.png`
 - `hale` -> `assets/portraits/hale.png`
 
@@ -331,7 +331,7 @@ That lets one unit reuse portrait art while using a different battle or map shee
 
 Use lowercase snake case only:
 
-- `woody.png`
+- `george.png`
 - `brother_hale.png`
 - `captain_briar.png`
 
@@ -341,7 +341,7 @@ Avoid spaces and mixed naming. It keeps resource loading simple.
 
 Do this in order:
 
-1. Portraits for Woody, Bram, Rowan, Ember, Brother Hale, and Briar
+1. Portraits for George, Bram, Rowan, Ember, Brother Hale, and Briar
 2. Terrain tiles for plains, forest, road, village, shrine
 3. Map unit sprites for player classes and enemy classes
 4. Battle sprites for player units and boss

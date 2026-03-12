@@ -22,7 +22,7 @@ deployment_slots = 7
 starting_units = [{
 "faction": "player",
 "position": Vector2i(1, 14),
-"unit_id": "woody"
+"unit_id": "george"
 }, {
 "faction": "player",
 "position": Vector2i(0, 13),
@@ -107,7 +107,7 @@ opening_dialogue = [{
 "text": "The monastery stands at the crossroads of old trade routes. When the Verdant Kingdom was young, the monks there served as healers for both king and commoner alike.The current abbot... Abbot Vermis. He was a friend to your father once. Whether he remains a friend to your memory, I cannot say."
 }, {
 "chapter": "Chapter 2: The Old Monastery",
-"speaker": "Woody",
+"speaker": "George",
 "text": "We have little choice but to try. The resistance Brother Hale spoke of—if it exists—we need their numbers. We cannot win this with five souls."
 }, {
 "chapter": "Chapter 2: The Old Monastery",
@@ -120,7 +120,7 @@ opening_dialogue = [{
 }, {
 "chapter": "Chapter 2: The Old Monastery",
 "speaker": "Brother Hale",
-"text": "The spirits of the road whisper warning. I sense treachery ahead—not from the knights, but from within the monastery walls themselves.Trust nothing until you see the abbot's true face, Woody. Old alliances rot quickly in the shadow of crowns."
+"text": "The spirits of the road whisper warning. I sense treachery ahead—not from the knights, but from within the monastery walls themselves.Trust nothing until you see the abbot's true face, George. Old alliances rot quickly in the shadow of crowns."
 }]
 victory_dialogue = [{
 "chapter": "Chapter 2: The Old Monastery",
@@ -128,7 +128,7 @@ victory_dialogue = [{
 "text": "Enough! I did not become abbot by being a fool. Your father saved my life twenty years ago during the Border Rebellion—I have not forgotten.But neither have I forgotten what happened to him. He was betrayed by those he trusted. If I shelter you, the king's armies will burn this monastery to ash."
 }, {
 "chapter": "Chapter 2: The Old Monastery",
-"speaker": "Woody",
+"speaker": "George",
 "text": "Then we will not stay. We only need your blessing, Abbot—and the names of those who still remember the true crown."
 }, {
 "chapter": "Chapter 2: The Old Monastery",

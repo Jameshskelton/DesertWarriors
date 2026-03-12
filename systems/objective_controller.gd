@@ -12,13 +12,13 @@ func check_victory(units: Array[UnitState], chapter: ChapterData) -> bool:
 
 
 func check_defeat(units: Array[UnitState]) -> bool:
-	var woody_alive := false
+	var george_alive := false
 	var any_player_alive := false
 	for unit in units:
 		if unit.faction != "player":
 			continue
 		if unit.is_alive():
 			any_player_alive = true
-		if unit.unit_id == "woody" and unit.is_alive():
-			woody_alive = true
-	return not woody_alive or not any_player_alive
+		if unit.unit_id == "george" and unit.is_alive():
+			george_alive = true
+	return not george_alive or not any_player_alive

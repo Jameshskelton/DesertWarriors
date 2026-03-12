@@ -21,7 +21,7 @@ stats = {
 }
 xp = 0
 inventory = PackedStringArray("iron_lance")
-portrait_id = "pursuer"
+portrait_id = "pursuer_armor"
 faction = "enemy"
 ai_profile = "guard"
 join_event_id = ""

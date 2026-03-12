@@ -21,7 +21,7 @@ stats = {
 }
 xp = 0
 inventory = PackedStringArray("hunter_bow")
-portrait_id = "hunter"
+portrait_id = "hunter_grunt"
 faction = "enemy"
 ai_profile = "hold"
 join_event_id = ""

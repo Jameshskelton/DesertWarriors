@@ -65,7 +65,7 @@ func choose_action(enemy: UnitState, units: Array[UnitState], terrain_grid: Arra
 func _score_attack(attacker: UnitState, defender: UnitState) -> int:
 	var score: int = 0
 	score += max(0, defender.get_max_hp() - defender.get_current_hp())
-	if defender.has_flag("lord") or defender.unit_id == "woody":
+	if defender.has_flag("lord") or defender.unit_id == "george":
 		score += 30
 	if defender.class_id == "priest":
 		score += 10

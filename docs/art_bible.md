@@ -11,7 +11,7 @@
 ## Palette
 
 - Forest greens for the Greenwood map
-- Muted steel blue for Woody's force
+- Muted steel blue for George's force
 - Rust red for enemy units
 - Warm parchment and brass for UI accents
 

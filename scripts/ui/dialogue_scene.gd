@@ -67,7 +67,7 @@ func _render_line() -> void:
 
 func _speaker_color(speaker: String) -> Color:
 	match speaker:
-		"Woody":
+		"George":
 			return Color(0.329412, 0.494118, 0.776471, 1)
 		"Bram":
 			return Color(0.592157, 0.611765, 0.690196, 1)
@@ -87,6 +87,9 @@ func _load_portrait_for_speaker(speaker: String) -> Texture2D:
 		if unit == null or unit.display_name != speaker:
 			continue
 		var portrait := _load_portrait_by_id(unit.portrait_id)
+		if portrait != null:
+			return portrait
+		portrait = _load_portrait_by_id(unit.unit_id)
 		if portrait != null:
 			return portrait
 	var fallback_id := speaker.to_lower().replace(" ", "_")

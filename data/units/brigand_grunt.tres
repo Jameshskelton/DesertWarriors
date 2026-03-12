@@ -21,7 +21,7 @@ stats = {
 }
 xp = 0
 inventory = PackedStringArray("iron_axe")
-portrait_id = "brigand"
+portrait_id = "brigand_grunt"
 faction = "enemy"
 ai_profile = "rush"
 join_event_id = ""

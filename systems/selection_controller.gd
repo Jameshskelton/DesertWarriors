@@ -14,8 +14,10 @@ var mode: int = Mode.IDLE
 var selected_unit: UnitState
 var origin_tile: Vector2i = Vector2i.ZERO
 var pending_action: String = ""
+var reachability: Dictionary = {}
 var highlighted_tiles: Dictionary = {}
 var target_tiles: Array[Vector2i] = []
+var preview_path: Array[Vector2i] = []
 
 
 func reset() -> void:
@@ -23,5 +25,7 @@ func reset() -> void:
 	selected_unit = null
 	origin_tile = Vector2i.ZERO
 	pending_action = ""
+	reachability.clear()
 	highlighted_tiles.clear()
 	target_tiles.clear()
+	preview_path.clear()

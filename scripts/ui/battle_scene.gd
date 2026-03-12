@@ -2,8 +2,23 @@ extends Control
 
 signal battle_finished
 
+const FIGHT_ANIMATION_DIR := "res://assets/fight_animations"
+const FIGHT_ANIMATION_FRAME_TIME := 1.0 / 18.0
+const FIGHT_ANIMATION_CLASS_FALLBACKS := {
+	"brigand": "brigand_grunt",
+	"captain": "captain_briar",
+	"cavalier": "rowan",
+	"hunter": "hunter_grunt",
+	"knight": "knight_grunt",
+	"lord": "george",
+	"mage": "ember",
+}
+
 var _payload: Dictionary = {}
 var _skip_requested: bool = false
+var _animation_frame_cache: Dictionary = {}
+var _left_portrait: Texture2D
+var _right_portrait: Texture2D
 
 @onready var _left_name: Label = $LeftPanel/LeftMargin/LeftVBox/LeftName
 @onready var _left_sprite: ColorRect = $LeftPanel/LeftMargin/LeftVBox/LeftSprite
@@ -46,8 +61,10 @@ func _apply_initial_state() -> void:
 	_right_name.text = defender.display_name
 	_left_sprite.color = _unit_color(attacker)
 	_right_sprite.color = _unit_color(defender)
-	_left_texture.texture = _load_portrait_for_unit(attacker)
-	_right_texture.texture = _load_portrait_for_unit(defender)
+	_left_portrait = _load_portrait_for_unit(attacker)
+	_right_portrait = _load_portrait_for_unit(defender)
+	_left_texture.texture = _left_portrait
+	_right_texture.texture = _right_portrait
 	_left_hp.max_value = attacker.get_max_hp()
 	_left_hp.value = _payload.get("attacker_start_hp", attacker.get_current_hp())
 	_right_hp.max_value = defender.get_max_hp()
@@ -57,17 +74,22 @@ func _apply_initial_state() -> void:
 
 
 func _play_sequence() -> void:
-	var result = _payload.get("result") as BattleResult
-	var attacker = _payload.get("attacker") as UnitState
-	var defender = _payload.get("defender") as UnitState
+	var result: BattleResult = _payload.get("result") as BattleResult
+	var attacker: UnitState = _payload.get("attacker") as UnitState
+	var defender: UnitState = _payload.get("defender") as UnitState
 	if result == null or attacker == null or defender == null:
 		_finish_immediately()
 		return
 	for strike in result.strikes:
 		if _skip_requested:
 			break
+		var attacker_name: String = str(strike.get("attacker_name", ""))
+		var striking_left: bool = attacker_name == attacker.display_name
+		var striking_unit: UnitState = attacker
+		if not striking_left:
+			striking_unit = defender
 		_battle_log.text = "%s attacks %s" % [strike["attacker_name"], strike["defender_name"]]
-		await _pause(0.35)
+		await _play_attack_animation(striking_unit, striking_left)
 		if strike["hit"]:
 			if strike["crit"]:
 				_battle_log.text = "Critical! %s loses %d HP" % [strike["defender_name"], strike["damage"]]
@@ -81,6 +103,7 @@ func _play_sequence() -> void:
 			_right_hp.value = strike["target_hp"]
 		_refresh_hp_text()
 		await _pause(0.45)
+	_restore_portraits()
 	_left_hp.value = attacker.get_current_hp()
 	_right_hp.value = defender.get_current_hp()
 	_refresh_hp_text()
@@ -109,6 +132,66 @@ func _pause(duration: float) -> void:
 		await get_tree().create_timer(duration).timeout
 
 
+func _play_attack_animation(unit: UnitState, attacking_left: bool) -> void:
+	var frames: Array = _load_fight_animation_frames(unit)
+	if frames.is_empty():
+		await _pause(0.35)
+		return
+	var texture_rect: TextureRect = _left_texture
+	if not attacking_left:
+		texture_rect = _right_texture
+	for frame in frames:
+		if _skip_requested:
+			break
+		texture_rect.texture = frame
+		await _pause(FIGHT_ANIMATION_FRAME_TIME)
+	_restore_portraits()
+
+
+func _restore_portraits() -> void:
+	_left_texture.texture = _left_portrait
+	_right_texture.texture = _right_portrait
+
+
+func _load_fight_animation_frames(unit: UnitState) -> Array:
+	if unit == null:
+		return []
+	var candidates: PackedStringArray = PackedStringArray()
+	for candidate in [
+		unit.unit_id,
+		unit.portrait_id,
+		unit.display_name.to_lower().replace(" ", "_"),
+		str(FIGHT_ANIMATION_CLASS_FALLBACKS.get(unit.class_id, "")),
+	]:
+		if not candidate.is_empty() and not candidates.has(candidate):
+			candidates.append(candidate)
+	for candidate in candidates:
+		var frames: Array = _load_fight_animation_frames_by_id(candidate)
+		if not frames.is_empty():
+			return frames
+	return []
+
+
+func _load_fight_animation_frames_by_id(animation_id: String) -> Array:
+	if animation_id.is_empty():
+		return []
+	if _animation_frame_cache.has(animation_id):
+		return _animation_frame_cache[animation_id]
+	var directory: DirAccess = DirAccess.open("%s/%s" % [FIGHT_ANIMATION_DIR, animation_id])
+	var frames: Array[Texture2D] = []
+	if directory != null:
+		var file_names: PackedStringArray = directory.get_files()
+		file_names.sort()
+		for file_name in file_names:
+			if not file_name.ends_with(".jpg") and not file_name.ends_with(".png") and not file_name.ends_with(".webp"):
+				continue
+			var texture: Texture2D = load(directory.get_current_dir().path_join(file_name)) as Texture2D
+			if texture != null:
+				frames.append(texture)
+	_animation_frame_cache[animation_id] = frames
+	return frames
+
+
 func _unit_color(unit: UnitState) -> Color:
 	if unit.faction == "player":
 		return Color(0.286275, 0.486275, 0.768627, 1)
@@ -119,7 +202,7 @@ func _load_portrait_for_unit(unit: UnitState) -> Texture2D:
 	if unit == null:
 		return null
 	if not unit.portrait_id.is_empty():
-		var portrait := _load_portrait_by_id(unit.portrait_id)
+		var portrait: Texture2D = _load_portrait_by_id(unit.portrait_id)
 		if portrait != null:
 			return portrait
 	return _load_portrait_by_id(unit.unit_id)
@@ -128,7 +211,7 @@ func _load_portrait_for_unit(unit: UnitState) -> Texture2D:
 func _load_portrait_by_id(portrait_id: String) -> Texture2D:
 	if portrait_id.is_empty():
 		return null
-	var path := "res://assets/portraits/%s.png" % portrait_id
+	var path: String = "res://assets/portraits/%s.png" % portrait_id
 	if not ResourceLoader.exists(path):
 		return null
 	return load(path) as Texture2D
