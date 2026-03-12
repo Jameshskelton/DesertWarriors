@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="UnitData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/unit_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "captain"
+display_name = "Captain"
+class_id = "captain"
+level = 2
+stats = {
+"def": 5,
+"hp": 24,
+"lck": 3,
+"mag": 0,
+"max_hp": 24,
+"res": 1,
+"skl": 6,
+"spd": 5,
+"str": 8
+}
+xp = 0
+inventory = PackedStringArray("captain_axe")
+portrait_id = ""
+faction = "enemy"
+ai_profile = "guard"
+join_event_id = ""
+story_flags = PackedStringArray()

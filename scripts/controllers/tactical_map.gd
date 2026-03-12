@@ -5,6 +5,10 @@ signal chapter_cleared(summary: Dictionary)
 signal chapter_failed(summary: Dictionary)
 
 const BATTLE_SCENE := preload("res://scenes/battle/battle_scene.tscn")
+const DIALOGUE_SCENE := preload("res://scenes/dialogue/dialogue_scene.tscn")
+const CASTLE_TEXTURE := preload("res://assets/terrain/castle.png")
+const THICKET_TEXTURE := preload("res://assets/terrain/thicket.png")
+const UI_FONT := preload("res://font/new_font.ttf")
 const UI_SCALE := 1.5
 
 var _chapter_id: String = ""
@@ -25,6 +29,7 @@ var _combat_resolver: CombatResolver = CombatResolver.new()
 var _ai_controller: AIController = AIController.new()
 var _battle_transition: BattleTransitionController = BattleTransitionController.new()
 var _active_battle: Control
+var _active_dialogue: Control
 var _spawned_reinforcements: PackedStringArray = PackedStringArray()
 
 @onready var _chapter_label: Label = $Header/HeaderMargin/HeaderRow/ChapterLabel
@@ -35,6 +40,12 @@ var _spawned_reinforcements: PackedStringArray = PackedStringArray()
 @onready var _hint_label: Label = $Footer/FooterMargin/FooterVBox/HintLabel
 @onready var _action_menu = $ActionMenu
 @onready var _forecast_panel = $ForecastPanel
+@onready var _portrait_panel: PanelContainer = $PortraitPanel
+@onready var _portrait_name: Label = $PortraitPanel/PortraitMargin/PortraitVBox/PortraitName
+@onready var _portrait_frame: ColorRect = $PortraitPanel/PortraitMargin/PortraitVBox/PortraitFrame
+@onready var _portrait_texture: TextureRect = $PortraitPanel/PortraitMargin/PortraitVBox/PortraitFrame/PortraitTexture
+@onready var _portrait_fallback: Label = $PortraitPanel/PortraitMargin/PortraitVBox/PortraitFrame/PortraitFallback
+@onready var _portrait_details: Label = $PortraitPanel/PortraitMargin/PortraitVBox/PortraitDetails
 @onready var _battle_layer: Control = $BattleLayer
 @onready var _help_panel = $HelpPanel
 @onready var _help_close_button: Button = $HelpPanel/HelpMargin/HelpVBox/CloseButton
@@ -59,15 +70,12 @@ func _ready() -> void:
 
 func _load_chapter() -> void:
 	_chapter = DataRegistry.get_chapter_data(_chapter_id)
+	if _chapter == null:
+		push_error("Failed to load chapter data: " + _chapter_id)
+		return
 	_grid_size = Vector2i(_chapter.map_width, _chapter.map_height)
-	_terrain_grid.clear()
+	_terrain_grid = _build_terrain_grid(_chapter)
 	_spawned_reinforcements.clear()
-	for row in _chapter.terrain_rows:
-		var parsed_row: Array = []
-		for index in range(row.length()):
-			var character: String = row.substr(index, 1)
-			parsed_row.append(_chapter.terrain_legend.get(character, "plains"))
-		_terrain_grid.append(parsed_row)
 	_units.clear()
 	for entry in _chapter.starting_units:
 		_spawn_unit(entry)
@@ -78,7 +86,36 @@ func _load_chapter() -> void:
 	_cursor_tile = Vector2i(1, _grid_size.y - 2)
 	_update_header()
 	_update_status("Guide Woody through the Greenwood and defeat Captain Briar.")
+	_update_hover_status()
 	queue_redraw()
+
+
+func _build_terrain_grid(chapter: ChapterData) -> Array:
+	var terrain_grid: Array = []
+	var fallback_terrain_id := _get_fallback_terrain_id(chapter)
+	if chapter.terrain_rows.size() != chapter.map_height:
+		push_warning("Chapter %s has %d terrain rows but expected %d. Normalizing map data." % [chapter.id, chapter.terrain_rows.size(), chapter.map_height])
+	for y in range(chapter.map_height):
+		var row := chapter.terrain_rows[y] if y < chapter.terrain_rows.size() else ""
+		if row.length() != chapter.map_width:
+			push_warning("Chapter %s row %d has width %d but expected %d. Normalizing map data." % [chapter.id, y, row.length(), chapter.map_width])
+		var parsed_row: Array = []
+		for x in range(chapter.map_width):
+			var terrain_id := fallback_terrain_id
+			if x < row.length():
+				var character: String = row.substr(x, 1)
+				terrain_id = chapter.terrain_legend.get(character, fallback_terrain_id)
+			parsed_row.append(terrain_id)
+		terrain_grid.append(parsed_row)
+	return terrain_grid
+
+
+func _get_fallback_terrain_id(chapter: ChapterData) -> String:
+	if chapter.terrain_legend.has("F"):
+		return str(chapter.terrain_legend["F"])
+	if not chapter.terrain_legend.is_empty():
+		return str(chapter.terrain_legend.values()[0])
+	return "plains"
 
 
 func _spawn_unit(entry: Dictionary) -> void:
@@ -107,6 +144,10 @@ func _draw_board() -> void:
 			var terrain: TerrainData = DataRegistry.get_terrain_data(terrain_id)
 			var rect := Rect2(_board_origin + Vector2(x, y) * _cell_size, Vector2.ONE * _cell_size)
 			draw_rect(rect, terrain.map_color)
+			if terrain_id == "castle" and CASTLE_TEXTURE != null:
+				draw_texture_rect(CASTLE_TEXTURE, rect, false)
+			if terrain_id == "forest" and THICKET_TEXTURE != null:
+				draw_texture_rect(THICKET_TEXTURE, rect, false)
 			draw_rect(rect, Color(0, 0, 0, 0.2), false, 1.5)
 			if _selection.highlighted_tiles.has(tile):
 				draw_rect(rect.grow(-3.0), Color(0.309804, 0.686275, 0.929412, 0.35))
@@ -117,7 +158,7 @@ func _draw_board() -> void:
 
 
 func _draw_units() -> void:
-	var font := ThemeDB.fallback_font
+	var font := UI_FONT
 	var unit_padding := 5.0 * UI_SCALE
 	for unit in _units:
 		if not unit.is_alive() or not unit.has_joined:
@@ -133,6 +174,8 @@ func _draw_units() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _active_dialogue != null:
+		return
 	if _active_battle != null or _turn_controller.phase != "player":
 		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -371,10 +414,31 @@ func _process_turn_events() -> void:
 			_spawn_unit(reinforcement)
 			if reinforcement.has("message"):
 				_update_status(str(reinforcement.get("message", "")))
+			if reinforcement.has("dialogue_lines"):
+				_show_dialogue_overlay(reinforcement.get("dialogue_lines", []))
 	var turn_events := _event_director.consume_turn_events(_turn_controller.turn_number, _chapter)
 	for event in turn_events:
 		_execute_event(event)
 	queue_redraw()
+
+
+func _show_dialogue_overlay(lines: Array) -> void:
+	if lines.is_empty() or _active_dialogue != null:
+		return
+	_action_menu.hide_menu()
+	_forecast_panel.hide_panel()
+	_help_panel.visible = false
+	var dialogue_scene: Control = DIALOGUE_SCENE.instantiate()
+	dialogue_scene.setup(lines, "map_resume")
+	dialogue_scene.dialogue_finished.connect(Callable(self, "_on_dialogue_overlay_finished"))
+	_active_dialogue = dialogue_scene
+	add_child(dialogue_scene)
+
+
+func _on_dialogue_overlay_finished(_next_tag: String) -> void:
+	if _active_dialogue != null:
+		_active_dialogue.queue_free()
+		_active_dialogue = null
 
 
 func _handle_tile_events(unit: UnitState) -> void:
@@ -472,7 +536,14 @@ func _get_unit_at(tile: Vector2i) -> UnitState:
 
 
 func _get_terrain_at(tile: Vector2i) -> TerrainData:
-	return DataRegistry.get_terrain_data(_terrain_grid[tile.y][tile.x])
+	if _terrain_grid.is_empty():
+		return DataRegistry.get_terrain_data("plains")
+	var row_index := clampi(tile.y, 0, _terrain_grid.size() - 1)
+	var row: Array = _terrain_grid[row_index]
+	if row.is_empty():
+		return DataRegistry.get_terrain_data("plains")
+	var column_index := clampi(tile.x, 0, row.size() - 1)
+	return DataRegistry.get_terrain_data(row[column_index])
 
 
 func _screen_to_tile(screen_position: Vector2) -> Vector2i:
@@ -493,6 +564,10 @@ func _update_status(message: String) -> void:
 
 func _update_hover_status() -> void:
 	var unit := _get_unit_at(_cursor_tile)
+	if unit != null:
+		_show_hover_portrait(unit)
+	else:
+		_hide_hover_portrait()
 	if _selection.mode == SelectionController.Mode.TARGETING and _selection.selected_unit != null and unit != null:
 		if _selection.pending_action == "attack" and unit.faction != _selection.selected_unit.faction:
 			var forecast := _combat_resolver.build_forecast(_selection.selected_unit, unit, _get_terrain_at(_selection.selected_unit.position), _get_terrain_at(unit.position))
@@ -512,3 +587,44 @@ func _unit_color(unit: UnitState) -> Color:
 	if unit.faction == "player":
 		return Color(0.286275, 0.486275, 0.768627, 1)
 	return Color(0.733333, 0.286275, 0.239216, 1)
+
+
+func _show_hover_portrait(unit: UnitState) -> void:
+	_portrait_panel.visible = true
+	_portrait_name.text = unit.display_name
+	_portrait_details.text = "%s  Lv.%d  HP %d/%d" % [
+		DataRegistry.get_class_data(unit.class_id).display_name if DataRegistry.get_class_data(unit.class_id) != null else unit.class_id.capitalize(),
+		unit.level,
+		unit.get_current_hp(),
+		unit.get_max_hp()
+	]
+	var portrait := _load_portrait_for_unit(unit)
+	_portrait_texture.texture = portrait
+	_portrait_texture.visible = portrait != null
+	_portrait_fallback.visible = portrait == null
+	_portrait_fallback.text = unit.display_name.to_upper()
+	_portrait_frame.color = Color(0.121569, 0.14902, 0.184314, 1) if portrait != null else _unit_color(unit)
+
+
+func _hide_hover_portrait() -> void:
+	_portrait_panel.visible = false
+	_portrait_texture.texture = null
+
+
+func _load_portrait_for_unit(unit: UnitState) -> Texture2D:
+	if unit == null:
+		return null
+	if not unit.portrait_id.is_empty():
+		var portrait := _load_portrait_by_id(unit.portrait_id)
+		if portrait != null:
+			return portrait
+	return _load_portrait_by_id(unit.unit_id)
+
+
+func _load_portrait_by_id(portrait_id: String) -> Texture2D:
+	if portrait_id.is_empty():
+		return null
+	var path := "res://assets/portraits/%s.png" % portrait_id
+	if not ResourceLoader.exists(path):
+		return null
+	return load(path) as Texture2D

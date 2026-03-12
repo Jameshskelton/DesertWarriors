@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="UnitData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/unit_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "mage"
+display_name = "Mage"
+class_id = "mage"
+level = 1
+stats = {
+"def": 1,
+"hp": 16,
+"lck": 4,
+"mag": 8,
+"max_hp": 16,
+"res": 6,
+"skl": 7,
+"spd": 6,
+"str": 1
+}
+xp = 0
+inventory = PackedStringArray("fire_tome")
+portrait_id = ""
+faction = "player"
+ai_profile = "support"
+join_event_id = ""
+story_flags = PackedStringArray()

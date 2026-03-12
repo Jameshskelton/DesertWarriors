@@ -9,8 +9,9 @@ display_name = "Chapter 2: The Old Monastery"
 objective_type = "defeat_boss"
 map_width = 20
 map_height = 15
-terrain_rows = PackedStringArray("FFFFFFFFPPFFFFFFFFFFF", "FFFFFRRRRRRFFFFFFF", "FFFFRRRRRRRRRFFFFFFF", "FFFFFRRRRRRRRFFFFFFF", "FFFFFFFFPRRRRFFFFFFF", "FFFFFPPPRRRRFFFFFF", "FFFFPPPRRRRRRFFFFFF", "FFPPPPPRRRRRRRFFFFF", "FFPPPPPRRRRRRRFFFFFF", "FFFFPPPPRRRRRRFFFFF", "FFFFFPPPPRRRRRFFFFF", "FFFFFFFPPPRRRRFFFFF", "FFFFFFFRRRRRRRFFFFF", "FFFFFFFRRRRRRRFFFFFF", "FFFFFFFPRRRRRFFFFFFF")
+terrain_rows = PackedStringArray("FFFFFFFFPPFFFFFCCCCF", "FFFFFRRRRRRFFFFCCCCF", "FFFFRRRRRRRRRFFCCCCF", "FFFFFRRRRRRRRFFCCCCF", "FFFFFFFFPRRRRFFFFFFF", "FFFFFPPPRRRRFFFFFFFF", "FFFFPPPRRRRRRFFFFFFF", "FFPPPPPRRRRRRRFFFFFF", "FFPPPPPRRRRRRRFFFFFF", "FFFFPPPPRRRRRRFFFFFF", "FFFFFPPPPRRRRRFFFFFF", "FFFFFFFPPPRRRRFFFFFF", "FFFFFFFRRRRRRRFFFFFF", "FFFFFFFRRRRRRRFFFFFF", "FFFFFFFPRRRRRFFFFFFF")
 terrain_legend = {
+"C": "castle",
 "F": "forest",
 "P": "plains",
 "R": "road",
@@ -73,15 +74,20 @@ enemy_units = [{
 "faction": "enemy",
 "instance_id": "abbot_vermis",
 "position": Vector2i(17, 1),
-"unit_id": "captain"
+"unit_id": "abbot_vermis"
 }]
 reinforcements = [{
 "faction": "player",
-"instance_id": "monk_reinforce",
-"message": "Monks from the monastery emerge to aid the prince!",
+"instance_id": "balt_reinforce",
+"dialogue_lines": [{
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Balt",
+"text": "Oh my goodness! Those folks look like they're being chased by Brigands! I better help them out."
+}],
+"message": "Balt emerges from the monastery grounds and looses an arrow for the prince's cause!",
 "position": Vector2i(19, 2),
-"turn": 3,
-"unit_id": "brother_hale"
+"turn": 2,
+"unit_id": "balt"
 }, {
 "faction": "enemy",
 "instance_id": "scout_3",

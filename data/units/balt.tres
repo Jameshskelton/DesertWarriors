@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="UnitData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/unit_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "balt"
+display_name = "Balt"
+class_id = "hunter"
+level = 1
+stats = {
+"def": 2,
+"hp": 18,
+"lck": 3,
+"mag": 0,
+"max_hp": 18,
+"res": 1,
+"skl": 7,
+"spd": 5,
+"str": 6
+}
+xp = 0
+inventory = PackedStringArray("hunter_bow")
+portrait_id = "Balt"
+faction = "player"
+ai_profile = "support"
+join_event_id = "balt_reinforce"
+story_flags = PackedStringArray()
