@@ -5,7 +5,7 @@
 [node name="CombatForecastPanel" type="PanelContainer"]
 visible = false
 offset_left = 60.0
-offset_top = 780.0
+offset_top = 675.0
 offset_right = 540.0
 offset_bottom = 1035.0
 script = ExtResource("1")
@@ -23,16 +23,31 @@ theme_override_constants/separation = 9
 
 [node name="TitleLabel" type="Label" parent="Margin/VBox"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 34
 text = "Forecast"
 
 [node name="AttackerLabel" type="Label" parent="Margin/VBox"]
 layout_mode = 2
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 26
 text = "Attacker"
 
 [node name="DefenderLabel" type="Label" parent="Margin/VBox"]
 layout_mode = 2
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 26
 text = "Defender"
 
 [node name="TerrainLabel" type="Label" parent="Margin/VBox"]
 layout_mode = 2
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 24
 text = "Terrain"
+
+[node name="WarningLabel" type="Label" parent="Margin/VBox"]
+visible = false
+layout_mode = 2
+autowrap_mode = 2
+theme_override_colors/font_color = Color(0.980392, 0.760784, 0.427451, 1)
+theme_override_font_sizes/font_size = 24
+text = "Warning"

@@ -78,7 +78,7 @@ func continue_game() -> bool:
 	last_results = save_data.get("last_results", {}).duplicate(true)
 	
 	# Apply saved roster state
-	roster_state = _normalize_roster_state(save_data.get("roster_state", {}))
+	roster_state = _normalize_roster_state(save_data.get("roster_state", {}), true)
 	
 	is_continuing = true
 	return true
@@ -97,6 +97,7 @@ func apply_chapter_results(summary: Dictionary) -> void:
 	var chapter_id: String = str(summary.get("chapter_id", ""))
 	if not chapter_id.is_empty() and not cleared_chapters.has(chapter_id):
 		cleared_chapters.append(chapter_id)
+	var should_heal_roster: bool = bool(summary.get("success", false))
 	var player_states_value = summary.get("player_states", {})
 	if typeof(player_states_value) == TYPE_DICTIONARY:
 		var player_states: Dictionary = player_states_value
@@ -104,7 +105,7 @@ func apply_chapter_results(summary: Dictionary) -> void:
 			var unit_id: String = str(unit_id_value)
 			var serialized_state = player_states.get(unit_id_value, {})
 			if typeof(serialized_state) == TYPE_DICTIONARY:
-				roster_state[unit_id] = _normalize_roster_entry(unit_id, serialized_state)
+				roster_state[unit_id] = _normalize_roster_entry(unit_id, serialized_state, should_heal_roster)
 	var next_chapter_id: String = _normalize_chapter_id(summary.get("next_chapter_id", ""))
 	if bool(summary.get("success", false)) and not next_chapter_id.is_empty():
 		current_chapter_id = next_chapter_id
@@ -136,7 +137,7 @@ func build_save_payload() -> Dictionary:
 	}
 
 
-func _normalize_roster_state(raw_roster: Variant) -> Dictionary:
+func _normalize_roster_state(raw_roster: Variant, heal_to_full: bool = false) -> Dictionary:
 	var normalized: Dictionary = {}
 	if typeof(raw_roster) != TYPE_DICTIONARY:
 		return normalized
@@ -151,16 +152,18 @@ func _normalize_roster_state(raw_roster: Variant) -> Dictionary:
 			resolved_unit_id = _find_unit_id_by_display_name(str(key))
 		if resolved_unit_id.is_empty():
 			continue
-		normalized[resolved_unit_id] = _normalize_roster_entry(resolved_unit_id, entry)
+		normalized[resolved_unit_id] = _normalize_roster_entry(resolved_unit_id, entry, heal_to_full)
 	return normalized
 
 
-func _normalize_roster_entry(unit_id: String, raw_entry: Dictionary) -> Dictionary:
+func _normalize_roster_entry(unit_id: String, raw_entry: Dictionary, heal_to_full: bool = false) -> Dictionary:
 	var unit_data: UnitData = DataRegistry.get_unit_data(unit_id)
 	if unit_data == null:
 		return {}
 	var normalized_unit: UnitState = UnitState.from_unit_data(unit_data, Vector2i.ZERO)
 	normalized_unit.apply_persistent_state(raw_entry)
+	if heal_to_full:
+		normalized_unit.set_current_hp(normalized_unit.get_max_hp())
 	return normalized_unit.to_persistent_state()
 
 

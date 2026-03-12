@@ -65,7 +65,7 @@ text = "Combat"
 layout_mode = 2
 bbcode_enabled = false
 fit_content = true
-text = "To attack an enemy, move next to them and select \"Attack\" from the action menu. Combat is automatic based on your unit's stats and weapon.
+text = "To attack an enemy, move next to them and select \"Attack\" from the action menu. When a unit is selected, orange tiles show the attack range available after moving. Combat is automatic based on your unit's stats and weapon.
 \n
 Weapon Triangle: Sword beats Axe, Axe beats Lance, Lance beats Sword.
 \n

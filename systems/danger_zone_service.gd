@@ -9,6 +9,19 @@ func build_enemy_threat_tiles(units: Array[UnitState], terrain_grid: Array) -> D
 	return build_threat_tiles_for_faction(units, terrain_grid, "enemy")
 
 
+func build_attack_tiles_from_reachability(reachability: Dictionary, weapon: WeaponData, grid_size: Vector2i, excluded_tiles: Dictionary = {}) -> Dictionary:
+	var attack_tiles: Dictionary = {}
+	if weapon == null:
+		return attack_tiles
+	var reachable_tiles = reachability.get("costs", {})
+	for tile_value in reachable_tiles.keys():
+		var origin: Vector2i = tile_value
+		_add_attack_tiles_from_origin(attack_tiles, origin, weapon.min_range, weapon.max_range, grid_size)
+	for tile_value in excluded_tiles.keys():
+		attack_tiles.erase(tile_value)
+	return attack_tiles
+
+
 func build_threat_tiles_for_faction(units: Array[UnitState], terrain_grid: Array, threat_faction: String) -> Dictionary:
 	var threatened_tiles: Dictionary = {}
 	if terrain_grid.is_empty() or terrain_grid[0].is_empty():
@@ -32,9 +45,9 @@ func build_threat_tiles_for_faction(units: Array[UnitState], terrain_grid: Array
 			occupied_tiles,
 			unit.faction
 		)
-		for tile_value in reachable.get("costs", {}).keys():
-			var origin: Vector2i = tile_value
-			_add_attack_tiles_from_origin(threatened_tiles, origin, weapon.min_range, weapon.max_range, grid_size)
+		var unit_threat_tiles: Dictionary = build_attack_tiles_from_reachability(reachable, weapon, grid_size)
+		for tile_value in unit_threat_tiles.keys():
+			threatened_tiles[tile_value] = int(threatened_tiles.get(tile_value, 0)) + int(unit_threat_tiles[tile_value])
 	return threatened_tiles
 
 

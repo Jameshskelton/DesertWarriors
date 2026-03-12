@@ -17,6 +17,7 @@ const MOVEMENT_PATH_COLOR := Color(0.462745, 0.815686, 0.960784, 0.72)
 const MOVEMENT_PATH_SHADOW := Color(0.0392157, 0.0745098, 0.121569, 0.28)
 const DANGER_ZONE_BASE_COLOR := Color(0.839216, 0.215686, 0.176471, 0.16)
 const DANGER_ZONE_INTENSE_COLOR := Color(0.960784, 0.333333, 0.27451, 0.28)
+const PLAYER_ATTACK_RANGE_COLOR := Color(0.980392, 0.647059, 0.196078, 0.26)
 const MAP_UNIT_CLASS_FALLBACKS := {
 	"brigand": "brigand_grunt",
 	"captain": "captain_briar",
@@ -68,6 +69,7 @@ var _danger_zone_tiles: Dictionary = {}
 @onready var _portrait_texture: TextureRect = $PortraitPanel/PortraitMargin/PortraitVBox/PortraitFrame/PortraitTexture
 @onready var _portrait_fallback: Label = $PortraitPanel/PortraitMargin/PortraitVBox/PortraitFrame/PortraitFallback
 @onready var _portrait_details: Label = $PortraitPanel/PortraitMargin/PortraitVBox/PortraitDetails
+@onready var _portrait_warning: Label = $PortraitPanel/PortraitMargin/PortraitVBox/PortraitWarning
 @onready var _battle_layer: Control = $BattleLayer
 @onready var _help_panel = $HelpPanel
 @onready var _help_close_button: Button = $HelpPanel/HelpMargin/HelpVBox/CloseButton
@@ -165,6 +167,7 @@ func _draw() -> void:
 
 
 func _draw_board() -> void:
+	var player_attack_preview_tiles: Dictionary = _build_player_attack_preview_tiles()
 	for y in range(_grid_size.y):
 		for x in range(_grid_size.x):
 			var tile := Vector2i(x, y)
@@ -186,6 +189,8 @@ func _draw_board() -> void:
 					threat_color = DANGER_ZONE_INTENSE_COLOR
 				threat_color.a = threat_alpha
 				draw_rect(rect.grow(-2.0), threat_color)
+			if player_attack_preview_tiles.has(tile):
+				draw_rect(rect.grow(-4.0), PLAYER_ATTACK_RANGE_COLOR)
 			draw_rect(rect, Color(0, 0, 0, 0.2), false, 1.5)
 			if _selection.highlighted_tiles.has(tile):
 				draw_rect(rect.grow(-3.0), Color(0.309804, 0.686275, 0.929412, 0.35))
@@ -713,7 +718,7 @@ func _update_hint() -> void:
 	var danger_zone_state: String = "off"
 	if _danger_zone_visible:
 		danger_zone_state = "on"
-	_hint_label.text = "Enter/Space confirm, Esc cancel, V danger zone %s, T end turn, mouse click supported." % [danger_zone_state]
+	_hint_label.text = "Enter/Space confirm, Esc cancel, V danger zone %s, select a unit for attack range, T end turn." % [danger_zone_state]
 
 
 func _toggle_danger_zone() -> void:
@@ -730,6 +735,23 @@ func _refresh_danger_zone() -> void:
 	_danger_zone_tiles = _danger_zone_service.build_enemy_threat_tiles(_units, _terrain_grid)
 
 
+func _build_player_attack_preview_tiles() -> Dictionary:
+	var preview_tiles: Dictionary = {}
+	if _selection.mode != SelectionController.Mode.UNIT_SELECTED:
+		return preview_tiles
+	if _selection.selected_unit == null or _selection.reachability.is_empty():
+		return preview_tiles
+	var weapon: WeaponData = DataRegistry.get_weapon_data(_selection.selected_unit.get_equipped_weapon_id())
+	if weapon == null or weapon.weapon_type == "staff" or _selection.selected_unit.get_equipped_weapon_uses() <= 0:
+		return preview_tiles
+	return _danger_zone_service.build_attack_tiles_from_reachability(
+		_selection.reachability,
+		weapon,
+		_grid_size,
+		_selection.highlighted_tiles
+	)
+
+
 func _update_status(message: String) -> void:
 	_status_label.text = message
 
@@ -738,6 +760,8 @@ func _update_hover_status() -> void:
 	var unit := _get_unit_at(_cursor_tile)
 	if unit != null:
 		_show_hover_portrait(unit)
+	elif _selection.selected_unit != null:
+		_show_hover_portrait(_selection.selected_unit)
 	else:
 		_hide_hover_portrait()
 	if _selection.mode == SelectionController.Mode.TARGETING and _selection.selected_unit != null and unit != null:
@@ -767,12 +791,17 @@ func _unit_color(unit: UnitState) -> Color:
 func _show_hover_portrait(unit: UnitState) -> void:
 	_portrait_panel.visible = true
 	_portrait_name.text = unit.display_name
-	_portrait_details.text = "%s  Lv.%d  HP %d/%d" % [
+	_portrait_details.text = "%s  Lv.%d  HP %d/%d\n%s\n%s" % [
 		DataRegistry.get_class_data(unit.class_id).display_name if DataRegistry.get_class_data(unit.class_id) != null else unit.class_id.capitalize(),
 		unit.level,
 		unit.get_current_hp(),
-		unit.get_max_hp()
+		unit.get_max_hp(),
+		_format_unit_weapon_status(unit),
+		_format_unit_potion_status(unit),
 	]
+	var warning_text: String = _build_unit_break_warning(unit)
+	_portrait_warning.text = warning_text
+	_portrait_warning.visible = not warning_text.is_empty()
 	var portrait := _load_portrait_for_unit(unit)
 	_portrait_texture.texture = portrait
 	_portrait_texture.visible = portrait != null
@@ -784,6 +813,28 @@ func _show_hover_portrait(unit: UnitState) -> void:
 func _hide_hover_portrait() -> void:
 	_portrait_panel.visible = false
 	_portrait_texture.texture = null
+	_portrait_warning.visible = false
+
+
+func _format_unit_weapon_status(unit: UnitState) -> String:
+	var weapon: WeaponData = DataRegistry.get_weapon_data(unit.get_equipped_weapon_id())
+	if weapon == null:
+		return "Weapon: Broken"
+	return "Weapon: %s  %d/%d" % [weapon.name, unit.get_equipped_weapon_uses(), int(weapon.uses)]
+
+
+func _format_unit_potion_status(unit: UnitState) -> String:
+	var potion_index: int = unit.find_item_index("health_potion")
+	if potion_index == -1 or unit.get_item_uses_at(potion_index) <= 0:
+		return "Potion: Used"
+	return "Potion: Ready"
+
+
+func _build_unit_break_warning(unit: UnitState) -> String:
+	var weapon: WeaponData = DataRegistry.get_weapon_data(unit.get_equipped_weapon_id())
+	if weapon == null or unit.get_equipped_weapon_uses() != 1:
+		return ""
+	return "%s breaks on next use." % weapon.name
 
 
 func _load_portrait_for_unit(unit: UnitState) -> Texture2D:

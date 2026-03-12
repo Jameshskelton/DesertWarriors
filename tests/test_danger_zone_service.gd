@@ -19,6 +19,24 @@ func run() -> PackedStringArray:
 	var staff_units: Array[UnitState] = [hale_enemy]
 	var staff_threats: Dictionary = service.build_enemy_threat_tiles(staff_units, terrain_grid)
 	_assert_true(staff_threats.is_empty(), "staff users should not contribute to the danger zone", failures)
+	var preview_reachability: Dictionary = {
+		"costs": {
+			Vector2i(0, 0): 0,
+			Vector2i(1, 0): 1,
+		}
+	}
+	var excluded_tiles: Dictionary = {
+		Vector2i(0, 0): 0,
+		Vector2i(1, 0): 1,
+	}
+	var attack_preview: Dictionary = service.build_attack_tiles_from_reachability(
+		preview_reachability,
+		DataRegistry.get_weapon_data("bronze_sword"),
+		Vector2i(4, 1),
+		excluded_tiles
+	)
+	_assert_true(attack_preview.has(Vector2i(2, 0)), "selected-unit attack preview should extend beyond movement range", failures)
+	_assert_true(not attack_preview.has(Vector2i(1, 0)), "selected-unit attack preview should not cover the movement tiles themselves", failures)
 	return failures
 
 
