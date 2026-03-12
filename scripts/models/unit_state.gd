@@ -68,6 +68,56 @@ func consume_turn() -> void:
 	acted = true
 
 
+func apply_persistent_state(state: Dictionary) -> void:
+	if state.is_empty():
+		return
+	display_name = str(state.get("display_name", display_name))
+	class_id = str(state.get("class_id", class_id))
+	level = int(state.get("level", level))
+	xp = int(state.get("xp", xp))
+	portrait_id = str(state.get("portrait_id", portrait_id))
+	var stats_value = state.get("stats", stats)
+	if typeof(stats_value) == TYPE_DICTIONARY:
+		stats = (stats_value as Dictionary).duplicate(true)
+	var inventory_value = state.get("inventory", [])
+	var restored_inventory: PackedStringArray = PackedStringArray()
+	if inventory_value is PackedStringArray:
+		for entry in inventory_value:
+			restored_inventory.append(str(entry))
+	elif inventory_value is Array:
+		for entry in inventory_value:
+			restored_inventory.append(str(entry))
+	inventory = restored_inventory
+	item_uses.clear()
+	var item_uses_value = state.get("item_uses", [])
+	if item_uses_value is Array:
+		for entry in item_uses_value:
+			item_uses.append(int(entry))
+	_ensure_item_uses_synced()
+	downed = int(stats.get("hp", 0)) <= 0
+
+
+func to_persistent_state() -> Dictionary:
+	_ensure_item_uses_synced()
+	var inventory_values: Array[String] = []
+	for item_id in inventory:
+		inventory_values.append(str(item_id))
+	var saved_item_uses: Array[int] = []
+	for remaining_uses in item_uses:
+		saved_item_uses.append(int(remaining_uses))
+	return {
+		"unit_id": unit_id,
+		"display_name": display_name,
+		"class_id": class_id,
+		"level": level,
+		"stats": stats.duplicate(true),
+		"xp": xp,
+		"inventory": inventory_values,
+		"item_uses": saved_item_uses,
+		"portrait_id": portrait_id,
+	}
+
+
 func get_equipped_weapon_id() -> String:
 	var weapon_index: int = _find_first_weapon_index()
 	if weapon_index == -1:

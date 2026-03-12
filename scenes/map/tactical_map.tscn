@@ -83,7 +83,7 @@ text = "Move the cursor and select George."
 
 [node name="HintLabel" type="Label" parent="Footer/FooterMargin/FooterVBox"]
 layout_mode = 2
-text = "Enter/Space confirm, Esc cancel, T end turn, mouse click supported."
+text = "Enter/Space confirm, Esc cancel, V danger zone off, T end turn, mouse click supported."
 
 [node name="ActionMenu" parent="." instance=ExtResource("2")]
 

@@ -140,6 +140,7 @@ fit_content = true
 text = "Arrow Keys / WASD: Move cursor
 Z / Enter: Select / Confirm
 X / Escape: Cancel / Back
+V: Toggle enemy danger zone
 T: End Turn
 Space: Skip battle animation"
 

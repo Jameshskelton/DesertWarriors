@@ -15,6 +15,8 @@ const MAP_UNIT_TEXTURE_DIR := "res://assets/map_units"
 const MAP_UNIT_SPRITE_SCALE := 1.5
 const MOVEMENT_PATH_COLOR := Color(0.462745, 0.815686, 0.960784, 0.72)
 const MOVEMENT_PATH_SHADOW := Color(0.0392157, 0.0745098, 0.121569, 0.28)
+const DANGER_ZONE_BASE_COLOR := Color(0.839216, 0.215686, 0.176471, 0.16)
+const DANGER_ZONE_INTENSE_COLOR := Color(0.960784, 0.333333, 0.27451, 0.28)
 const MAP_UNIT_CLASS_FALLBACKS := {
 	"brigand": "brigand_grunt",
 	"captain": "captain_briar",
@@ -41,6 +43,7 @@ var _turn_controller: TurnController = TurnController.new()
 var _objective_controller: ObjectiveController = ObjectiveController.new()
 var _event_director: EventDirector = EventDirector.new()
 var _combat_resolver: CombatResolver = CombatResolver.new()
+var _danger_zone_service: DangerZoneService = DangerZoneService.new()
 var _item_service: ItemService = ItemService.new()
 var _ai_controller: AIController = AIController.new()
 var _battle_transition: BattleTransitionController = BattleTransitionController.new()
@@ -48,6 +51,8 @@ var _active_battle: Control
 var _active_dialogue: Control
 var _map_unit_texture_cache: Dictionary = {}
 var _spawned_reinforcements: PackedStringArray = PackedStringArray()
+var _danger_zone_visible: bool = false
+var _danger_zone_tiles: Dictionary = {}
 
 @onready var _chapter_label: Label = $Header/HeaderMargin/HeaderRow/ChapterLabel
 @onready var _turn_label: Label = $Header/HeaderMargin/HeaderRow/TurnLabel
@@ -102,6 +107,8 @@ func _load_chapter() -> void:
 	_event_director.reset()
 	_cursor_tile = Vector2i(1, _grid_size.y - 2)
 	_update_header()
+	_refresh_danger_zone()
+	_update_hint()
 	_update_status("Guide George through the Greenwood and defeat Captain Briar.")
 	_update_hover_status()
 	queue_redraw()
@@ -143,9 +150,12 @@ func _spawn_unit(entry: Dictionary) -> void:
 	var position = entry.get("position", Vector2i.ZERO)
 	var faction_override: String = str(entry.get("faction", ""))
 	var state: UnitState = UnitState.from_unit_data(unit_data, position, faction_override)
-	if entry.has("instance_id"):
+	if state.faction == "player" and not GameState.restore_player_unit_state(state, unit_id):
+		return
+	if entry.has("instance_id") and state.faction != "player":
 		state.unit_id = entry["instance_id"]
 	_units.append(state)
+	_refresh_danger_zone()
 
 
 func _draw() -> void:
@@ -168,6 +178,14 @@ func _draw_board() -> void:
 				draw_texture_rect(THICKET_TEXTURE, rect, false)
 			if terrain_id == "village" and VILLAGE_TEXTURE != null:
 				draw_texture_rect(VILLAGE_TEXTURE, rect, false)
+			if _danger_zone_visible and _danger_zone_tiles.has(tile):
+				var threat_count: int = int(_danger_zone_tiles.get(tile, 0))
+				var threat_alpha: float = clampf(0.12 + float(mini(threat_count, 4)) * 0.04, 0.12, 0.28)
+				var threat_color: Color = DANGER_ZONE_BASE_COLOR
+				if threat_count >= 3:
+					threat_color = DANGER_ZONE_INTENSE_COLOR
+				threat_color.a = threat_alpha
+				draw_rect(rect.grow(-2.0), threat_color)
 			draw_rect(rect, Color(0, 0, 0, 0.2), false, 1.5)
 			if _selection.highlighted_tiles.has(tile):
 				draw_rect(rect.grow(-3.0), Color(0.309804, 0.686275, 0.929412, 0.35))
@@ -270,6 +288,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_confirm_cursor()
 	elif event.is_action_pressed("ui_cancel"):
 		_cancel_selection()
+	elif event.is_action_pressed("toggle_danger_zone"):
+		_toggle_danger_zone()
 	elif event is InputEventKey and event.pressed:
 		if event.keycode == KEY_H or event.keycode == KEY_F1:
 			_help_panel.visible = not _help_panel.visible
@@ -299,6 +319,7 @@ func _cancel_selection() -> void:
 	_action_menu.hide_menu()
 	_forecast_panel.hide_panel()
 	_selection.reset()
+	_refresh_danger_zone()
 	_update_status("Selection cancelled.")
 	queue_redraw()
 
@@ -327,6 +348,7 @@ func _try_move_selected_unit() -> void:
 	_selection.preview_path = _pathfinding.build_path(_selection.origin_tile, _cursor_tile, _selection.reachability)
 	selected.position = _cursor_tile
 	selected.moved = true
+	_refresh_danger_zone()
 	_selection.mode = SelectionController.Mode.ACTION_MENU
 	_show_action_menu(selected)
 
@@ -441,6 +463,7 @@ func _on_battle_finished() -> void:
 	if _active_battle != null:
 		_active_battle.queue_free()
 		_active_battle = null
+	_refresh_danger_zone()
 	queue_redraw()
 
 
@@ -471,6 +494,7 @@ func _begin_enemy_phase() -> void:
 	_process_turn_events()
 	_selection.reset()
 	_update_header()
+	_refresh_danger_zone()
 	_update_status("Player phase. Press T to end turn if needed.")
 	queue_redraw()
 
@@ -497,6 +521,7 @@ func _run_enemy_phase() -> void:
 					}
 					_battle_transition.begin_battle(payload)
 					await _battle_completed()
+		_refresh_danger_zone()
 		queue_redraw()
 		if _check_end_conditions():
 			return
@@ -515,6 +540,7 @@ func _process_turn_events() -> void:
 	var turn_events := _event_director.consume_turn_events(_turn_controller.turn_number, _chapter)
 	for event in turn_events:
 		_execute_event(event)
+	_refresh_danger_zone()
 	queue_redraw()
 
 
@@ -606,8 +632,12 @@ func _check_end_conditions() -> bool:
 
 func _build_summary(success: bool) -> Dictionary:
 	var survivors: PackedStringArray = PackedStringArray()
+	var player_states: Dictionary = {}
 	for unit in _units:
-		if unit.faction == "player" and unit.is_alive():
+		if unit.faction != "player":
+			continue
+		player_states[unit.unit_id] = unit.to_persistent_state()
+		if unit.is_alive():
 			survivors.append(unit.display_name)
 	return {
 		"success": success,
@@ -616,6 +646,7 @@ func _build_summary(success: bool) -> Dictionary:
 		"turns": _turn_controller.turn_number,
 		"objective": "Defeat Boss",
 		"survivors": survivors,
+		"player_states": player_states,
 		"next_chapter_id": _chapter.next_chapter_id if _chapter else "",
 	}
 
@@ -676,6 +707,27 @@ func _update_header() -> void:
 	_turn_label.text = "Turn %d" % _turn_controller.turn_number
 	_phase_label.text = "Player Phase" if _turn_controller.phase == "player" else "Enemy Phase"
 	_objective_label.text = "Defeat Boss"
+
+
+func _update_hint() -> void:
+	var danger_zone_state: String = "off"
+	if _danger_zone_visible:
+		danger_zone_state = "on"
+	_hint_label.text = "Enter/Space confirm, Esc cancel, V danger zone %s, T end turn, mouse click supported." % [danger_zone_state]
+
+
+func _toggle_danger_zone() -> void:
+	_danger_zone_visible = not _danger_zone_visible
+	_refresh_danger_zone()
+	_update_hint()
+	queue_redraw()
+
+
+func _refresh_danger_zone() -> void:
+	if not _danger_zone_visible:
+		_danger_zone_tiles.clear()
+		return
+	_danger_zone_tiles = _danger_zone_service.build_enemy_threat_tiles(_units, _terrain_grid)
 
 
 func _update_status(message: String) -> void:

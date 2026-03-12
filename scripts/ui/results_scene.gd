@@ -39,8 +39,8 @@ func _ready() -> void:
 	_roster_label.text = "Survivors: %s" % [", ".join(survivors)]
 	
 	# Show continue button if there's a next chapter
-	var next_chapter_id: String = str(_summary.get("next_chapter_id", ""))
-	if success and next_chapter_id != "" and next_chapter_id != "null":
+	var next_chapter_id: String = _get_next_chapter_id()
+	if success and not next_chapter_id.is_empty():
 		_continue_button.visible = true
 		_return_button.text = "Return to Title"
 		_continue_button.grab_focus()
@@ -57,6 +57,16 @@ func _on_return_pressed() -> void:
 
 
 func _on_continue_pressed() -> void:
-	var next_chapter_id: String = str(_summary.get("next_chapter_id", ""))
-	if next_chapter_id != "" and next_chapter_id != "null":
+	var next_chapter_id: String = _get_next_chapter_id()
+	if not next_chapter_id.is_empty():
 		continue_to_next_chapter.emit(next_chapter_id)
+
+
+func _get_next_chapter_id() -> String:
+	var value = _summary.get("next_chapter_id", "")
+	if value == null:
+		return ""
+	var next_chapter_id: String = str(value)
+	if next_chapter_id == "null" or next_chapter_id == "<null>":
+		return ""
+	return next_chapter_id
