@@ -69,6 +69,7 @@ func _show_menu() -> void:
 	_menu_visible = true
 	_menu_panel.visible = true
 	_continue_button.disabled = not SaveSystem.has_save()
+	_continue_button.text = "Resume Suspend" if SaveSystem.has_suspend_save() else "Continue"
 	var has_chapters = not GameState.cleared_chapters.is_empty()
 	_chapter_select_button.disabled = not has_chapters
 	_new_game_button.grab_focus()

@@ -3,6 +3,8 @@ extends Control
 signal request_dialogue(lines: Array, next_tag: String)
 signal chapter_cleared(summary: Dictionary)
 signal chapter_failed(summary: Dictionary)
+signal suspend_requested
+signal restart_requested(chapter_id: String)
 
 const BATTLE_SCENE := preload("res://scenes/battle/battle_scene.tscn")
 const DIALOGUE_SCENE := preload("res://scenes/dialogue/dialogue_scene.tscn")
@@ -73,6 +75,10 @@ var _danger_zone_tiles: Dictionary = {}
 @onready var _battle_layer: Control = $BattleLayer
 @onready var _help_panel = $HelpPanel
 @onready var _help_close_button: Button = $HelpPanel/HelpMargin/HelpVBox/CloseButton
+@onready var _system_menu: PanelContainer = $SystemMenu
+@onready var _system_suspend_button: Button = $SystemMenu/SystemMargin/SystemVBox/SuspendButton
+@onready var _system_restart_button: Button = $SystemMenu/SystemMargin/SystemVBox/RestartButton
+@onready var _system_close_button: Button = $SystemMenu/SystemMargin/SystemVBox/CloseButton
 
 
 func setup(chapter_id: String) -> void:
@@ -82,10 +88,14 @@ func setup(chapter_id: String) -> void:
 func _ready() -> void:
 	add_child(_battle_transition)
 	_help_panel.visible = false
+	_system_menu.visible = false
 	if _help_close_button != null:
 		_help_close_button.pressed.connect(func() -> void:
 			_help_panel.visible = false
 		)
+	_system_suspend_button.pressed.connect(Callable(self, "_on_system_suspend_pressed"))
+	_system_restart_button.pressed.connect(Callable(self, "_on_system_restart_pressed"))
+	_system_close_button.pressed.connect(Callable(self, "_close_system_menu"))
 	_battle_transition.battle_overlay_requested.connect(Callable(self, "_show_battle_overlay"))
 	_action_menu.action_selected.connect(Callable(self, "_on_action_menu_selected"))
 	_load_chapter()
@@ -99,19 +109,23 @@ func _load_chapter() -> void:
 		return
 	_grid_size = Vector2i(_chapter.map_width, _chapter.map_height)
 	_terrain_grid = _build_terrain_grid(_chapter)
+	_selection.reset()
+	_action_menu.hide_menu()
+	_forecast_panel.hide_panel()
 	_spawned_reinforcements.clear()
 	_units.clear()
-	for entry in _chapter.starting_units:
-		_spawn_unit(entry)
-	for entry in _chapter.enemy_units:
-		_spawn_unit(entry)
-	_turn_controller.begin_battle(_units)
 	_event_director.reset()
-	_cursor_tile = Vector2i(1, _grid_size.y - 2)
+	if not _restore_suspend_state(GameState.suspend_state):
+		for entry in _chapter.starting_units:
+			_spawn_unit(entry)
+		for entry in _chapter.enemy_units:
+			_spawn_unit(entry)
+		_turn_controller.begin_battle(_units)
+		_cursor_tile = Vector2i(1, _grid_size.y - 2)
 	_update_header()
 	_refresh_danger_zone()
 	_update_hint()
-	_update_status("Guide George through the Greenwood and defeat Captain Briar.")
+	_update_status(_build_resume_status())
 	_update_hover_status()
 	queue_redraw()
 
@@ -142,6 +156,58 @@ func _get_fallback_terrain_id(chapter: ChapterData) -> String:
 	if not chapter.terrain_legend.is_empty():
 		return str(chapter.terrain_legend.values()[0])
 	return "plains"
+
+
+func _restore_suspend_state(snapshot: Dictionary) -> bool:
+	if not GameState.has_suspend_state_for_chapter(_chapter_id) or snapshot.is_empty():
+		return false
+	var unit_states_value: Variant = snapshot.get("units", [])
+	if not (unit_states_value is Array):
+		return false
+	var restored_units: Array[UnitState] = []
+	for entry_value in unit_states_value:
+		if typeof(entry_value) != TYPE_DICTIONARY:
+			continue
+		var restored_unit: UnitState = UnitState.from_battle_state(entry_value)
+		if restored_unit != null:
+			restored_units.append(restored_unit)
+	if restored_units.is_empty():
+		return false
+	_units = restored_units
+	_spawned_reinforcements = _variant_to_packed_string_array(snapshot.get("spawned_reinforcements", PackedStringArray()))
+	_event_director.handled_events = _variant_to_packed_string_array(snapshot.get("handled_events", PackedStringArray()))
+	_turn_controller.turn_number = maxi(1, int(snapshot.get("turn_number", 1)))
+	_turn_controller.phase = str(snapshot.get("phase", "player"))
+	if _turn_controller.phase != "player":
+		_turn_controller.phase = "player"
+	_cursor_tile = _vector2i_from_variant(snapshot.get("cursor_tile", Vector2i(1, _grid_size.y - 2)))
+	_danger_zone_visible = bool(snapshot.get("danger_zone_visible", false))
+	return true
+
+
+func _build_resume_status() -> String:
+	if GameState.has_suspend_state_for_chapter(_chapter_id):
+		return "Suspended battle resumed. Choose a unit to continue."
+	return "Player phase. Choose a unit to act."
+
+
+func _build_suspend_snapshot() -> Dictionary:
+	var units: Array[Dictionary] = []
+	for unit in _units:
+		units.append(unit.to_battle_state())
+	return {
+		"chapter_id": _chapter_id,
+		"turn_number": _turn_controller.turn_number,
+		"phase": _turn_controller.phase,
+		"cursor_tile": {
+			"x": _cursor_tile.x,
+			"y": _cursor_tile.y,
+		},
+		"danger_zone_visible": _danger_zone_visible,
+		"spawned_reinforcements": _packed_string_array_to_array(_spawned_reinforcements),
+		"handled_events": _packed_string_array_to_array(_event_director.handled_events),
+		"units": units,
+	}
 
 
 func _spawn_unit(entry: Dictionary, allow_missing_player_state: bool = false) -> void:
@@ -263,6 +329,22 @@ func _draw_units() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if _active_dialogue != null:
 		return
+	if event.is_action_pressed("open_system_menu"):
+		_toggle_system_menu()
+		return
+	if event is InputEventKey and event.pressed and (event.keycode == KEY_H or event.keycode == KEY_F1):
+		if _system_menu.visible:
+			return
+		_help_panel.visible = not _help_panel.visible
+		return
+	if _help_panel.visible:
+		if event.is_action_pressed("ui_cancel"):
+			_help_panel.visible = false
+		return
+	if _system_menu.visible:
+		if event.is_action_pressed("ui_cancel"):
+			_close_system_menu()
+		return
 	if _active_battle != null or _turn_controller.phase != "player":
 		return
 	if event is InputEventMouseMotion:
@@ -296,10 +378,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		_cancel_selection()
 	elif event.is_action_pressed("toggle_danger_zone"):
 		_toggle_danger_zone()
-	elif event is InputEventKey and event.pressed:
-		if event.keycode == KEY_H or event.keycode == KEY_F1:
-			_help_panel.visible = not _help_panel.visible
-			return
 	elif event.is_action_pressed("end_turn") and _selection.mode == SelectionController.Mode.IDLE:
 		_begin_enemy_phase()
 	_update_movement_preview()
@@ -328,6 +406,44 @@ func _cancel_selection() -> void:
 	_refresh_danger_zone()
 	_update_status("Selection cancelled.")
 	queue_redraw()
+
+
+func _toggle_system_menu() -> void:
+	if _system_menu.visible:
+		_close_system_menu()
+		return
+	if _active_battle != null or _active_dialogue != null:
+		return
+	if _turn_controller.phase != "player":
+		_update_status("Suspend and restart are only available during your phase.")
+		return
+	if _selection.mode != SelectionController.Mode.IDLE:
+		_update_status("Finish or cancel the current action before opening the system menu.")
+		return
+	_help_panel.visible = false
+	_system_menu.visible = true
+	_system_suspend_button.grab_focus()
+
+
+func _close_system_menu() -> void:
+	_system_menu.visible = false
+
+
+func _on_system_suspend_pressed() -> void:
+	var snapshot: Dictionary = _build_suspend_snapshot()
+	GameState.set_suspend_state(snapshot)
+	if not SaveSystem.save_game(GameState.build_save_payload()):
+		_update_status("Suspend save failed.")
+		return
+	_close_system_menu()
+	suspend_requested.emit()
+
+
+func _on_system_restart_pressed() -> void:
+	GameState.clear_suspend_state()
+	SaveSystem.save_game(GameState.build_save_payload())
+	_close_system_menu()
+	restart_requested.emit(_chapter_id)
 
 
 func _select_unit_at_cursor() -> void:
@@ -719,7 +835,7 @@ func _update_hint() -> void:
 	var danger_zone_state: String = "off"
 	if _danger_zone_visible:
 		danger_zone_state = "on"
-	_hint_label.text = "Enter/Space confirm, Esc cancel, V danger zone %s, select a unit for attack range, T end turn." % [danger_zone_state]
+	_hint_label.text = "Enter/Space confirm, Esc cancel, V danger zone %s, P system menu, select a unit for attack range, T end turn." % [danger_zone_state]
 
 
 func _toggle_danger_zone() -> void:
@@ -893,3 +1009,30 @@ func _load_map_unit_texture_by_id(texture_id: String) -> Texture2D:
 			break
 	_map_unit_texture_cache[texture_id] = texture
 	return texture
+
+
+func _vector2i_from_variant(value: Variant) -> Vector2i:
+	if value is Vector2i:
+		return value
+	if typeof(value) == TYPE_DICTIONARY:
+		var dictionary: Dictionary = value
+		return Vector2i(int(dictionary.get("x", 0)), int(dictionary.get("y", 0)))
+	return Vector2i.ZERO
+
+
+func _variant_to_packed_string_array(value: Variant) -> PackedStringArray:
+	var result: PackedStringArray = PackedStringArray()
+	if value is PackedStringArray:
+		for entry in value:
+			result.append(str(entry))
+	elif value is Array:
+		for entry in value:
+			result.append(str(entry))
+	return result
+
+
+func _packed_string_array_to_array(values: PackedStringArray) -> Array[String]:
+	var result: Array[String] = []
+	for entry in values:
+		result.append(str(entry))
+	return result

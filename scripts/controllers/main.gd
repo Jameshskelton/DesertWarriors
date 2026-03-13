@@ -64,6 +64,8 @@ func _show_map(chapter_id: String) -> void:
 	scene.request_dialogue.connect(_show_dialogue)
 	scene.chapter_cleared.connect(_on_chapter_cleared)
 	scene.chapter_failed.connect(_on_chapter_failed)
+	scene.suspend_requested.connect(_on_suspend_requested)
+	scene.restart_requested.connect(_on_restart_requested)
 	_mount_scene(scene)
 
 
@@ -88,6 +90,9 @@ func _on_new_game_requested() -> void:
 
 func _on_continue_requested(chapter_id: String) -> void:
 	GameState.is_continuing = true
+	if GameState.has_suspend_state_for_chapter(chapter_id):
+		_show_map(chapter_id)
+		return
 	var chapter: ChapterData = DataRegistry.get_chapter_data(chapter_id)
 	if chapter == null:
 		push_error("Failed to load chapter: " + chapter_id)
@@ -136,6 +141,7 @@ func _on_chapter_cleared(summary: Dictionary) -> void:
 
 
 func _on_chapter_failed(summary: Dictionary) -> void:
+	GameState.clear_suspend_state()
 	_show_results(summary)
 
 
@@ -156,3 +162,11 @@ func _on_continue_to_next_chapter(next_chapter_id: String) -> void:
 	
 	# Show the opening dialogue for the next chapter
 	_show_dialogue(chapter.opening_dialogue, "next_chapter", next_chapter_id)
+
+
+func _on_suspend_requested() -> void:
+	_show_title()
+
+
+func _on_restart_requested(chapter_id: String) -> void:
+	_show_map(chapter_id)

@@ -15,6 +15,7 @@ var rng_seed: int = 424242
 var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var last_results: Dictionary = {}
 var is_continuing: bool = false
+var suspend_state: Dictionary = {}
 
 
 func _ready() -> void:
@@ -31,6 +32,7 @@ func ensure_input_actions() -> void:
 	_bind_action("end_turn", [KEY_T])
 	_bind_action("skip_battle", [KEY_SPACE, KEY_ENTER])
 	_bind_action("toggle_danger_zone", [KEY_V])
+	_bind_action("open_system_menu", [KEY_P])
 
 
 func _bind_action(action_name: String, keycodes: Array) -> void:
@@ -49,6 +51,7 @@ func reset_runtime() -> void:
 	cleared_chapters.clear()
 	settings = DEFAULT_SETTINGS.duplicate(true)
 	last_results.clear()
+	suspend_state.clear()
 	rng.seed = rng_seed
 	is_continuing = false
 
@@ -76,6 +79,7 @@ func continue_game() -> bool:
 	rng_seed = save_data.get("rng_seed", 424242)
 	rng.seed = rng_seed
 	last_results = save_data.get("last_results", {}).duplicate(true)
+	suspend_state = _normalize_suspend_state(save_data.get("suspend_state", {}))
 	
 	# Apply saved roster state
 	roster_state = _normalize_roster_state(save_data.get("roster_state", {}), true)
@@ -94,6 +98,7 @@ func roll_percent(chance_percent: float) -> bool:
 
 func apply_chapter_results(summary: Dictionary) -> void:
 	last_results = summary.duplicate(true)
+	suspend_state.clear()
 	var chapter_id: String = str(summary.get("chapter_id", ""))
 	if not chapter_id.is_empty() and not cleared_chapters.has(chapter_id):
 		cleared_chapters.append(chapter_id)
@@ -134,7 +139,27 @@ func build_save_payload() -> Dictionary:
 		"rng_seed": rng_seed,
 		"last_results": last_results,
 		"roster_state": roster_state,
+		"suspend_state": suspend_state,
 	}
+
+
+func has_suspend_state() -> bool:
+	return not suspend_state.is_empty()
+
+
+func has_suspend_state_for_chapter(chapter_id: String) -> bool:
+	return has_suspend_state() and _normalize_chapter_id(suspend_state.get("chapter_id", "")) == _normalize_chapter_id(chapter_id)
+
+
+func set_suspend_state(state: Dictionary) -> void:
+	suspend_state = state.duplicate(true)
+	var suspend_chapter_id: String = _normalize_chapter_id(suspend_state.get("chapter_id", current_chapter_id))
+	if not suspend_chapter_id.is_empty():
+		current_chapter_id = suspend_chapter_id
+
+
+func clear_suspend_state() -> void:
+	suspend_state.clear()
 
 
 func _normalize_roster_state(raw_roster: Variant, heal_to_full: bool = false) -> Dictionary:
@@ -154,6 +179,12 @@ func _normalize_roster_state(raw_roster: Variant, heal_to_full: bool = false) ->
 			continue
 		normalized[resolved_unit_id] = _normalize_roster_entry(resolved_unit_id, entry, heal_to_full)
 	return normalized
+
+
+func _normalize_suspend_state(raw_suspend_state: Variant) -> Dictionary:
+	if typeof(raw_suspend_state) != TYPE_DICTIONARY:
+		return {}
+	return (raw_suspend_state as Dictionary).duplicate(true)
 
 
 func _normalize_roster_entry(unit_id: String, raw_entry: Dictionary, heal_to_full: bool = false) -> Dictionary:

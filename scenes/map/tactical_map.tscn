@@ -83,7 +83,7 @@ text = "Move the cursor and select George."
 
 [node name="HintLabel" type="Label" parent="Footer/FooterMargin/FooterVBox"]
 layout_mode = 2
-text = "Enter/Space confirm, Esc cancel, V danger zone off, select a unit for attack range, T end turn."
+text = "Enter/Space confirm, Esc cancel, V danger zone off, P system menu, select a unit for attack range, T end turn."
 
 [node name="ActionMenu" parent="." instance=ExtResource("2")]
 
@@ -168,3 +168,47 @@ mouse_filter = 2
 
 [node name="HelpPanel" parent="." instance=ExtResource("99")]
 visible = false
+
+[node name="SystemMenu" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 690.0
+offset_top = 315.0
+offset_right = 1230.0
+offset_bottom = 765.0
+z_index = 25
+
+[node name="SystemMargin" type="MarginContainer" parent="SystemMenu"]
+layout_mode = 2
+theme_override_constants/margin_left = 36
+theme_override_constants/margin_top = 30
+theme_override_constants/margin_right = 36
+theme_override_constants/margin_bottom = 30
+
+[node name="SystemVBox" type="VBoxContainer" parent="SystemMenu/SystemMargin"]
+layout_mode = 2
+theme_override_constants/separation = 21
+
+[node name="Title" type="Label" parent="SystemMenu/SystemMargin/SystemVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 48
+horizontal_alignment = 1
+text = "System"
+
+[node name="Description" type="Label" parent="SystemMenu/SystemMargin/SystemVBox"]
+layout_mode = 2
+autowrap_mode = 2
+horizontal_alignment = 1
+text = "Suspend this battle and return to the title screen, or restart the chapter from the beginning."
+
+[node name="SuspendButton" type="Button" parent="SystemMenu/SystemMargin/SystemVBox"]
+layout_mode = 2
+text = "Suspend Save"
+
+[node name="RestartButton" type="Button" parent="SystemMenu/SystemMargin/SystemVBox"]
+layout_mode = 2
+text = "Restart Chapter"
+
+[node name="CloseButton" type="Button" parent="SystemMenu/SystemMargin/SystemVBox"]
+layout_mode = 2
+text = "Close"

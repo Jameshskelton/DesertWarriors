@@ -123,7 +123,9 @@ text = "Your Turn: Move and act with each of your units once. When done, press T
 \n
 Enemy Turn: Enemy AI will move and attack. Defeat all enemies to win!
 \n
-Reinforcements may arrive on certain turns - watch for messages!"
+Reinforcements may arrive on certain turns - watch for messages!
+\n
+Press P during your phase to open the System menu for Suspend Save or Restart Chapter."
 
 [node name="ControlsSection" type="VBoxContainer" parent="HelpMargin/HelpVBox/ScrollContainer/Content"]
 layout_mode = 2
@@ -141,6 +143,7 @@ text = "Arrow Keys / WASD: Move cursor
 Z / Enter: Select / Confirm
 X / Escape: Cancel / Back
 V: Toggle enemy danger zone
+P: Open system menu
 T: End Turn
 Space: Skip battle animation"
 

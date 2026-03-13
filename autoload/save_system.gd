@@ -34,6 +34,11 @@ func has_save() -> bool:
 	return data.has("current_chapter_id") and not data.get("current_chapter_id", "").is_empty()
 
 
+func has_suspend_save() -> bool:
+	var data = load_game()
+	return data.has("suspend_state") and typeof(data.get("suspend_state", {})) == TYPE_DICTIONARY and not (data.get("suspend_state", {}) as Dictionary).is_empty()
+
+
 func delete_save() -> bool:
 	if FileAccess.file_exists(SAVE_PATH):
 		var dir = DirAccess.open("user://")
