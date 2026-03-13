@@ -20,7 +20,7 @@ const DANGER_ZONE_INTENSE_COLOR := Color(0.960784, 0.333333, 0.27451, 0.28)
 const PLAYER_ATTACK_RANGE_COLOR := Color(0.980392, 0.647059, 0.196078, 0.26)
 const MAP_UNIT_CLASS_FALLBACKS := {
 	"brigand": "brigand_grunt",
-	"captain": "captain_briar",
+	"captain": "captain_grunt",
 	"cavalier": "rowan",
 	"hunter": "hunter_grunt",
 	"knight": "knight_grunt",
@@ -144,7 +144,7 @@ func _get_fallback_terrain_id(chapter: ChapterData) -> String:
 	return "plains"
 
 
-func _spawn_unit(entry: Dictionary) -> void:
+func _spawn_unit(entry: Dictionary, allow_missing_player_state: bool = false) -> void:
 	var unit_id: String = str(entry.get("unit_id", ""))
 	var unit_data: UnitData = DataRegistry.get_unit_data(unit_id)
 	if unit_data == null:
@@ -152,7 +152,8 @@ func _spawn_unit(entry: Dictionary) -> void:
 	var position = entry.get("position", Vector2i.ZERO)
 	var faction_override: String = str(entry.get("faction", ""))
 	var state: UnitState = UnitState.from_unit_data(unit_data, position, faction_override)
-	if state.faction == "player" and not GameState.restore_player_unit_state(state, unit_id):
+	var can_fall_back_to_default_state: bool = allow_missing_player_state or not unit_data.join_event_id.is_empty()
+	if state.faction == "player" and not GameState.restore_player_unit_state(state, unit_id, can_fall_back_to_default_state):
 		return
 	if entry.has("instance_id") and state.faction != "player":
 		state.unit_id = entry["instance_id"]
@@ -537,7 +538,7 @@ func _process_turn_events() -> void:
 		var reinforcement_id: String = str(reinforcement.get("instance_id", reinforcement.get("unit_id", "")))
 		if int(reinforcement.get("turn", -1)) == _turn_controller.turn_number and not _spawned_reinforcements.has(reinforcement_id):
 			_spawned_reinforcements.append(reinforcement_id)
-			_spawn_unit(reinforcement)
+			_spawn_unit(reinforcement, true)
 			if reinforcement.has("message"):
 				_update_status(str(reinforcement.get("message", "")))
 			if reinforcement.has("dialogue_lines"):
@@ -585,7 +586,7 @@ func _handle_tile_events(unit: UnitState) -> void:
 func _execute_event(event: Dictionary) -> void:
 	match event.get("action", ""):
 		"spawn_join":
-			_spawn_unit(event.get("spawn", {}))
+			_spawn_unit(event.get("spawn", {}), true)
 			_update_status(str(event.get("message", "A new ally joins the cause.")))
 			if event.has("dialogue_lines"):
 				_show_dialogue_overlay(event.get("dialogue_lines", []))
@@ -882,9 +883,13 @@ func _load_map_unit_texture_by_id(texture_id: String) -> Texture2D:
 	if _map_unit_texture_cache.has(texture_id):
 		var cached_texture: Texture2D = _map_unit_texture_cache[texture_id] as Texture2D
 		return cached_texture
-	var path: String = "%s/%s_map_sprite.png" % [MAP_UNIT_TEXTURE_DIR, texture_id]
 	var texture: Texture2D = null
-	if ResourceLoader.exists(path):
-		texture = load(path) as Texture2D
+	for path in [
+		"%s/%s_map_sprite.png" % [MAP_UNIT_TEXTURE_DIR, texture_id],
+		"%s/%s_sprite.png" % [MAP_UNIT_TEXTURE_DIR, texture_id],
+	]:
+		if ResourceLoader.exists(path):
+			texture = load(path) as Texture2D
+			break
 	_map_unit_texture_cache[texture_id] = texture
 	return texture

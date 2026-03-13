@@ -111,13 +111,13 @@ func apply_chapter_results(summary: Dictionary) -> void:
 		current_chapter_id = next_chapter_id
 
 
-func restore_player_unit_state(unit: UnitState, unit_id: String) -> bool:
+func restore_player_unit_state(unit: UnitState, unit_id: String, allow_missing_roster_entry: bool = false) -> bool:
 	if unit == null or unit.faction != "player":
 		return true
 	if roster_state.is_empty():
 		return true
 	if not roster_state.has(unit_id):
-		return false
+		return allow_missing_roster_entry
 	var saved_state_value = roster_state.get(unit_id, {})
 	if typeof(saved_state_value) != TYPE_DICTIONARY:
 		return false

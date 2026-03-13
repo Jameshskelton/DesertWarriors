@@ -9,7 +9,7 @@ display_name = "Chapter 3: The Unbroken"
 objective_type = "defeat_boss"
 map_width = 20
 map_height = 15
-terrain_rows = PackedStringArray("FFFFFFFFFFFFFFFFFFFF", "FFFFFFFFFFFFFFFFFFFF", "FFFFFFFFFFFFFFFFFFFF", "FFPPPPPPPPPPPPFFFFFF", "FFPPPPPPPPPPPPFFFFFF", "FFPPPPPPPPPPPPFFFFFF", "FFFFPPPPPPPPPPFFFFFF", "FFFFPPPPPPPPPPFFFFFF", "FFFFPPPPPPPPPPFFFFFF", "FFFFVVVVVVVVVVVFFFFF", "FFFFVVVVVVVVVVVFFFFF", "FFFFFRRRRRRRRFFFFFFF", "FFFFFRRRRRRRRFFFFFFF", "FFFFFRRRRRRRRFFFFFFF", "FFFFFRRRRRRRRFFFFFFF")
+terrain_rows = PackedStringArray("PPPPPPPPFFFPPPPPPPPP", "PPPPPPPFFFFFPPPPPPPP", "PPPPPPPPFFFFPPPPPPPP", "PPPPPPFFFFFPPPPPPPPP", "PPPPPPPFFFFPPPPPPPPP", "PPPPPPPPFFFFFPPPPPPP", "PPPPPPPPFFFFPPPPPPPP", "PPPPVPPFFFFFPPPPPPPP", "PPPPPPPFFFFPPPPPPPPP", "PPPPPPFFFFFPPPPPPPPP", "PPPPPPPFFFFFPPPPPPPP", "PPPPPPPPFFFFPPPPPPPP", "PPPPPPPFFFFFPPPPPPPP", "PPPPPPPPFFFFPPPPPPPP", "PPPPPPPFFFFFPPPPPPPP")
 terrain_legend = {
 "F": "forest",
 "P": "plains",
@@ -20,59 +20,59 @@ terrain_legend = {
 deployment_slots = 8
 starting_units = [{
 "faction": "player",
-"position": Vector2i(2, 12),
+"position": Vector2i(2, 7),
 "unit_id": "george"
 }, {
 "faction": "player",
-"position": Vector2i(1, 11),
+"position": Vector2i(1, 6),
 "unit_id": "bram"
 }, {
 "faction": "player",
-"position": Vector2i(3, 12),
+"position": Vector2i(1, 8),
 "unit_id": "brother_hale"
 }, {
 "faction": "player",
-"position": Vector2i(0, 12),
+"position": Vector2i(0, 7),
 "unit_id": "ember"
 }, {
 "faction": "player",
-"position": Vector2i(1, 13),
+"position": Vector2i(2, 9),
 "unit_id": "rowan"
 }]
 enemy_units = [{
 "faction": "enemy",
 "instance_id": "silverguard_1",
-"position": Vector2i(8, 9),
+"position": Vector2i(13, 4),
 "unit_id": "knight"
 }, {
 "faction": "enemy",
 "instance_id": "silverguard_2",
-"position": Vector2i(10, 7),
-"unit_id": "knight"
-}, {
-"faction": "enemy",
-"instance_id": "silverguard_3",
-"position": Vector2i(12, 5),
-"unit_id": "knight"
-}, {
-"faction": "enemy",
-"instance_id": "silverguard_4",
-"position": Vector2i(11, 9),
-"unit_id": "knight"
-}, {
-"faction": "enemy",
-"instance_id": "silverguard_5",
 "position": Vector2i(14, 6),
 "unit_id": "knight"
 }, {
 "faction": "enemy",
+"instance_id": "silverguard_3",
+"position": Vector2i(16, 5),
+"unit_id": "knight"
+}, {
+"faction": "enemy",
+"instance_id": "silverguard_4",
+"position": Vector2i(13, 9),
+"unit_id": "knight"
+}, {
+"faction": "enemy",
+"instance_id": "silverguard_5",
+"position": Vector2i(15, 10),
+"unit_id": "knight"
+}, {
+"faction": "enemy",
 "instance_id": "captain_1",
-"position": Vector2i(13, 8),
+"position": Vector2i(17, 8),
 "unit_id": "captain"
 }, {
 "faction": "enemy",
 "instance_id": "sir_aldric",
-"position": Vector2i(16, 4),
+"position": Vector2i(18, 7),
 "unit_id": "sir_aldric"
 }]
 reinforcements = [{

@@ -6,7 +6,7 @@ const FIGHT_ANIMATION_DIR := "res://assets/fight_animations"
 const FIGHT_ANIMATION_FRAME_TIME := 1.0 / 18.0
 const FIGHT_ANIMATION_CLASS_FALLBACKS := {
 	"brigand": "brigand_grunt",
-	"captain": "captain_briar",
+	"captain": "captain_grunt",
 	"cavalier": "rowan",
 	"hunter": "hunter_grunt",
 	"knight": "knight_grunt",
