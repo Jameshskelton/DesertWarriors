@@ -9,9 +9,11 @@ display_name = "Chapter 3: The Unbroken"
 objective_type = "defeat_boss"
 map_width = 20
 map_height = 15
-terrain_rows = PackedStringArray("PPPPPPPPFFFPPPPPPPPP", "PPPPPPPFFFFFPPPPPPPP", "PPPPPPPPFFFFPPPPPPPP", "PPPPPPFFFFFPPPPPPPPP", "PPPPPPPFFFFPPPPPPPPP", "PPPPPPPPFFFFFPPPPPPP", "PPPPPPPPFFFFPPPPPPPP", "PPPPVPPFFFFFPPPPPPPP", "PPPPPPPFFFFPPPPPPPPP", "PPPPPPFFFFFPPPPPPPPP", "PPPPPPPFFFFFPPPPPPPP", "PPPPPPPPFFFFPPPPPPPP", "PPPPPPPFFFFFPPPPPPPP", "PPPPPPPPFFFFPPPPPPPP", "PPPPPPPFFFFFPPPPPPPP")
+terrain_rows = PackedStringArray("PPPPPPPPFFFPPPPPPPPP", "PPPPPPPFFFFFPPPPPPPP", "PPPPPPPPFFFFPMMMMMMM", "PPPPPPFFFFFPPPPPPPMM", "PPPPPPPFFFFPPPPPPPPM", "PPPPPPPPFFFFFPPPPPPM", "PPPPPPPPFFFFPPPPPPPM", "PPPPVPPPFFFFPPPPCPPM", "PPPPPPPPFFFFPPPPPPPM", "PPPPPPPFFFFFPPPPPPPM", "PPPPPPPPFFFFPPPPPPPM", "PPPPPPPFFFFFPPPPPPMM", "PPPPPPPPFFFFPMMMMMMM", "PPPPPPPPFFFFPPPPPPPP", "PPPPPPPFFFFFPPPPPPPP")
 terrain_legend = {
+"C": "castle",
 "F": "forest",
+"M": "mountain",
 "P": "plains",
 "R": "road",
 "S": "shrine",
@@ -42,27 +44,27 @@ starting_units = [{
 enemy_units = [{
 "faction": "enemy",
 "instance_id": "silverguard_1",
-"position": Vector2i(13, 4),
-"unit_id": "knight"
+"position": Vector2i(14, 5),
+"unit_id": "brigand_grunt"
 }, {
 "faction": "enemy",
 "instance_id": "silverguard_2",
-"position": Vector2i(14, 6),
-"unit_id": "knight"
+"position": Vector2i(15, 8),
+"unit_id": "brigand_grunt"
 }, {
 "faction": "enemy",
 "instance_id": "silverguard_3",
-"position": Vector2i(16, 5),
-"unit_id": "knight"
+"position": Vector2i(17, 5),
+"unit_id": "brigand_grunt"
 }, {
 "faction": "enemy",
 "instance_id": "silverguard_4",
-"position": Vector2i(13, 9),
-"unit_id": "knight"
+"position": Vector2i(14, 10),
+"unit_id": "brigand_grunt"
 }, {
 "faction": "enemy",
 "instance_id": "silverguard_5",
-"position": Vector2i(15, 10),
+"position": Vector2i(17, 10),
 "unit_id": "knight"
 }, {
 "faction": "enemy",
@@ -72,25 +74,40 @@ enemy_units = [{
 }, {
 "faction": "enemy",
 "instance_id": "sir_aldric",
-"position": Vector2i(18, 7),
+"position": Vector2i(16, 7),
 "unit_id": "sir_aldric"
 }]
 reinforcements = [{
-"faction": "player",
-"instance_id": "monk_mage",
-"message": "A battle mage escapes the monastery and joins your cause!",
-"position": Vector2i(0, 14),
-"turn": 2,
-"unit_id": "mage"
-}, {
 "faction": "enemy",
 "instance_id": "silverguard_6",
-"message": "Another Silverguard knight emerges from the canyon!",
-"position": Vector2i(19, 3),
+"message": "A brigand bursts from the canyon to join the fray!",
+"position": Vector2i(17, 3),
 "turn": 4,
-"unit_id": "knight"
+"unit_id": "brigand_grunt"
 }]
-event_triggers = []
+event_triggers = [{
+"action": "spawn_join",
+"dialogue_lines": [{
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Ricodial",
+"text": "George! By the old king's cloak, it really is you! I am Ricodial, once a retainer to your father, and I had hoped the day would come when I could serve his son with a smile."
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Ricodial",
+"text": "These dour knights could use a little cheering up, so let me lend you my fire and my good spirits. Lead on, my prince!"
+}],
+"id": "ricodial_join",
+"message": "Ricodial emerges from the village and gladly rejoins the Verdant cause.",
+"position": Vector2i(4, 7),
+"spawn": {
+"faction": "player",
+"instance_id": "ricodial_joined",
+"position": Vector2i(5, 7),
+"unit_id": "ricodial"
+},
+"trigger": "tile",
+"unit_id": ""
+}]
 opening_dialogue = [{
 "chapter": "Chapter 3: The Unbroken",
 "speaker": "Narrator",

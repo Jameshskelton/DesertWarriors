@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="UnitData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/unit_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "ricodial"
+display_name = "Ricodial"
+class_id = "mage"
+level = 1
+stats = {
+"def": 1,
+"hp": 17,
+"lck": 6,
+"mag": 9,
+"max_hp": 17,
+"res": 7,
+"skl": 7,
+"spd": 6,
+"str": 1
+}
+xp = 0
+inventory = PackedStringArray("fire_tome", "health_potion")
+portrait_id = "ricodial"
+faction = "player"
+ai_profile = "support"
+join_event_id = "ricodial_join"
+story_flags = PackedStringArray()

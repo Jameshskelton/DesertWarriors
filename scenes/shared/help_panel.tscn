@@ -85,8 +85,10 @@ bbcode_enabled = false
 fit_content = true
 text = "Forest: +20 AVOID, +1 DEF
 Road: Standard terrain
-Village: Visit to recruit new units
-Shrine: +30 AVOID, +2 DEF (Boss location)"
+Village: End movement here, then choose Visit
+Castle: Fortified terrain
+Mountain: Impassable terrain
+Shrine: +30 AVOID, +2 DEF"
 
 [node name="ExperienceSection" type="VBoxContainer" parent="HelpMargin/HelpVBox/ScrollContainer/Content"]
 layout_mode = 2

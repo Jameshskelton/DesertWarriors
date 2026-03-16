@@ -19,7 +19,7 @@ shadow_size = 8
 [node name="ActionMenu" type="PanelContainer"]
 visible = false
 offset_left = 1395.0
-offset_top = 630.0
+offset_top = 570.0
 offset_right = 1770.0
 offset_bottom = 1035.0
 z_index = 20
@@ -48,6 +48,10 @@ text = "Staff"
 [node name="ItemButton" type="Button" parent="Margin/Buttons"]
 layout_mode = 2
 text = "Item"
+
+[node name="VisitButton" type="Button" parent="Margin/Buttons"]
+layout_mode = 2
+text = "Visit"
 
 [node name="WaitButton" type="Button" parent="Margin/Buttons"]
 layout_mode = 2

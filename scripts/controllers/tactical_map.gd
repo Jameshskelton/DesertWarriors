@@ -9,6 +9,7 @@ signal restart_requested(chapter_id: String)
 const BATTLE_SCENE := preload("res://scenes/battle/battle_scene.tscn")
 const DIALOGUE_SCENE := preload("res://scenes/dialogue/dialogue_scene.tscn")
 const CASTLE_TEXTURE := preload("res://assets/terrain/castle.png")
+const MOUNTAIN_TEXTURE := preload("res://assets/terrain/mountain.png")
 const THICKET_TEXTURE := preload("res://assets/terrain/thicket.png")
 const VILLAGE_TEXTURE := preload("res://assets/terrain/village.png")
 const UI_FONT := preload("res://font/new_font.ttf")
@@ -244,6 +245,8 @@ func _draw_board() -> void:
 			draw_rect(rect, terrain.map_color)
 			if terrain_id == "castle" and CASTLE_TEXTURE != null:
 				draw_texture_rect(CASTLE_TEXTURE, rect, false)
+			if terrain_id == "mountain" and MOUNTAIN_TEXTURE != null:
+				draw_texture_rect(MOUNTAIN_TEXTURE, rect, false)
 			if terrain_id == "forest" and THICKET_TEXTURE != null:
 				draw_texture_rect(THICKET_TEXTURE, rect, false)
 			if terrain_id == "village" and VILLAGE_TEXTURE != null:
@@ -483,6 +486,8 @@ func _show_action_menu(unit: UnitState) -> void:
 		"wait": true,
 		"cancel": true,
 	}
+	if _can_visit_village(unit):
+		action_states["visit"] = true
 	_action_menu.show_actions(action_states)
 	_update_status("Choose an action for %s." % unit.display_name)
 
@@ -506,6 +511,8 @@ func _on_action_menu_selected(action_name: String) -> void:
 			_update_status("Select an ally to heal.")
 		"item":
 			_execute_item(unit)
+		"visit":
+			_execute_visit(unit)
 		"wait":
 			unit.consume_turn()
 			_finish_unit_action()
@@ -568,6 +575,14 @@ func _execute_item(source: UnitState) -> void:
 	_finish_unit_action()
 
 
+func _execute_visit(source: UnitState) -> void:
+	var visit_events: Array[Dictionary] = _event_director.peek_tile_events(source.unit_id, source.position, _chapter)
+	source.consume_turn()
+	if visit_events.is_empty():
+		_update_status("%s visits the village, but it has no further aid to offer." % source.display_name)
+	_finish_unit_action(true)
+
+
 func _show_battle_overlay(payload: Dictionary) -> void:
 	var battle_scene: Control = BATTLE_SCENE.instantiate()
 	battle_scene.setup(payload)
@@ -589,10 +604,10 @@ func _on_battle_finished() -> void:
 	queue_redraw()
 
 
-func _finish_unit_action() -> void:
+func _finish_unit_action(allow_village_tile_events: bool = false) -> void:
 	_action_menu.hide_menu()
 	_forecast_panel.hide_panel()
-	_handle_tile_events(_selection.selected_unit)
+	_handle_tile_events(_selection.selected_unit, allow_village_tile_events)
 	_selection.reset()
 	_update_hover_status()
 	queue_redraw()
@@ -691,8 +706,10 @@ func _on_dialogue_overlay_finished(_next_tag: String) -> void:
 		_begin_enemy_phase()
 
 
-func _handle_tile_events(unit: UnitState) -> void:
+func _handle_tile_events(unit: UnitState, allow_village_tile_events: bool = false) -> void:
 	if unit == null:
+		return
+	if _get_terrain_id_at(unit.position) == "village" and not allow_village_tile_events:
 		return
 	var events := _event_director.consume_tile_events(unit.unit_id, unit.position, _chapter)
 	for event in events:
@@ -720,6 +737,10 @@ func _has_heal_targets(unit: UnitState) -> bool:
 
 func _has_usable_items(unit: UnitState) -> bool:
 	return _item_service.can_use_any_item(unit)
+
+
+func _can_visit_village(unit: UnitState) -> bool:
+	return unit != null and unit.faction == "player" and _get_terrain_id_at(unit.position) == "village"
 
 
 func _valid_attack_tiles(unit: UnitState) -> Array[Vector2i]:
@@ -797,14 +818,18 @@ func _get_unit_at(tile: Vector2i) -> UnitState:
 
 
 func _get_terrain_at(tile: Vector2i) -> TerrainData:
+	return DataRegistry.get_terrain_data(_get_terrain_id_at(tile))
+
+
+func _get_terrain_id_at(tile: Vector2i) -> String:
 	if _terrain_grid.is_empty():
-		return DataRegistry.get_terrain_data("plains")
+		return "plains"
 	var row_index := clampi(tile.y, 0, _terrain_grid.size() - 1)
 	var row: Array = _terrain_grid[row_index]
 	if row.is_empty():
-		return DataRegistry.get_terrain_data("plains")
+		return "plains"
 	var column_index := clampi(tile.x, 0, row.size() - 1)
-	return DataRegistry.get_terrain_data(row[column_index])
+	return str(row[column_index])
 
 
 func _screen_to_tile(screen_position: Vector2) -> Vector2i:
