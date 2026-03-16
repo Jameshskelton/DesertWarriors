@@ -172,3 +172,47 @@ text = "Chapter 3: The Unbroken"
 [node name="BackButton2" type="Button" parent="ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox"]
 layout_mode = 2
 text = "Back"
+
+[node name="PermadeathPanel" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 522.0
+offset_top = 303.0
+offset_right = 1398.0
+offset_bottom = 777.0
+
+[node name="PermadeathMargin" type="MarginContainer" parent="PermadeathPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 48
+theme_override_constants/margin_top = 36
+theme_override_constants/margin_right = 48
+theme_override_constants/margin_bottom = 36
+
+[node name="PermadeathVBox" type="VBoxContainer" parent="PermadeathPanel/PermadeathMargin"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="PermadeathTitle" type="Label" parent="PermadeathPanel/PermadeathMargin/PermadeathVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 54
+text = "Perma-Death?"
+horizontal_alignment = 1
+
+[node name="PermadeathDescription" type="Label" parent="PermadeathPanel/PermadeathMargin/PermadeathVBox"]
+layout_mode = 2
+autowrap_mode = 2
+horizontal_alignment = 1
+text = "Should fallen allies stay dead between chapters?\n\nYes: defeated allies are lost for the rest of the campaign.\nNo: defeated allies return between chapters."
+
+[node name="ButtonRow" type="HBoxContainer" parent="PermadeathPanel/PermadeathMargin/PermadeathVBox"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 18
+
+[node name="YesButton" type="Button" parent="PermadeathPanel/PermadeathMargin/PermadeathVBox/ButtonRow"]
+layout_mode = 2
+text = "Yes"
+
+[node name="NoButton" type="Button" parent="PermadeathPanel/PermadeathMargin/PermadeathVBox/ButtonRow"]
+layout_mode = 2
+text = "No"

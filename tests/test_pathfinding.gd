@@ -42,6 +42,13 @@ func run() -> PackedStringArray:
 	var tall_mountain_result: Dictionary = pathfinding.compute_reachable(Vector2i(1, 1), 5, tall_mountain_grid, "infantry", {})
 	_assert_true(tall_mountain_result.get("costs", {}).has(Vector2i(1, 0)), "units on tall mountains should still be able to step to an adjacent tile", failures)
 	_assert_true(not tall_mountain_result.get("costs", {}).has(Vector2i(0, 0)), "units on tall mountains should be limited to one adjacent step per turn", failures)
+	var river_grid := [
+		["plains", "river", "plains"],
+		["plains", "plains", "plains"],
+		["plains", "plains", "plains"],
+	]
+	var river_result: Dictionary = pathfinding.compute_reachable(Vector2i(0, 0), 3, river_grid, "infantry", {})
+	_assert_true(not river_result.get("costs", {}).has(Vector2i(1, 0)), "river tiles should be impassable", failures)
 	return failures
 
 

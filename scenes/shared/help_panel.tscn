@@ -85,6 +85,7 @@ bbcode_enabled = false
 fit_content = true
 text = "Forest: +20 AVOID, +1 DEF
 Road: Standard terrain
+River: Impassable terrain
 Village: End movement here, then choose Visit
 Castle: Fortified terrain
 Mountain: Impassable terrain
@@ -122,7 +123,7 @@ text = "Turns & Actions"
 layout_mode = 2
 bbcode_enabled = false
 fit_content = true
-text = "Your Turn: Move and act with each of your units once. When done, press T or select \"End Turn\".
+text = "Your Turn: Move and act with each of your units once. When done, press T to open an end-turn confirmation.
 \n
 Enemy Turn: Enemy AI will move and attack. Defeat all enemies to win!
 \n
@@ -147,7 +148,7 @@ Z / Enter: Select / Confirm
 X / Escape: Cancel / Back
 V: Toggle enemy danger zone
 P: Open system menu
-T: End Turn
+T: End-turn confirmation
 Space: Skip battle animation"
 
 [node name="CloseButton" type="Button" parent="HelpMargin/HelpVBox"]

@@ -77,8 +77,8 @@ func _show_results(summary: Dictionary) -> void:
 	_mount_scene(scene)
 
 
-func _on_new_game_requested() -> void:
-	GameState.start_new_game()
+func _on_new_game_requested(permadeath_enabled: bool) -> void:
+	GameState.start_new_game(permadeath_enabled)
 	GameState.is_continuing = false
 	var chapter: ChapterData = DataRegistry.get_chapter_data("chapter_1")
 	if chapter == null:

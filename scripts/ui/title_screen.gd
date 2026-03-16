@@ -1,6 +1,6 @@
 extends Control
 
-signal new_game_requested
+signal new_game_requested(permadeath_enabled: bool)
 signal continue_requested(chapter_id: String)
 signal chapter_select_requested
 signal options_requested
@@ -10,6 +10,7 @@ var _menu_visible: bool = false
 @onready var _menu_panel: PanelContainer = $MenuPanel
 @onready var _options_panel: PanelContainer = $OptionsPanel
 @onready var _chapter_select_panel: PanelContainer = $ChapterSelectPanel
+@onready var _permadeath_panel: PanelContainer = $PermadeathPanel
 @onready var _new_game_button: Button = $MenuPanel/MenuMargin/MenuVBox/NewGameButton
 @onready var _continue_button: Button = $MenuPanel/MenuMargin/MenuVBox/ContinueButton
 @onready var _chapter_select_button: Button = $MenuPanel/MenuMargin/MenuVBox/ChapterSelectButton
@@ -26,6 +27,7 @@ func _ready() -> void:
 	_apply_settings()
 	_menu_visible = false
 	_menu_panel.visible = false
+	_permadeath_panel.visible = false
 
 
 func _connect_signals() -> void:
@@ -42,6 +44,8 @@ func _connect_signals() -> void:
 	$ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer/Chapter1Button.pressed.connect(_on_chapter_1_selected)
 	$ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer/Chapter2Button.pressed.connect(_on_chapter_2_selected)
 	$ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer/Chapter3Button.pressed.connect(_on_chapter_3_selected)
+	$PermadeathPanel/PermadeathMargin/PermadeathVBox/ButtonRow/YesButton.pressed.connect(_on_permadeath_yes_pressed)
+	$PermadeathPanel/PermadeathMargin/PermadeathVBox/ButtonRow/NoButton.pressed.connect(_on_permadeath_no_pressed)
 
 
 func _apply_settings() -> void:
@@ -57,7 +61,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not _menu_visible and (event.is_action_pressed("ui_accept") or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT)):
 		_show_menu()
 	elif event.is_action_pressed("ui_cancel"):
-		if _options_panel.visible:
+		if _permadeath_panel.visible:
+			_close_permadeath_prompt()
+		elif _options_panel.visible:
 			_on_options_back()
 		elif _chapter_select_panel.visible:
 			_on_chapter_select_back()
@@ -78,12 +84,12 @@ func _show_menu() -> void:
 func _hide_menu() -> void:
 	_menu_visible = false
 	_menu_panel.visible = false
+	_permadeath_panel.visible = false
 
 
 func _on_new_game_pressed() -> void:
-	GameState.start_new_game()
-	GameState.is_continuing = false
-	new_game_requested.emit()
+	_permadeath_panel.visible = true
+	$PermadeathPanel/PermadeathMargin/PermadeathVBox/ButtonRow/NoButton.grab_focus()
 
 
 func _on_continue_pressed() -> void:
@@ -138,7 +144,7 @@ func _on_chapter_select_back() -> void:
 
 
 func _on_chapter_1_selected() -> void:
-	GameState.start_new_game()
+	GameState.start_new_game(false)
 	GameState.current_chapter_id = "chapter_1"
 	# Mark chapters 1 as available
 	GameState.cleared_chapters.clear()
@@ -146,14 +152,29 @@ func _on_chapter_1_selected() -> void:
 
 
 func _on_chapter_2_selected() -> void:
-	GameState.start_new_game()
+	GameState.start_new_game(false)
 	GameState.current_chapter_id = "chapter_2"
 	GameState.cleared_chapters = PackedStringArray(["chapter_1"])
 	continue_requested.emit("chapter_2")
 
 
 func _on_chapter_3_selected() -> void:
-	GameState.start_new_game()
+	GameState.start_new_game(false)
 	GameState.current_chapter_id = "chapter_3"
 	GameState.cleared_chapters = PackedStringArray(["chapter_1", "chapter_2"])
 	continue_requested.emit("chapter_3")
+
+
+func _close_permadeath_prompt() -> void:
+	_permadeath_panel.visible = false
+	_new_game_button.grab_focus()
+
+
+func _on_permadeath_yes_pressed() -> void:
+	_permadeath_panel.visible = false
+	new_game_requested.emit(true)
+
+
+func _on_permadeath_no_pressed() -> void:
+	_permadeath_panel.visible = false
+	new_game_requested.emit(false)

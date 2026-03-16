@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="TerrainData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/terrain_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "cobblestone"
+name = "Cobblestone"
+move_cost_by_type = {
+"armored": 1,
+"cavalry": 1,
+"infantry": 1
+}
+avoid_bonus = 0
+def_bonus = 0
+is_blocking = false
+tile_tags = PackedStringArray("open", "stone")
+map_color = Color(0.588235, 0.580392, 0.556863, 1)

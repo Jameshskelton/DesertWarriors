@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="TerrainData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/terrain_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "river"
+name = "River"
+move_cost_by_type = {
+"armored": 99,
+"cavalry": 99,
+"infantry": 99
+}
+avoid_bonus = 0
+def_bonus = 0
+is_blocking = true
+tile_tags = PackedStringArray("river", "water", "blocking")
+map_color = Color(0.227451, 0.466667, 0.745098, 1)

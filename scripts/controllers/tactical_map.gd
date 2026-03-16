@@ -9,7 +9,11 @@ signal restart_requested(chapter_id: String)
 const BATTLE_SCENE := preload("res://scenes/battle/battle_scene.tscn")
 const DIALOGUE_SCENE := preload("res://scenes/dialogue/dialogue_scene.tscn")
 const CASTLE_TEXTURE := preload("res://assets/terrain/castle.png")
+const COBBLESTONE_TEXTURE := preload("res://assets/terrain/cobblestone.png")
+const GRASSLAND_TEXTURE := preload("res://assets/terrain/grassland.png")
 const MOUNTAIN_TEXTURE := preload("res://assets/terrain/mountain.png")
+const RIVER_TEXTURE := preload("res://assets/terrain/river.png")
+const ROAD_TEXTURE := preload("res://assets/terrain/road.png")
 const TALL_MOUNTAIN_TEXTURE := preload("res://assets/terrain/tall_mountain.png")
 const THICKET_TEXTURE := preload("res://assets/terrain/thicket.png")
 const VILLAGE_TEXTURE := preload("res://assets/terrain/village.png")
@@ -82,6 +86,9 @@ var _danger_zone_tiles: Dictionary = {}
 @onready var _system_suspend_button: Button = $SystemMenu/SystemMargin/SystemVBox/SuspendButton
 @onready var _system_restart_button: Button = $SystemMenu/SystemMargin/SystemVBox/RestartButton
 @onready var _system_close_button: Button = $SystemMenu/SystemMargin/SystemVBox/CloseButton
+@onready var _end_turn_confirm: PanelContainer = $EndTurnConfirm
+@onready var _end_turn_yes_button: Button = $EndTurnConfirm/ConfirmMargin/ConfirmVBox/ButtonRow/YesButton
+@onready var _end_turn_no_button: Button = $EndTurnConfirm/ConfirmMargin/ConfirmVBox/ButtonRow/NoButton
 
 
 func setup(chapter_id: String) -> void:
@@ -92,6 +99,7 @@ func _ready() -> void:
 	add_child(_battle_transition)
 	_help_panel.visible = false
 	_system_menu.visible = false
+	_end_turn_confirm.visible = false
 	if _help_close_button != null:
 		_help_close_button.pressed.connect(func() -> void:
 			_help_panel.visible = false
@@ -99,6 +107,8 @@ func _ready() -> void:
 	_system_suspend_button.pressed.connect(Callable(self, "_on_system_suspend_pressed"))
 	_system_restart_button.pressed.connect(Callable(self, "_on_system_restart_pressed"))
 	_system_close_button.pressed.connect(Callable(self, "_close_system_menu"))
+	_end_turn_yes_button.pressed.connect(Callable(self, "_on_end_turn_yes_pressed"))
+	_end_turn_no_button.pressed.connect(Callable(self, "_on_end_turn_no_pressed"))
 	_battle_transition.battle_overlay_requested.connect(Callable(self, "_show_battle_overlay"))
 	_action_menu.action_selected.connect(Callable(self, "_on_action_menu_selected"))
 	_load_chapter()
@@ -245,8 +255,16 @@ func _draw_board() -> void:
 			var terrain: TerrainData = DataRegistry.get_terrain_data(terrain_id)
 			var rect := Rect2(_board_origin + Vector2(x, y) * _cell_size, Vector2.ONE * _cell_size)
 			draw_rect(rect, terrain.map_color)
+			if terrain_id == "plains" and GRASSLAND_TEXTURE != null:
+				draw_texture_rect(GRASSLAND_TEXTURE, rect, false)
 			if terrain_id == "castle" and CASTLE_TEXTURE != null:
 				draw_texture_rect(CASTLE_TEXTURE, rect, false)
+			if terrain_id == "cobblestone" and COBBLESTONE_TEXTURE != null:
+				draw_texture_rect(COBBLESTONE_TEXTURE, rect, false)
+			if terrain_id == "river" and RIVER_TEXTURE != null:
+				draw_texture_rect(RIVER_TEXTURE, rect, false)
+			if terrain_id == "road" and ROAD_TEXTURE != null:
+				draw_texture_rect(ROAD_TEXTURE, rect, false)
 			if terrain_id == "tall_mountain" and TALL_MOUNTAIN_TEXTURE != null:
 				draw_texture_rect(TALL_MOUNTAIN_TEXTURE, rect, false)
 			if terrain_id == "mountain" and MOUNTAIN_TEXTURE != null:
@@ -352,7 +370,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.is_action_pressed("ui_cancel"):
 			_close_system_menu()
 		return
+	if _end_turn_confirm.visible:
+		if event.is_action_pressed("ui_cancel"):
+			_close_end_turn_confirm()
+		return
 	if _active_battle != null or _turn_controller.phase != "player":
+		return
+	if event.is_action_pressed("end_turn"):
+		_open_end_turn_confirm()
 		return
 	if event is InputEventMouseMotion:
 		var hovered_tile := _screen_to_tile(event.position)
@@ -385,8 +410,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		_cancel_selection()
 	elif event.is_action_pressed("toggle_danger_zone"):
 		_toggle_danger_zone()
-	elif event.is_action_pressed("end_turn") and _selection.mode == SelectionController.Mode.IDLE:
-		_begin_enemy_phase()
 	_update_movement_preview()
 	queue_redraw()
 	_update_hover_status()
@@ -434,6 +457,30 @@ func _toggle_system_menu() -> void:
 
 func _close_system_menu() -> void:
 	_system_menu.visible = false
+
+
+func _open_end_turn_confirm() -> void:
+	_help_panel.visible = false
+	_system_menu.visible = false
+	_end_turn_confirm.visible = true
+	_end_turn_yes_button.grab_focus()
+	_update_status("End your turn and begin the enemy phase?")
+
+
+func _close_end_turn_confirm() -> void:
+	_end_turn_confirm.visible = false
+	_update_status("Continue your turn.")
+
+
+func _on_end_turn_yes_pressed() -> void:
+	_end_turn_confirm.visible = false
+	if _selection.mode != SelectionController.Mode.IDLE:
+		_cancel_selection()
+	_begin_enemy_phase()
+
+
+func _on_end_turn_no_pressed() -> void:
+	_close_end_turn_confirm()
 
 
 func _on_system_suspend_pressed() -> void:
@@ -784,10 +831,11 @@ func _check_end_conditions() -> bool:
 		chapter_failed.emit(_build_summary(false))
 		return true
 	if _objective_controller.check_victory(_units, _chapter):
-		for unit in _units:
-			if unit.faction == "player" and unit.downed:
-				unit.downed = false
-				unit.set_current_hp(maxi(1, int(unit.get_max_hp() / 2)))
+		if not GameState.permadeath_enabled:
+			for unit in _units:
+				if unit.faction == "player" and unit.downed:
+					unit.downed = false
+					unit.set_current_hp(maxi(1, int(unit.get_max_hp() / 2)))
 		chapter_cleared.emit(_build_summary(true))
 		return true
 	return false
@@ -880,7 +928,7 @@ func _update_hint() -> void:
 	var danger_zone_state: String = "off"
 	if _danger_zone_visible:
 		danger_zone_state = "on"
-	_hint_label.text = "Enter/Space confirm, Esc cancel, V danger zone %s, P system menu, select a unit for attack range, T end turn." % [danger_zone_state]
+	_hint_label.text = "Enter/Space confirm, Esc cancel, V danger zone %s, P system menu, select a unit for attack range, T end-turn prompt." % [danger_zone_state]
 
 
 func _toggle_danger_zone() -> void:

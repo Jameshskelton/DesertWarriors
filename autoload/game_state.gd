@@ -1,6 +1,6 @@
 extends Node
 
-const SAVE_VERSION: int = 2
+const SAVE_VERSION: int = 3
 const DEFAULT_SETTINGS: Dictionary = {
 	"battle_speed": 1.0,
 	"music_volume": 0.8,
@@ -11,6 +11,8 @@ var current_chapter_id: String = ""
 var roster_state: Dictionary = {}
 var cleared_chapters: PackedStringArray = PackedStringArray()
 var settings: Dictionary = DEFAULT_SETTINGS.duplicate(true)
+var permadeath_enabled: bool = false
+var fallen_units: PackedStringArray = PackedStringArray()
 var rng_seed: int = 424242
 var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var last_results: Dictionary = {}
@@ -50,15 +52,18 @@ func reset_runtime() -> void:
 	roster_state.clear()
 	cleared_chapters.clear()
 	settings = DEFAULT_SETTINGS.duplicate(true)
+	permadeath_enabled = false
+	fallen_units.clear()
 	last_results.clear()
 	suspend_state.clear()
 	rng.seed = rng_seed
 	is_continuing = false
 
 
-func start_new_game() -> void:
+func start_new_game(use_permadeath: bool = false) -> void:
 	reset_runtime()
 	current_chapter_id = "chapter_1"
+	permadeath_enabled = use_permadeath
 
 
 func continue_game() -> bool:
@@ -76,6 +81,8 @@ func continue_game() -> bool:
 		current_chapter_id = "chapter_1"
 	cleared_chapters = save_data.get("cleared_chapters", PackedStringArray())
 	settings = save_data.get("settings", DEFAULT_SETTINGS.duplicate(true)).duplicate(true)
+	permadeath_enabled = bool(save_data.get("permadeath_enabled", false))
+	fallen_units = _variant_to_packed_string_array(save_data.get("fallen_units", PackedStringArray()))
 	rng_seed = save_data.get("rng_seed", 424242)
 	rng.seed = rng_seed
 	last_results = save_data.get("last_results", {}).duplicate(true)
@@ -103,14 +110,25 @@ func apply_chapter_results(summary: Dictionary) -> void:
 	if not chapter_id.is_empty() and not cleared_chapters.has(chapter_id):
 		cleared_chapters.append(chapter_id)
 	var should_heal_roster: bool = bool(summary.get("success", false))
+	if not permadeath_enabled:
+		fallen_units.clear()
 	var player_states_value = summary.get("player_states", {})
 	if typeof(player_states_value) == TYPE_DICTIONARY:
 		var player_states: Dictionary = player_states_value
 		for unit_id_value in player_states.keys():
 			var unit_id: String = str(unit_id_value)
 			var serialized_state = player_states.get(unit_id_value, {})
-			if typeof(serialized_state) == TYPE_DICTIONARY:
-				roster_state[unit_id] = _normalize_roster_entry(unit_id, serialized_state, should_heal_roster)
+			if typeof(serialized_state) != TYPE_DICTIONARY:
+				continue
+			var is_unit_dead: bool = _is_serialized_unit_dead(serialized_state)
+			if permadeath_enabled and is_unit_dead:
+				roster_state.erase(unit_id)
+				if not fallen_units.has(unit_id):
+					fallen_units.append(unit_id)
+				continue
+			if fallen_units.has(unit_id):
+				fallen_units.remove_at(fallen_units.find(unit_id))
+			roster_state[unit_id] = _normalize_roster_entry(unit_id, serialized_state, should_heal_roster)
 	var next_chapter_id: String = _normalize_chapter_id(summary.get("next_chapter_id", ""))
 	if bool(summary.get("success", false)) and not next_chapter_id.is_empty():
 		current_chapter_id = next_chapter_id
@@ -119,6 +137,8 @@ func apply_chapter_results(summary: Dictionary) -> void:
 func restore_player_unit_state(unit: UnitState, unit_id: String, allow_missing_roster_entry: bool = false) -> bool:
 	if unit == null or unit.faction != "player":
 		return true
+	if permadeath_enabled and fallen_units.has(unit_id):
+		return false
 	if roster_state.is_empty():
 		return true
 	if not roster_state.has(unit_id):
@@ -136,6 +156,8 @@ func build_save_payload() -> Dictionary:
 		"current_chapter_id": current_chapter_id,
 		"cleared_chapters": cleared_chapters,
 		"settings": settings,
+		"permadeath_enabled": permadeath_enabled,
+		"fallen_units": fallen_units,
 		"rng_seed": rng_seed,
 		"last_results": last_results,
 		"roster_state": roster_state,
@@ -213,3 +235,22 @@ func _normalize_chapter_id(value: Variant) -> String:
 	if chapter_id == "null" or chapter_id == "<null>":
 		return ""
 	return chapter_id
+
+
+func _variant_to_packed_string_array(value: Variant) -> PackedStringArray:
+	var result: PackedStringArray = PackedStringArray()
+	if value is PackedStringArray:
+		for entry in value:
+			result.append(str(entry))
+	elif value is Array:
+		for entry in value:
+			result.append(str(entry))
+	return result
+
+
+func _is_serialized_unit_dead(serialized_state: Dictionary) -> bool:
+	var stats_value: Variant = serialized_state.get("stats", {})
+	if typeof(stats_value) != TYPE_DICTIONARY:
+		return false
+	var stats: Dictionary = stats_value
+	return int(stats.get("hp", 0)) <= 0
