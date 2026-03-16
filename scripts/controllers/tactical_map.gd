@@ -30,6 +30,14 @@ const DANGER_ZONE_INTENSE_COLOR := Color(0.960784, 0.333333, 0.27451, 0.28)
 const PLAYER_ATTACK_RANGE_COLOR := Color(0.980392, 0.647059, 0.196078, 0.26)
 const SHOP_POTION_ITEM_ID := "health_potion"
 const SHOP_POTION_PRICE := 10
+const SHOP_UPGRADE_PRICE := 40
+const SHOP_UPGRADE_WEAPONS := {
+	"sword": "steel_sword",
+	"lance": "steel_lance",
+	"bow": "steel_bow",
+	"tome": "flare_tome",
+	"staff": "mend_staff",
+}
 const MAP_UNIT_CLASS_FALLBACKS := {
 	"brigand": "brigand_grunt",
 	"captain": "captain_grunt",
@@ -97,6 +105,7 @@ var _shop_customer: UnitState
 @onready var _shop_description: Label = $ShopMenu/ShopMargin/ShopVBox/Description
 @onready var _shop_gold_label: Label = $ShopMenu/ShopMargin/ShopVBox/GoldLabel
 @onready var _shop_potion_button: Button = $ShopMenu/ShopMargin/ShopVBox/PotionButton
+@onready var _shop_upgrade_button: Button = $ShopMenu/ShopMargin/ShopVBox/UpgradeButton
 @onready var _shop_leave_button: Button = $ShopMenu/ShopMargin/ShopVBox/LeaveButton
 @onready var _end_turn_confirm: PanelContainer = $EndTurnConfirm
 @onready var _end_turn_yes_button: Button = $EndTurnConfirm/ConfirmMargin/ConfirmVBox/ButtonRow/YesButton
@@ -121,6 +130,7 @@ func _ready() -> void:
 	_system_restart_button.pressed.connect(Callable(self, "_on_system_restart_pressed"))
 	_system_close_button.pressed.connect(Callable(self, "_close_system_menu"))
 	_shop_potion_button.pressed.connect(Callable(self, "_on_shop_buy_potion_pressed"))
+	_shop_upgrade_button.pressed.connect(Callable(self, "_on_shop_buy_upgrade_pressed"))
 	_shop_leave_button.pressed.connect(Callable(self, "_on_shop_leave_pressed"))
 	_end_turn_yes_button.pressed.connect(Callable(self, "_on_end_turn_yes_pressed"))
 	_end_turn_no_button.pressed.connect(Callable(self, "_on_end_turn_no_pressed"))
@@ -690,15 +700,30 @@ func _open_shop_menu(source: UnitState) -> void:
 
 func _refresh_shop_menu() -> void:
 	var potion_count: int = 0
+	var current_weapon_name: String = "--"
+	var upgrade_weapon_id: String = _get_shop_upgrade_weapon_id(_shop_customer)
+	var upgrade_weapon: WeaponData = DataRegistry.get_weapon_data(upgrade_weapon_id)
+	var has_upgrade: bool = _shop_customer != null and not upgrade_weapon_id.is_empty() and _shop_customer.has_item(upgrade_weapon_id)
 	if _shop_customer != null:
 		potion_count = _shop_customer.get_available_item_count(SHOP_POTION_ITEM_ID)
+		var current_weapon: WeaponData = DataRegistry.get_weapon_data(_shop_customer.get_equipped_weapon_id())
+		if current_weapon != null:
+			current_weapon_name = current_weapon.name
 		_shop_title.text = "%s at the Shop" % _shop_customer.display_name
 	else:
 		_shop_title.text = "Shop"
-	_shop_description.text = "Potion restores 10 HP.\nPotions carried: %d" % potion_count
+	_shop_description.text = "Current weapon: %s\nPotion restores 10 HP.\nPotions carried: %d" % [current_weapon_name, potion_count]
 	_shop_gold_label.text = "Gold: %d" % GameState.gold
 	_shop_potion_button.text = "Potion - %dG" % SHOP_POTION_PRICE
 	_shop_potion_button.disabled = _shop_customer == null or GameState.gold < SHOP_POTION_PRICE
+	if upgrade_weapon == null:
+		_shop_upgrade_button.text = "No Weapon Upgrade"
+		_shop_upgrade_button.disabled = true
+	else:
+		_shop_upgrade_button.text = "%s - %dG" % [upgrade_weapon.name, SHOP_UPGRADE_PRICE]
+		if has_upgrade:
+			_shop_upgrade_button.text = "%s - Owned" % upgrade_weapon.name
+		_shop_upgrade_button.disabled = _shop_customer == null or has_upgrade or GameState.gold < SHOP_UPGRADE_PRICE
 
 
 func _close_shop_menu() -> void:
@@ -718,6 +743,30 @@ func _on_shop_buy_potion_pressed() -> void:
 	_refresh_shop_menu()
 	_update_hover_status()
 	_update_status("%s buys a Potion." % _shop_customer.display_name)
+
+
+func _on_shop_buy_upgrade_pressed() -> void:
+	if _shop_customer == null:
+		return
+	var upgrade_weapon_id: String = _get_shop_upgrade_weapon_id(_shop_customer)
+	var upgrade_weapon: WeaponData = DataRegistry.get_weapon_data(upgrade_weapon_id)
+	if upgrade_weapon == null:
+		_update_status("No weapon upgrade is available for %s here." % _shop_customer.display_name)
+		_refresh_shop_menu()
+		return
+	if _shop_customer.has_item(upgrade_weapon_id):
+		_update_status("%s already carries %s." % [_shop_customer.display_name, upgrade_weapon.name])
+		_refresh_shop_menu()
+		return
+	if not GameState.spend_gold(SHOP_UPGRADE_PRICE):
+		_update_status("Not enough gold to buy %s." % upgrade_weapon.name)
+		_refresh_shop_menu()
+		return
+	_shop_customer.add_equipped_weapon(upgrade_weapon_id)
+	_update_header()
+	_refresh_shop_menu()
+	_update_hover_status()
+	_update_status("%s buys %s." % [_shop_customer.display_name, upgrade_weapon.name])
 
 
 func _on_shop_leave_pressed() -> void:
@@ -906,6 +955,16 @@ func _can_visit_location(unit: UnitState) -> bool:
 		return false
 	var terrain_id: String = _get_terrain_id_at(unit.position)
 	return terrain_id == "village" or terrain_id == "store"
+
+
+func _get_shop_upgrade_weapon_id(unit: UnitState) -> String:
+	if unit == null:
+		return ""
+	var allowed_types: PackedStringArray = unit.get_allowed_weapon_types()
+	for weapon_type in allowed_types:
+		if SHOP_UPGRADE_WEAPONS.has(weapon_type):
+			return str(SHOP_UPGRADE_WEAPONS[weapon_type])
+	return ""
 
 
 func _valid_attack_tiles(unit: UnitState) -> Array[Vector2i]:

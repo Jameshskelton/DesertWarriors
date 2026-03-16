@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/weapon_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "flare_tome"
+name = "Flare Tome"
+weapon_type = "tome"
+damage_type = "magic"
+might = 8
+hit = 88
+crit = 8
+weight = 2
+min_range = 1
+max_range = 2
+uses = 45
+triangle_group = "magic"
+anim_id = "fire"
+heal_power = 10

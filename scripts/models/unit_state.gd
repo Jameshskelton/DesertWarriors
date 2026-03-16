@@ -176,7 +176,7 @@ static func from_battle_state(state: Dictionary) -> UnitState:
 
 
 func get_equipped_weapon_id() -> String:
-	var weapon_index: int = _find_first_weapon_index()
+	var weapon_index: int = _find_first_equippable_weapon_index()
 	if weapon_index == -1:
 		return ""
 	return str(inventory[weapon_index])
@@ -184,7 +184,7 @@ func get_equipped_weapon_id() -> String:
 
 func get_equipped_weapon_uses() -> int:
 	_ensure_item_uses_synced()
-	var weapon_index: int = _find_first_weapon_index()
+	var weapon_index: int = _find_first_equippable_weapon_index()
 	if weapon_index == -1 or weapon_index >= item_uses.size():
 		return 0
 	return maxi(0, int(item_uses[weapon_index]))
@@ -195,7 +195,7 @@ func has_usable_equipped_weapon() -> bool:
 
 
 func consume_equipped_weapon_use() -> bool:
-	return consume_item_use(_find_first_weapon_index())
+	return consume_item_use(_find_first_equippable_weapon_index())
 
 
 func has_item(item_id: String) -> bool:
@@ -234,6 +234,17 @@ func add_item(item_id: String, uses: int = -1) -> void:
 	item_uses.append(maxi(0, starting_uses))
 
 
+func add_equipped_weapon(weapon_id: String, uses: int = -1) -> void:
+	_ensure_item_uses_synced()
+	var starting_uses: int = uses if uses >= 0 else _get_default_uses_for_item(weapon_id)
+	var updated_inventory: PackedStringArray = PackedStringArray()
+	updated_inventory.append(weapon_id)
+	for existing_item_id in inventory:
+		updated_inventory.append(str(existing_item_id))
+	inventory = updated_inventory
+	item_uses.insert(0, maxi(0, starting_uses))
+
+
 func get_available_item_count(item_id: String) -> int:
 	_ensure_item_uses_synced()
 	var count: int = 0
@@ -247,6 +258,29 @@ func get_available_item_count(item_id: String) -> int:
 
 func has_flag(flag_name: String) -> bool:
 	return story_flags.has(flag_name)
+
+
+func get_allowed_weapon_types() -> PackedStringArray:
+	var class_data: ClassData = DataRegistry.get_class_data(class_id)
+	if class_data == null:
+		return PackedStringArray()
+	var allowed_types: PackedStringArray = class_data.weapon_types.duplicate()
+	if class_data.can_use_staves and not allowed_types.has("staff"):
+		allowed_types.append("staff")
+	return allowed_types
+
+
+func can_use_weapon(weapon: WeaponData) -> bool:
+	if weapon == null:
+		return false
+	var allowed_types: PackedStringArray = get_allowed_weapon_types()
+	if allowed_types.is_empty():
+		return true
+	return allowed_types.has(weapon.weapon_type)
+
+
+func can_use_weapon_id(weapon_id: String) -> bool:
+	return can_use_weapon(DataRegistry.get_weapon_data(weapon_id))
 
 
 func get_gold_drop() -> int:
@@ -272,9 +306,10 @@ func _ensure_item_uses_synced() -> void:
 		item_uses.pop_back()
 
 
-func _find_first_weapon_index() -> int:
+func _find_first_equippable_weapon_index() -> int:
 	for item_index in range(inventory.size()):
-		if DataRegistry.get_weapon_data(str(inventory[item_index])) != null:
+		var weapon: WeaponData = DataRegistry.get_weapon_data(str(inventory[item_index]))
+		if weapon != null and can_use_weapon(weapon):
 			return item_index
 	return -1
 

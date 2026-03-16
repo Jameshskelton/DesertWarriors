@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/weapon_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "steel_sword"
+name = "Steel Sword"
+weapon_type = "sword"
+damage_type = "physical"
+might = 7
+hit = 86
+crit = 5
+weight = 2
+min_range = 1
+max_range = 1
+uses = 45
+triangle_group = "melee"
+anim_id = "slash"
+heal_power = 10

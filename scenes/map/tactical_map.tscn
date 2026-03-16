@@ -259,6 +259,10 @@ text = "Gold: 0"
 layout_mode = 2
 text = "Potion - 10G"
 
+[node name="UpgradeButton" type="Button" parent="ShopMenu/ShopMargin/ShopVBox"]
+layout_mode = 2
+text = "Weapon Upgrade - 40G"
+
 [node name="LeaveButton" type="Button" parent="ShopMenu/ShopMargin/ShopVBox"]
 layout_mode = 2
 text = "Leave"

@@ -19,6 +19,8 @@ func run() -> PackedStringArray:
 	var starting_potions: int = shopper.get_available_item_count("health_potion")
 	shopper.add_item("health_potion")
 	_assert_true(shopper.get_available_item_count("health_potion") == starting_potions + 1, "buying an item should add it to the unit inventory", failures)
+	shopper.add_equipped_weapon("steel_sword")
+	_assert_true(shopper.get_equipped_weapon_id() == "steel_sword", "buying an upgraded weapon should make it the equipped weapon", failures)
 	GameState.reset_runtime()
 	GameState.add_gold(15)
 	_assert_true(GameState.spend_gold(10), "shared gold should be spendable for shop purchases", failures)

@@ -30,6 +30,17 @@ func run() -> PackedStringArray:
 	var george_start_uses: int = durable_george.get_equipped_weapon_uses()
 	resolver.resolve_battle(durable_george, durable_brigand, plains, plains)
 	_assert_true(durable_george.get_equipped_weapon_uses() == george_start_uses - 1, "attacking should spend one weapon use", failures)
+	var lance_george := UnitState.from_unit_data(DataRegistry.get_unit_data("george"), Vector2i(0, 0))
+	lance_george.inventory = PackedStringArray(["iron_lance"])
+	lance_george.item_uses.clear()
+	lance_george.item_uses.append(45)
+	_assert_true(lance_george.get_equipped_weapon_id().is_empty(), "George should not be able to equip lances", failures)
+	_assert_true(not resolver.can_unit_attack_from_tile(lance_george, durable_brigand, lance_george.position), "units should not attack with weapons outside their allowed type", failures)
+	var sword_bram := UnitState.from_unit_data(DataRegistry.get_unit_data("bram"), Vector2i(0, 0))
+	sword_bram.inventory = PackedStringArray(["bronze_sword"])
+	sword_bram.item_uses.clear()
+	sword_bram.item_uses.append(45)
+	_assert_true(sword_bram.get_equipped_weapon_id().is_empty(), "Bram should not be able to equip swords", failures)
 	var fragile_george := UnitState.from_unit_data(DataRegistry.get_unit_data("george"), Vector2i(0, 0))
 	var fragile_brigand := UnitState.from_unit_data(DataRegistry.get_unit_data("brigand_grunt"), Vector2i(0, 1), "enemy")
 	fragile_george.item_uses[0] = 1
@@ -63,6 +74,11 @@ func run() -> PackedStringArray:
 	doomed_briar.stats["lck"] = 0
 	var boss_result: BattleResult = resolver.resolve_battle(rich_george, doomed_briar, plains, plains)
 	_assert_true(boss_result.gold_awarded == 25, "bosses should award 25 gold on defeat", failures)
+	_assert_true(DataRegistry.get_weapon_data("steel_sword") != null, "Steel Sword should be registered as an upgraded hero weapon", failures)
+	_assert_true(DataRegistry.get_weapon_data("steel_lance") != null, "Steel Lance should be registered as an upgraded hero weapon", failures)
+	_assert_true(DataRegistry.get_weapon_data("steel_bow") != null, "Steel Bow should be registered as an upgraded hero weapon", failures)
+	_assert_true(DataRegistry.get_weapon_data("flare_tome") != null, "Flare Tome should be registered as an upgraded hero weapon", failures)
+	_assert_true(DataRegistry.get_weapon_data("mend_staff") != null, "Mend Staff should be registered as an upgraded hero weapon", failures)
 	return failures
 
 
