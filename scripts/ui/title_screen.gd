@@ -44,6 +44,7 @@ func _connect_signals() -> void:
 	$ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer/Chapter1Button.pressed.connect(_on_chapter_1_selected)
 	$ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer/Chapter2Button.pressed.connect(_on_chapter_2_selected)
 	$ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer/Chapter3Button.pressed.connect(_on_chapter_3_selected)
+	$ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer/Chapter4Button.pressed.connect(_on_chapter_4_selected)
 	$PermadeathPanel/PermadeathMargin/PermadeathVBox/ButtonRow/YesButton.pressed.connect(_on_permadeath_yes_pressed)
 	$PermadeathPanel/PermadeathMargin/PermadeathVBox/ButtonRow/NoButton.pressed.connect(_on_permadeath_no_pressed)
 
@@ -76,8 +77,7 @@ func _show_menu() -> void:
 	_menu_panel.visible = true
 	_continue_button.disabled = not SaveSystem.has_save()
 	_continue_button.text = "Resume Suspend" if SaveSystem.has_suspend_save() else "Continue"
-	var has_chapters = not GameState.cleared_chapters.is_empty()
-	_chapter_select_button.disabled = not has_chapters
+	_chapter_select_button.disabled = false
 	_new_game_button.grab_focus()
 
 
@@ -144,25 +144,23 @@ func _on_chapter_select_back() -> void:
 
 
 func _on_chapter_1_selected() -> void:
-	GameState.start_new_game(false)
-	GameState.current_chapter_id = "chapter_1"
-	# Mark chapters 1 as available
-	GameState.cleared_chapters.clear()
+	GameState.prepare_chapter_select_game("chapter_1")
 	continue_requested.emit("chapter_1")
 
 
 func _on_chapter_2_selected() -> void:
-	GameState.start_new_game(false)
-	GameState.current_chapter_id = "chapter_2"
-	GameState.cleared_chapters = PackedStringArray(["chapter_1"])
+	GameState.prepare_chapter_select_game("chapter_2")
 	continue_requested.emit("chapter_2")
 
 
 func _on_chapter_3_selected() -> void:
-	GameState.start_new_game(false)
-	GameState.current_chapter_id = "chapter_3"
-	GameState.cleared_chapters = PackedStringArray(["chapter_1", "chapter_2"])
+	GameState.prepare_chapter_select_game("chapter_3")
 	continue_requested.emit("chapter_3")
+
+
+func _on_chapter_4_selected() -> void:
+	GameState.prepare_chapter_select_game("chapter_4")
+	continue_requested.emit("chapter_4")
 
 
 func _close_permadeath_prompt() -> void:

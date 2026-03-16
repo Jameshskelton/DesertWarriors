@@ -4,6 +4,7 @@ class_name ChapterData
 @export var id := ""
 @export var display_name := ""
 @export var objective_type := "defeat_boss"
+@export var objective_turns := 0
 @export var map_width := 20
 @export var map_height := 15
 @export var terrain_rows: PackedStringArray = PackedStringArray()

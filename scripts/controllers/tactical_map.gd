@@ -695,6 +695,8 @@ func _begin_enemy_phase() -> void:
 		return
 	_turn_controller.enter_player_phase(_units)
 	_process_turn_events()
+	if _check_end_conditions():
+		return
 	_selection.reset()
 	_update_header()
 	_refresh_danger_zone()
@@ -830,7 +832,7 @@ func _check_end_conditions() -> bool:
 	if _objective_controller.check_defeat(_units):
 		chapter_failed.emit(_build_summary(false))
 		return true
-	if _objective_controller.check_victory(_units, _chapter):
+	if _objective_controller.check_victory(_units, _chapter, _turn_controller.turn_number):
 		if not GameState.permadeath_enabled:
 			for unit in _units:
 				if unit.faction == "player" and unit.downed:
@@ -855,7 +857,7 @@ func _build_summary(success: bool) -> Dictionary:
 		"chapter_id": _chapter.id,
 		"chapter_name": _chapter.display_name,
 		"turns": _turn_controller.turn_number,
-		"objective": "Defeat Boss",
+		"objective": _objective_controller.get_objective_text(_chapter),
 		"survivors": survivors,
 		"player_states": player_states,
 		"next_chapter_id": _chapter.next_chapter_id if _chapter else "",
@@ -921,7 +923,7 @@ func _update_header() -> void:
 	_chapter_label.text = _chapter.display_name
 	_turn_label.text = "Turn %d" % _turn_controller.turn_number
 	_phase_label.text = "Player Phase" if _turn_controller.phase == "player" else "Enemy Phase"
-	_objective_label.text = "Defeat Boss"
+	_objective_label.text = _objective_controller.get_objective_text(_chapter)
 
 
 func _update_hint() -> void:

@@ -169,6 +169,10 @@ text = "Chapter 2: The Old Monastery"
 layout_mode = 2
 text = "Chapter 3: The Unbroken"
 
+[node name="Chapter4Button" type="Button" parent="ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer"]
+layout_mode = 2
+text = "Chapter 4: Hunters at the Cloister"
+
 [node name="BackButton2" type="Button" parent="ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox"]
 layout_mode = 2
 text = "Back"

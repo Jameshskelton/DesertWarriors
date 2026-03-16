@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="UnitData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/unit_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "lysandra_quill"
+display_name = "Lysandra Quill"
+class_id = "hunter"
+level = 4
+stats = {
+"def": 3,
+"hp": 24,
+"lck": 6,
+"mag": 0,
+"max_hp": 24,
+"res": 2,
+"skl": 9,
+"spd": 8,
+"str": 8
+}
+xp = 0
+inventory = PackedStringArray("hunter_bow", "health_potion")
+portrait_id = "lysandra_quill"
+faction = "enemy"
+ai_profile = "boss"
+join_event_id = ""
+story_flags = PackedStringArray("boss")

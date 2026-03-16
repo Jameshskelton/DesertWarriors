@@ -66,6 +66,15 @@ func start_new_game(use_permadeath: bool = false) -> void:
 	permadeath_enabled = use_permadeath
 
 
+func prepare_chapter_select_game(chapter_id: String) -> void:
+	start_new_game(false)
+	current_chapter_id = _normalize_chapter_id(chapter_id)
+	if current_chapter_id.is_empty():
+		current_chapter_id = "chapter_1"
+	cleared_chapters = _build_chapter_select_cleared_chapters(current_chapter_id)
+	roster_state = _build_chapter_select_roster_state(current_chapter_id)
+
+
 func continue_game() -> bool:
 	var save_data = SaveSystem.load_game()
 	if save_data.is_empty():
@@ -235,6 +244,42 @@ func _normalize_chapter_id(value: Variant) -> String:
 	if chapter_id == "null" or chapter_id == "<null>":
 		return ""
 	return chapter_id
+
+
+func _build_chapter_select_cleared_chapters(chapter_id: String) -> PackedStringArray:
+	match chapter_id:
+		"chapter_2":
+			return PackedStringArray(["chapter_1"])
+		"chapter_3":
+			return PackedStringArray(["chapter_1", "chapter_2"])
+		"chapter_4":
+			return PackedStringArray(["chapter_1", "chapter_2", "chapter_3"])
+		_:
+			return PackedStringArray()
+
+
+func _build_chapter_select_roster_state(chapter_id: String) -> Dictionary:
+	var roster: Dictionary = {}
+	for unit_id in _get_chapter_select_unit_ids(chapter_id):
+		var unit_data: UnitData = DataRegistry.get_unit_data(unit_id)
+		if unit_data == null:
+			continue
+		var state: UnitState = UnitState.from_unit_data(unit_data, Vector2i.ZERO)
+		state.set_current_hp(state.get_max_hp())
+		roster[unit_id] = state.to_persistent_state()
+	return roster
+
+
+func _get_chapter_select_unit_ids(chapter_id: String) -> PackedStringArray:
+	match chapter_id:
+		"chapter_2":
+			return PackedStringArray(["george", "bram", "brother_hale", "ember", "rowan"])
+		"chapter_3":
+			return PackedStringArray(["george", "bram", "brother_hale", "ember", "rowan", "balt"])
+		"chapter_4":
+			return PackedStringArray(["george", "bram", "brother_hale", "ember", "rowan", "balt", "ricodial"])
+		_:
+			return PackedStringArray(["george", "bram", "brother_hale"])
 
 
 func _variant_to_packed_string_array(value: Variant) -> PackedStringArray:

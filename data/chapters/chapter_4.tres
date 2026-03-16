@@ -1,0 +1,235 @@
+[gd_resource type="Resource" script_class="ChapterData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/chapter_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "chapter_4"
+display_name = "Chapter 4: Hunters at the Cloister"
+objective_type = "survive_turns"
+objective_turns = 10
+map_width = 20
+map_height = 15
+terrain_rows = PackedStringArray("FFFFFFFFFFFFFFFFFFFF", "FFFPPPPPPPPPPPPPPFFF", "FFPPPPPPPPPPPPPPPPFF", "FPPPPPPPPPPPPPPPPPPF", "FPPPPPPPPPPPPPPPPPPF", "FPPPPPBBBBBBBBPPPPPF", "FPPPPPBBBBBBBBPPPPPF", "FPPPPPBBBBBBBBPPPPPF", "FPPPPPBBBBBBBBPPPPPF", "FPPPPPBBBBBBBBPPPPPF", "FPPPPPPPPRRPPPPPPPPF", "FFPPPPPPPRRPPPPPPPFF", "FFFPPPPPPRRPPPPPPFFF", "FFFFPPPPPRRPPPPPFFFF", "FFFFFPPPPRRPPPPFFFFF")
+terrain_legend = {
+"B": "cobblestone",
+"F": "forest",
+"P": "plains",
+"R": "road"
+}
+deployment_slots = 8
+starting_units = [{
+"faction": "player",
+"position": Vector2i(9, 7),
+"unit_id": "george"
+}, {
+"faction": "player",
+"position": Vector2i(8, 8),
+"unit_id": "bram"
+}, {
+"faction": "player",
+"position": Vector2i(10, 8),
+"unit_id": "brother_hale"
+}, {
+"faction": "player",
+"position": Vector2i(7, 7),
+"unit_id": "ember"
+}, {
+"faction": "player",
+"position": Vector2i(11, 7),
+"unit_id": "rowan"
+}, {
+"faction": "player",
+"position": Vector2i(8, 6),
+"unit_id": "balt"
+}, {
+"faction": "player",
+"position": Vector2i(10, 6),
+"unit_id": "ricodial"
+}]
+enemy_units = [{
+"faction": "enemy",
+"instance_id": "tracker_1",
+"position": Vector2i(4, 6),
+"unit_id": "hunter_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "tracker_2",
+"position": Vector2i(10, 12),
+"unit_id": "brigand_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "tracker_3",
+"position": Vector2i(15, 6),
+"unit_id": "hunter_grunt"
+}]
+reinforcements = [{
+"faction": "enemy",
+"instance_id": "tracker_wave_2_west",
+"message": "Paid trackers slip from both tree lines and close on the cloister.",
+"position": Vector2i(0, 4),
+"turn": 2,
+"unit_id": "hunter_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "tracker_wave_2_east",
+"position": Vector2i(19, 4),
+"turn": 2,
+"unit_id": "hunter_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "tracker_wave_4_west",
+"message": "Another pair of hunters fan out along the monastery walls!",
+"position": Vector2i(0, 7),
+"turn": 4,
+"unit_id": "hunter_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "tracker_wave_4_east",
+"position": Vector2i(19, 7),
+"turn": 4,
+"unit_id": "hunter_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "tracker_wave_6_west",
+"message": "More hired bows emerge from the woods and test the cloister gates.",
+"position": Vector2i(0, 10),
+"turn": 6,
+"unit_id": "hunter_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "tracker_wave_6_east",
+"position": Vector2i(19, 10),
+"turn": 6,
+"unit_id": "hunter_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "tracker_wave_8_west",
+"message": "The hunt tightens. Fresh mercenaries pour in from both flanks.",
+"position": Vector2i(0, 12),
+"turn": 8,
+"unit_id": "hunter_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "tracker_wave_8_east",
+"position": Vector2i(19, 12),
+"turn": 8,
+"unit_id": "hunter_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "lysandra_quill",
+"message": "Lysandra Quill herself arrives at the southern road with the final hunting party!",
+"position": Vector2i(10, 14),
+"turn": 10,
+"unit_id": "lysandra_quill"
+}, {
+"faction": "enemy",
+"instance_id": "tracker_wave_10_left",
+"position": Vector2i(8, 14),
+"turn": 10,
+"unit_id": "hunter_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "tracker_wave_10_right",
+"position": Vector2i(12, 14),
+"turn": 10,
+"unit_id": "brigand_grunt"
+}]
+event_triggers = [{
+"boss_id": "lysandra_quill",
+"dialogue_lines": [{
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "Lysandra Quill",
+"text": "Prince George. Malrec's heralds promised a chest of silver for your head and a second for anyone who brings it before sunrise. That is a very persuasive dawn."
+}, {
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "George",
+"text": "Then my uncle has finally admitted what I am worth to him: not as nephew, but as fear made flesh."
+}, {
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "Lysandra Quill",
+"text": "Do not make this personal. I hunt wolves, boars, deserters, and princes with the same courtesy. I loose an arrow, collect my fee, and sleep well."
+}, {
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "George",
+"text": "That is the difference between us. You can sell a life and call it sleep. I carry the dead whether I want to or not."
+}, {
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "Lysandra Quill",
+"text": "Fine words. Let us see whether they can stop a hunter who knows how to wait for a heartbeat to open."
+}, {
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "George",
+"text": "Come test your silver against my father's blood, then."
+}],
+"id": "lysandra_quill_confront",
+"trigger": "boss_confront",
+"unit_id": "george"
+}]
+opening_dialogue = [{
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "Narrator",
+"text": "With the Unbroken pledged and the valley finally stirring against Malrec, George leads his companions to Saint Orin's cloister: a weathered monastery whose stone halls once sheltered pilgrims, widows, and every soul too tired to keep running."
+}, {
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "Ricodial",
+"text": "I remember this place. Saint Orin believed a wall should be thick enough to stop winter and humble enough to invite supper. He would be appalled to know we are using his dining hall as a battlefield."
+}, {
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "Sir Aldric",
+"text": "Appalled or not, these stones will serve us. I have ridden to gather the Unbroken in full. Hold this cloister until dawn, George, and I will return with enough spears to make Malrec's hunters regret taking coin."
+}, {
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "Rowan",
+"text": "Riders in the west trees. More in the east. Fast ones. Not levy men."
+}, {
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "Balt",
+"text": "Hunters, by the look of them. Real ones too. The sort who smile only after they have skinned something."
+}, {
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "Brother Hale",
+"text": "Then this is no patrol. Malrec has paid for a kill."
+}, {
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "Ember",
+"text": "Of course he has. Men like your uncle always outsource their courage. It keeps their boots clean."
+}, {
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "George",
+"text": "Then we deny him both victory and comfort. We hold the cloister. We hold until dawn. Let every arrow they spend here buy us one more ally by morning."
+}, {
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "Narrator",
+"text": "Beyond the monastery walls, horns answer from opposite tree lines. Malrec's hired hunt has found its quarry, and the night begins to tighten."
+}]
+victory_dialogue = [{
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "Narrator",
+"text": "The eastern sky pales. Horns rise from the valley road below, not with the sharp notes of hunters, but with the measured call of soldiers returning in force."
+}, {
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "Lysandra Quill",
+"text": "Dawn already? Hnh. Malrec paid for a clean hunt, not a siege against a prince who keeps collecting inconvenient friends. Fall back!"
+}, {
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "Rowan",
+"text": "There. You hear it? Aldric's riders. Told you we only had to make the night hate us less than the enemy did."
+}, {
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "Bram",
+"text": "And we did more than hold. We bled the king's purse dry and sent his best trackers home empty-handed."
+}, {
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "Ricodial",
+"text": "Which is professionally satisfying. There are few insults crueler than making a hired killer work for free."
+}, {
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "George",
+"text": "Let Lysandra carry the lesson back to Malrec: every bribe he spends to bury me only buys another day for the realm to remember my father."
+}, {
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "Brother Hale",
+"text": "Then let us greet the morning properly. The cloister stands, the hunters flee, and the kingdom has survived one more night without bowing to fear."
+}]
+next_chapter_id = null

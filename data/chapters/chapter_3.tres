@@ -41,6 +41,10 @@ starting_units = [{
 "faction": "player",
 "position": Vector2i(2, 9),
 "unit_id": "rowan"
+}, {
+"faction": "player",
+"position": Vector2i(2, 5),
+"unit_id": "balt"
 }]
 enemy_units = [{
 "faction": "enemy",
@@ -215,6 +219,6 @@ victory_dialogue = [{
 }, {
 "chapter": "Chapter 3: The Unbroken",
 "speaker": "George",
-"text": "Then let him fear. We ride for the Valley of Echoes, and we ride as more than fugitives now."
+"text": "Then let him fear. We ride for Saint Orin's cloister, and we ride as more than fugitives now."
 }]
-next_chapter_id = null
+next_chapter_id = "chapter_4"
