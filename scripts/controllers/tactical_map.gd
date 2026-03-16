@@ -28,6 +28,8 @@ const MOVEMENT_PATH_SHADOW := Color(0.0392157, 0.0745098, 0.121569, 0.28)
 const DANGER_ZONE_BASE_COLOR := Color(0.839216, 0.215686, 0.176471, 0.16)
 const DANGER_ZONE_INTENSE_COLOR := Color(0.960784, 0.333333, 0.27451, 0.28)
 const PLAYER_ATTACK_RANGE_COLOR := Color(0.980392, 0.647059, 0.196078, 0.26)
+const MAP_HEAL_POPUP_COLOR := Color(0.552941, 0.941176, 0.682353, 1.0)
+const MAP_BREAK_POPUP_COLOR := Color(1.0, 0.764706, 0.423529, 1.0)
 const SHOP_POTION_ITEM_ID := "health_potion"
 const SHOP_POTION_PRICE := 10
 const SHOP_UPGRADE_PRICE := 40
@@ -352,6 +354,28 @@ func _tile_center(tile: Vector2i) -> Vector2:
 	return _board_origin + (Vector2(tile) + Vector2.ONE * 0.5) * _cell_size
 
 
+func _show_map_popup(tile: Vector2i, text: String, color: Color, vertical_offset: float = 0.0) -> void:
+	if text.is_empty():
+		return
+	var popup := Label.new()
+	popup.text = text
+	popup.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	popup.z_index = 40
+	popup.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	popup.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	popup.add_theme_font_size_override("font_size", int(30 * UI_SCALE))
+	popup.add_theme_color_override("font_color", color)
+	popup.size = Vector2(220.0 * UI_SCALE, 56.0 * UI_SCALE)
+	popup.position = _tile_center(tile) - popup.size / 2.0 + Vector2(0.0, -70.0 * UI_SCALE + vertical_offset)
+	add_child(popup)
+	var start_position: Vector2 = popup.position
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(popup, "position", start_position - Vector2(0.0, 34.0 * UI_SCALE), 0.55)
+	tween.tween_property(popup, "modulate", Color(1.0, 1.0, 1.0, 0.0), 0.55)
+	tween.chain().tween_callback(Callable(popup, "queue_free"))
+
+
 func _draw_units() -> void:
 	var font := UI_FONT
 	var unit_padding := 5.0 * UI_SCALE
@@ -640,8 +664,21 @@ func _execute_attack(source: UnitState, target: UnitState) -> void:
 
 func _execute_staff(source: UnitState, target: UnitState) -> void:
 	var outcome := _combat_resolver.resolve_staff(source, target)
+	if outcome.is_empty():
+		_update_status("%s cannot use a staff right now." % source.display_name)
+		return
 	source.consume_turn()
-	_update_status("%s heals %s for %d HP." % [outcome.get("user_name", source.display_name), outcome.get("target_name", target.display_name), outcome.get("heal_amount", 0)])
+	var heal_amount: int = int(outcome.get("heal_amount", 0))
+	_show_map_popup(target.position, "+%d" % heal_amount, MAP_HEAL_POPUP_COLOR)
+	_update_status("%s heals %s for %d HP." % [outcome.get("user_name", source.display_name), outcome.get("target_name", target.display_name), heal_amount])
+	if bool(outcome.get("weapon_broke", false)):
+		_show_map_popup(source.position, "BREAK", MAP_BREAK_POPUP_COLOR, -32.0 * UI_SCALE)
+		_update_status("%s heals %s for %d HP. %s broke!" % [
+			outcome.get("user_name", source.display_name),
+			outcome.get("target_name", target.display_name),
+			heal_amount,
+			outcome.get("weapon_name", "The staff"),
+		])
 	_finish_unit_action()
 
 
@@ -651,10 +688,12 @@ func _execute_item(source: UnitState) -> void:
 		_update_status("%s has no usable items right now." % source.display_name)
 		return
 	source.consume_turn()
+	var heal_amount: int = int(outcome.get("heal_amount", 0))
+	_show_map_popup(source.position, "+%d" % heal_amount, MAP_HEAL_POPUP_COLOR)
 	_update_status("%s uses %s and recovers %d HP." % [
 		outcome.get("user_name", source.display_name),
 		outcome.get("item_name", "an item"),
-		outcome.get("heal_amount", 0),
+		heal_amount,
 	])
 	_finish_unit_action()
 
@@ -783,14 +822,26 @@ func _show_battle_overlay(payload: Dictionary) -> void:
 
 
 func _battle_completed() -> void:
-	while _active_battle != null:
+	while true:
+		if _active_battle == null:
+			return
+		if not is_instance_valid(_active_battle):
+			_active_battle = null
+			_apply_battle_rewards()
+			_refresh_danger_zone()
+			queue_redraw()
+			return
+		if _active_battle.is_queued_for_deletion() or not _active_battle.is_inside_tree() or _active_battle.get_parent() == null:
+			_on_battle_finished()
+			return
 		await get_tree().process_frame
 
 
 func _on_battle_finished() -> void:
-	if _active_battle != null:
-		_active_battle.queue_free()
-		_active_battle = null
+	var battle: Control = _active_battle
+	_active_battle = null
+	if battle != null and is_instance_valid(battle):
+		battle.queue_free()
 	_apply_battle_rewards()
 	_refresh_danger_zone()
 	queue_redraw()

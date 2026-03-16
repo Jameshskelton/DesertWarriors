@@ -5,6 +5,13 @@ signal battle_finished
 const FIGHT_ANIMATION_DIR := "res://assets/fight_animations"
 const PORTRAIT_DIR := "res://assets/portraits"
 const FIGHT_ANIMATION_FRAME_TIME := 1.0 / 18.0
+const POPUP_DURATION := 0.55
+const STRIKE_PAUSE := 0.12
+const POPUP_RISE_DISTANCE := 42.0
+const DAMAGE_POPUP_COLOR := Color(1.0, 0.901961, 0.670588, 1.0)
+const MISS_POPUP_COLOR := Color(0.780392, 0.866667, 1.0, 1.0)
+const CRIT_POPUP_COLOR := Color(1.0, 0.509804, 0.356863, 1.0)
+const BREAK_POPUP_COLOR := Color(1.0, 0.764706, 0.423529, 1.0)
 const FIGHT_ANIMATION_CLASS_FALLBACKS := {
 	"brigand": "brigand_grunt",
 	"captain": "captain_grunt",
@@ -17,9 +24,19 @@ const FIGHT_ANIMATION_CLASS_FALLBACKS := {
 
 var _payload: Dictionary = {}
 var _skip_requested: bool = false
+var _sequence_finished: bool = false
 var _animation_frame_cache: Dictionary = {}
+var _feedback_tweens: Dictionary = {}
 var _left_portrait: Texture2D
 var _right_portrait: Texture2D
+var _left_popup: Label
+var _right_popup: Label
+var _center_notice: Label
+var _left_popup_base_position: Vector2 = Vector2.ZERO
+var _right_popup_base_position: Vector2 = Vector2.ZERO
+var _center_notice_base_position: Vector2 = Vector2.ZERO
+var _left_hp_tween: Tween
+var _right_hp_tween: Tween
 
 @onready var _left_name: Label = $LeftPanel/LeftMargin/LeftVBox/LeftName
 @onready var _left_sprite: ColorRect = $LeftPanel/LeftMargin/LeftVBox/LeftSprite
@@ -40,12 +57,19 @@ func setup(payload: Dictionary) -> void:
 
 func _ready() -> void:
 	AudioDirector.play_track("battle_theme")
+	_build_feedback_labels()
+	_reset_feedback_labels()
 	if not _has_valid_payload():
 		_battle_log.text = "Battle data missing."
-		call_deferred("_finish_immediately")
+		call_deferred("_finish_sequence", "Battle data missing.")
 		return
 	_apply_initial_state()
 	call_deferred("_play_sequence")
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_RESIZED and _left_popup != null:
+		_update_feedback_label_layout()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -54,8 +78,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _apply_initial_state() -> void:
-	var attacker = _payload.get("attacker") as UnitState
-	var defender = _payload.get("defender") as UnitState
+	var attacker: UnitState = _payload.get("attacker") as UnitState
+	var defender: UnitState = _payload.get("defender") as UnitState
 	if attacker == null or defender == null:
 		return
 	_left_name.text = attacker.display_name
@@ -67,49 +91,89 @@ func _apply_initial_state() -> void:
 	_left_texture.texture = _left_portrait
 	_right_texture.texture = _right_portrait
 	_left_hp.max_value = attacker.get_max_hp()
-	_left_hp.value = _payload.get("attacker_start_hp", attacker.get_current_hp())
+	_left_hp.value = float(_payload.get("attacker_start_hp", attacker.get_current_hp()))
 	_right_hp.max_value = defender.get_max_hp()
-	_right_hp.value = _payload.get("defender_start_hp", defender.get_current_hp())
+	_right_hp.value = float(_payload.get("defender_start_hp", defender.get_current_hp()))
 	_refresh_hp_text()
 	_battle_log.text = "%s clashes with %s" % [attacker.display_name, defender.display_name]
+	_restore_portraits()
+	_reset_feedback_labels()
 
 
 func _play_sequence() -> void:
+	if _sequence_finished:
+		return
 	var result: BattleResult = _payload.get("result") as BattleResult
 	var attacker: UnitState = _payload.get("attacker") as UnitState
 	var defender: UnitState = _payload.get("defender") as UnitState
 	if result == null or attacker == null or defender == null:
-		_finish_immediately()
+		_finish_sequence("Battle data missing.")
+		return
+	if result.strikes.is_empty():
+		_finish_sequence()
 		return
 	for strike in result.strikes:
-		if _skip_requested:
+		if _sequence_finished or _skip_requested:
 			break
+		_reset_feedback_labels()
 		var attacker_name: String = str(strike.get("attacker_name", ""))
+		var defender_name: String = str(strike.get("defender_name", ""))
 		var striking_left: bool = attacker_name == attacker.display_name
+		var target_left: bool = defender_name == attacker.display_name
 		var striking_unit: UnitState = attacker
 		if not striking_left:
 			striking_unit = defender
-		_battle_log.text = "%s attacks %s" % [strike["attacker_name"], strike["defender_name"]]
+		var target_popup: Label = _right_popup
+		if target_left:
+			target_popup = _left_popup
+		var attacker_popup: Label = _left_popup
+		if not striking_left:
+			attacker_popup = _right_popup
+		_battle_log.text = "%s attacks %s" % [attacker_name, defender_name]
 		await _play_attack_animation(striking_unit, striking_left)
-		if strike["hit"]:
-			if strike["crit"]:
-				_battle_log.text = "Critical! %s loses %d HP" % [strike["defender_name"], strike["damage"]]
+		if _sequence_finished or _skip_requested:
+			break
+		var did_hit: bool = bool(strike.get("hit", false))
+		var did_crit: bool = bool(strike.get("crit", false))
+		var damage: int = int(strike.get("damage", 0))
+		var target_hp: int = int(strike.get("target_hp", 0))
+		if did_hit:
+			if did_crit:
+				_battle_log.text = "CRITICAL! %s loses %d HP" % [defender_name, damage]
+				_start_feedback_tween(_center_notice, "CRITICAL!", CRIT_POPUP_COLOR)
 			else:
-				_battle_log.text = "%s loses %d HP" % [strike["defender_name"], strike["damage"]]
+				_battle_log.text = "%s loses %d HP" % [defender_name, damage]
+			_start_feedback_tween(target_popup, "-%d" % damage, DAMAGE_POPUP_COLOR)
+			_animate_hp_change(target_left, target_hp)
 		else:
-			_battle_log.text = "%s dodges the blow" % [strike["defender_name"]]
-		if strike["defender_name"] == attacker.display_name:
-			_left_hp.value = strike["target_hp"]
-		else:
-			_right_hp.value = strike["target_hp"]
+			_battle_log.text = "%s dodges the blow." % defender_name
+			_start_feedback_tween(target_popup, "MISS", MISS_POPUP_COLOR)
+		await _pause(POPUP_DURATION + 0.05)
+		if _sequence_finished or _skip_requested:
+			break
 		_refresh_hp_text()
-		await _pause(0.45)
+		if bool(strike.get("weapon_broke", false)):
+			_battle_log.text = "%s breaks!" % str(strike.get("weapon_name", "Weapon"))
+			_start_feedback_tween(attacker_popup, "BREAK", BREAK_POPUP_COLOR)
+			await _pause(POPUP_DURATION)
+			if _sequence_finished or _skip_requested:
+				break
+		await _pause(STRIKE_PAUSE)
+	_finish_sequence()
+
+
+func _finish_sequence(final_log: String = "") -> void:
+	if _sequence_finished:
+		return
+	_sequence_finished = true
+	_skip_requested = true
 	_restore_portraits()
-	_left_hp.value = attacker.get_current_hp()
-	_right_hp.value = defender.get_current_hp()
-	_refresh_hp_text()
-	_battle_log.text = "Battle ends."
-	await _pause(0.2)
+	_stop_hp_tweens()
+	_reset_feedback_labels()
+	_sync_hp_to_live_state()
+	if final_log.is_empty():
+		final_log = _build_final_log()
+	_battle_log.text = final_log
 	battle_finished.emit()
 
 
@@ -117,8 +181,30 @@ func _has_valid_payload() -> bool:
 	return (_payload.get("attacker") as UnitState) != null and (_payload.get("defender") as UnitState) != null and (_payload.get("result") as BattleResult) != null
 
 
-func _finish_immediately() -> void:
-	battle_finished.emit()
+func _build_final_log() -> String:
+	var attacker: UnitState = _payload.get("attacker") as UnitState
+	var defender: UnitState = _payload.get("defender") as UnitState
+	if attacker == null or defender == null:
+		return "Battle ends."
+	if not attacker.is_alive() and not defender.is_alive():
+		return "%s and %s fall." % [attacker.display_name, defender.display_name]
+	if not defender.is_alive():
+		return "%s falls." % defender.display_name
+	if not attacker.is_alive():
+		return "%s falls." % attacker.display_name
+	return "Battle ends."
+
+
+func _sync_hp_to_live_state() -> void:
+	var attacker: UnitState = _payload.get("attacker") as UnitState
+	var defender: UnitState = _payload.get("defender") as UnitState
+	if attacker != null:
+		_left_hp.max_value = attacker.get_max_hp()
+		_left_hp.value = attacker.get_current_hp()
+	if defender != null:
+		_right_hp.max_value = defender.get_max_hp()
+		_right_hp.value = defender.get_current_hp()
+	_refresh_hp_text()
 
 
 func _refresh_hp_text() -> void:
@@ -127,26 +213,63 @@ func _refresh_hp_text() -> void:
 
 
 func _pause(duration: float) -> void:
-	if _skip_requested:
+	if duration <= 0.0:
+		return
+	var remaining: float = duration
+	while remaining > 0.0:
+		if _skip_requested or _sequence_finished:
+			return
 		await get_tree().process_frame
-	else:
-		await get_tree().create_timer(duration).timeout
+		remaining -= get_process_delta_time()
 
 
 func _play_attack_animation(unit: UnitState, attacking_left: bool) -> void:
-	var frames: Array = _load_fight_animation_frames(unit)
-	if frames.is_empty():
-		await _pause(0.35)
+	if _sequence_finished:
 		return
+	var frames: Array = _load_fight_animation_frames(unit)
 	var texture_rect: TextureRect = _left_texture
 	if not attacking_left:
 		texture_rect = _right_texture
-	for frame in frames:
-		if _skip_requested:
+	if frames.is_empty():
+		await _pause(0.2)
+		_restore_portraits()
+		return
+	for frame_value in frames:
+		if _skip_requested or _sequence_finished:
 			break
-		texture_rect.texture = frame
+		var frame: Texture2D = frame_value as Texture2D
+		if frame != null:
+			texture_rect.texture = frame
 		await _pause(FIGHT_ANIMATION_FRAME_TIME)
 	_restore_portraits()
+
+
+func _animate_hp_change(target_left: bool, target_hp: int) -> void:
+	var hp_bar: ProgressBar = _right_hp
+	var active_tween: Tween = _right_hp_tween
+	if target_left:
+		hp_bar = _left_hp
+		active_tween = _left_hp_tween
+	if active_tween != null:
+		active_tween.kill()
+	if _skip_requested or _sequence_finished:
+		hp_bar.value = target_hp
+		return
+	var tween := create_tween()
+	tween.tween_property(hp_bar, "value", float(target_hp), 0.24)
+	if target_left:
+		_left_hp_tween = tween
+	else:
+		_right_hp_tween = tween
+
+
+func _stop_hp_tweens() -> void:
+	if _left_hp_tween != null:
+		_left_hp_tween.kill()
+		_left_hp_tween = null
+	if _right_hp_tween != null:
+		_right_hp_tween.kill()
+		_right_hp_tween = null
 
 
 func _restore_portraits() -> void:
@@ -154,18 +277,112 @@ func _restore_portraits() -> void:
 	_right_texture.texture = _right_portrait
 
 
+func _build_feedback_labels() -> void:
+	if _left_popup != null:
+		return
+	_left_popup = _create_feedback_label(50)
+	_right_popup = _create_feedback_label(50)
+	_center_notice = _create_feedback_label(56)
+	_update_feedback_label_layout()
+
+
+func _create_feedback_label(font_size: int) -> Label:
+	var label := Label.new()
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.z_index = 30
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.size = Vector2(420.0, 72.0)
+	label.add_theme_font_size_override("font_size", font_size)
+	label.visible = false
+	add_child(label)
+	return label
+
+
+func _update_feedback_label_layout() -> void:
+	var root_origin: Vector2 = global_position
+	var left_rect: Rect2 = _left_sprite.get_global_rect()
+	var right_rect: Rect2 = _right_sprite.get_global_rect()
+	var log_rect: Rect2 = _battle_log.get_global_rect()
+	_left_popup_base_position = left_rect.position - root_origin + Vector2((left_rect.size.x - _left_popup.size.x) * 0.5, left_rect.size.y * 0.14)
+	_right_popup_base_position = right_rect.position - root_origin + Vector2((right_rect.size.x - _right_popup.size.x) * 0.5, right_rect.size.y * 0.14)
+	_center_notice_base_position = log_rect.position - root_origin + Vector2((log_rect.size.x - _center_notice.size.x) * 0.5, -78.0)
+	_left_popup.pivot_offset = _left_popup.size / 2.0
+	_right_popup.pivot_offset = _right_popup.size / 2.0
+	_center_notice.pivot_offset = _center_notice.size / 2.0
+	_left_popup.position = _left_popup_base_position
+	_right_popup.position = _right_popup_base_position
+	_center_notice.position = _center_notice_base_position
+
+
+func _reset_feedback_labels() -> void:
+	_reset_feedback_label(_left_popup)
+	_reset_feedback_label(_right_popup)
+	_reset_feedback_label(_center_notice)
+
+
+func _reset_feedback_label(label: Label) -> void:
+	if label == null:
+		return
+	_stop_feedback_tween(label)
+	label.visible = false
+	label.modulate = Color(1.0, 1.0, 1.0, 1.0)
+	label.scale = Vector2.ONE
+	label.position = _get_feedback_base_position(label)
+
+
+func _start_feedback_tween(label: Label, text: String, color: Color) -> void:
+	if label == null or text.is_empty():
+		return
+	_stop_feedback_tween(label)
+	var base_position: Vector2 = _get_feedback_base_position(label)
+	label.text = text
+	label.visible = true
+	label.position = base_position
+	label.modulate = Color(1.0, 1.0, 1.0, 1.0)
+	label.scale = Vector2.ONE
+	label.add_theme_color_override("font_color", color)
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(label, "position", base_position - Vector2(0.0, POPUP_RISE_DISTANCE), POPUP_DURATION)
+	tween.tween_property(label, "modulate", Color(1.0, 1.0, 1.0, 0.0), POPUP_DURATION)
+	tween.tween_property(label, "scale", Vector2.ONE * 1.06, POPUP_DURATION * 0.3)
+	_feedback_tweens[label.get_instance_id()] = tween
+
+
+func _stop_feedback_tween(label: Label) -> void:
+	if label == null:
+		return
+	var key: int = label.get_instance_id()
+	var tween: Tween = _feedback_tweens.get(key) as Tween
+	if tween != null:
+		tween.kill()
+	_feedback_tweens.erase(key)
+
+
+func _get_feedback_base_position(label: Label) -> Vector2:
+	if label == _left_popup:
+		return _left_popup_base_position
+	if label == _right_popup:
+		return _right_popup_base_position
+	return _center_notice_base_position
+
+
 func _load_fight_animation_frames(unit: UnitState) -> Array:
 	if unit == null:
 		return []
 	var candidates: PackedStringArray = PackedStringArray()
-	for candidate in [
+	var raw_candidates: Array = [
 		unit.unit_id,
 		unit.portrait_id,
 		unit.display_name.to_lower().replace(" ", "_"),
 		str(FIGHT_ANIMATION_CLASS_FALLBACKS.get(unit.class_id, "")),
-	]:
-		if not candidate.is_empty() and not candidates.has(candidate):
-			candidates.append(candidate)
+	]
+	for candidate_value in raw_candidates:
+		var candidate: String = str(candidate_value)
+		if candidate.is_empty() or candidates.has(candidate):
+			continue
+		candidates.append(candidate)
 	for candidate in candidates:
 		var frames: Array = _load_fight_animation_frames_by_id(candidate)
 		if not frames.is_empty():
@@ -179,7 +396,7 @@ func _load_fight_animation_frames_by_id(animation_id: String) -> Array:
 	if _animation_frame_cache.has(animation_id):
 		return _animation_frame_cache[animation_id]
 	var directory: DirAccess = DirAccess.open("%s/%s" % [FIGHT_ANIMATION_DIR, animation_id])
-	var frames: Array[Texture2D] = []
+	var frames: Array = []
 	if directory != null:
 		var file_names: PackedStringArray = directory.get_files()
 		file_names.sort()
@@ -195,8 +412,8 @@ func _load_fight_animation_frames_by_id(animation_id: String) -> Array:
 
 func _unit_color(unit: UnitState) -> Color:
 	if unit.faction == "player":
-		return Color(0.286275, 0.486275, 0.768627, 1)
-	return Color(0.733333, 0.286275, 0.239216, 1)
+		return Color(0.286275, 0.486275, 0.768627, 1.0)
+	return Color(0.733333, 0.286275, 0.239216, 1.0)
 
 
 func _load_portrait_for_unit(unit: UnitState) -> Texture2D:

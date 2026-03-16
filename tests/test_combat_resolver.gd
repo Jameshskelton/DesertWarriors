@@ -25,6 +25,7 @@ func run() -> PackedStringArray:
 	_assert_true(int(outcome.get("heal_amount", 0)) > 0, "staff healing should restore HP", failures)
 	_assert_true(wounded_george.get_current_hp() > 8, "healed unit HP should increase", failures)
 	_assert_true(hale.xp == 15, "staff use should grant 15 XP", failures)
+	_assert_true(str(outcome.get("weapon_name", "")) == "Heal Staff", "staff outcomes should report the weapon used", failures)
 	var durable_george := UnitState.from_unit_data(DataRegistry.get_unit_data("george"), Vector2i(0, 0))
 	var durable_brigand := UnitState.from_unit_data(DataRegistry.get_unit_data("brigand_grunt"), Vector2i(0, 1), "enemy")
 	var george_start_uses: int = durable_george.get_equipped_weapon_uses()
@@ -44,14 +45,16 @@ func run() -> PackedStringArray:
 	var fragile_george := UnitState.from_unit_data(DataRegistry.get_unit_data("george"), Vector2i(0, 0))
 	var fragile_brigand := UnitState.from_unit_data(DataRegistry.get_unit_data("brigand_grunt"), Vector2i(0, 1), "enemy")
 	fragile_george.item_uses[0] = 1
-	resolver.resolve_battle(fragile_george, fragile_brigand, plains, plains)
+	var fragile_result: BattleResult = resolver.resolve_battle(fragile_george, fragile_brigand, plains, plains)
 	_assert_true(fragile_george.get_equipped_weapon_id().is_empty(), "weapon should break when its last use is spent", failures)
+	_assert_true(not fragile_result.strikes.is_empty() and bool(fragile_result.strikes[0].get("weapon_broke", false)), "battle strikes should note when a weapon breaks", failures)
 	var fragile_hale := UnitState.from_unit_data(DataRegistry.get_unit_data("brother_hale"), Vector2i(0, 0))
 	var wounded_rowan := UnitState.from_unit_data(DataRegistry.get_unit_data("rowan"), Vector2i(0, 1))
 	wounded_rowan.set_current_hp(10)
 	fragile_hale.item_uses[0] = 1
-	resolver.resolve_staff(fragile_hale, wounded_rowan)
+	var fragile_staff_outcome: Dictionary = resolver.resolve_staff(fragile_hale, wounded_rowan)
 	_assert_true(fragile_hale.get_equipped_weapon_id().is_empty(), "staff should break after its last use", failures)
+	_assert_true(bool(fragile_staff_outcome.get("weapon_broke", false)), "staff outcomes should note when the staff breaks", failures)
 	var rich_george := UnitState.from_unit_data(DataRegistry.get_unit_data("george"), Vector2i(0, 0))
 	rich_george.stats["str"] = 99
 	rich_george.stats["skl"] = 99

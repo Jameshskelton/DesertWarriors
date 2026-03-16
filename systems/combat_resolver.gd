@@ -68,8 +68,15 @@ func resolve_battle(attacker: UnitState, defender: UnitState, attacker_terrain: 
 		var target: UnitState = strike["target"]
 		if not source.is_alive() or not target.is_alive() or not source.has_usable_equipped_weapon():
 			continue
+		var weapon_id: String = source.get_equipped_weapon_id()
+		var weapon_name: String = weapon_id
+		var weapon_uses_before: int = source.get_equipped_weapon_uses()
+		var source_weapon: WeaponData = DataRegistry.get_weapon_data(weapon_id)
+		if source_weapon != null:
+			weapon_name = source_weapon.name
 		if not source.consume_equipped_weapon_use():
 			continue
+		var weapon_broke: bool = weapon_uses_before == 1
 		var did_hit := GameState.roll_percent(float(strike["hit"]))
 		var damage := 0
 		var did_crit := false
@@ -83,6 +90,8 @@ func resolve_battle(attacker: UnitState, defender: UnitState, attacker_terrain: 
 			"damage": damage,
 			"hit": did_hit,
 			"crit": did_crit,
+			"weapon_name": weapon_name,
+			"weapon_broke": weapon_broke,
 			"target_hp": target.get_current_hp(),
 			"target_max_hp": target.get_max_hp(),
 		})
@@ -99,6 +108,8 @@ func resolve_staff(user: UnitState, target: UnitState) -> Dictionary:
 	var weapon: WeaponData = _get_usable_weapon(user)
 	if weapon == null or weapon.weapon_type != "staff":
 		return {}
+	var weapon_name: String = weapon.name
+	var weapon_broke: bool = user.get_equipped_weapon_uses() == 1
 	if not user.consume_equipped_weapon_use():
 		return {}
 	var heal_amount: int = int(weapon.heal_power) + int(user.stats.get("mag", 0))
@@ -110,6 +121,8 @@ func resolve_staff(user: UnitState, target: UnitState) -> Dictionary:
 		"heal_amount": actual_heal,
 		"target_name": target.display_name,
 		"user_name": user.display_name,
+		"weapon_name": weapon_name,
+		"weapon_broke": weapon_broke,
 		"level_up": level_up,
 	}
 
