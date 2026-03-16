@@ -57,10 +57,12 @@ func _format_weapon_status(unit: UnitState) -> String:
 
 
 func _format_potion_status(unit: UnitState) -> String:
-	var potion_index: int = unit.find_item_index("health_potion")
-	if potion_index == -1 or unit.get_item_uses_at(potion_index) <= 0:
-		return "Potion: Used"
-	return "Potion: Ready"
+	var potion_count: int = unit.get_available_item_count("health_potion")
+	if potion_count <= 0:
+		return "Potions: 0"
+	if potion_count == 1:
+		return "Potion: 1"
+	return "Potions: %d" % potion_count
 
 
 func _build_battle_warning(attacker: UnitState, defender: UnitState, forecast: CombatForecast) -> String:

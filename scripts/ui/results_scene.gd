@@ -36,6 +36,7 @@ func _ready() -> void:
 		str(_summary.get("objective", "")),
 		str(_summary.get("chapter_name", "")),
 	]
+	_summary_label.text += "\nGold: %d" % GameState.gold
 	_roster_label.text = "Survivors: %s" % [", ".join(survivors)]
 	
 	# Show continue button if there's a next chapter

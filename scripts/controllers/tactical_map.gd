@@ -14,6 +14,7 @@ const GRASSLAND_TEXTURE := preload("res://assets/terrain/grassland.png")
 const MOUNTAIN_TEXTURE := preload("res://assets/terrain/mountain.png")
 const RIVER_TEXTURE := preload("res://assets/terrain/river.png")
 const ROAD_TEXTURE := preload("res://assets/terrain/road.png")
+const STORE_TEXTURE := preload("res://assets/terrain/store.png")
 const TALL_MOUNTAIN_TEXTURE := preload("res://assets/terrain/tall_mountain.png")
 const THICKET_TEXTURE := preload("res://assets/terrain/thicket.png")
 const VILLAGE_TEXTURE := preload("res://assets/terrain/village.png")
@@ -27,6 +28,8 @@ const MOVEMENT_PATH_SHADOW := Color(0.0392157, 0.0745098, 0.121569, 0.28)
 const DANGER_ZONE_BASE_COLOR := Color(0.839216, 0.215686, 0.176471, 0.16)
 const DANGER_ZONE_INTENSE_COLOR := Color(0.960784, 0.333333, 0.27451, 0.28)
 const PLAYER_ATTACK_RANGE_COLOR := Color(0.980392, 0.647059, 0.196078, 0.26)
+const SHOP_POTION_ITEM_ID := "health_potion"
+const SHOP_POTION_PRICE := 10
 const MAP_UNIT_CLASS_FALLBACKS := {
 	"brigand": "brigand_grunt",
 	"captain": "captain_grunt",
@@ -59,15 +62,18 @@ var _ai_controller: AIController = AIController.new()
 var _battle_transition: BattleTransitionController = BattleTransitionController.new()
 var _active_battle: Control
 var _active_dialogue: Control
+var _pending_battle_result: BattleResult
 var _map_unit_texture_cache: Dictionary = {}
 var _spawned_reinforcements: PackedStringArray = PackedStringArray()
 var _danger_zone_visible: bool = false
 var _danger_zone_tiles: Dictionary = {}
+var _shop_customer: UnitState
 
 @onready var _chapter_label: Label = $Header/HeaderMargin/HeaderRow/ChapterLabel
 @onready var _turn_label: Label = $Header/HeaderMargin/HeaderRow/TurnLabel
 @onready var _phase_label: Label = $Header/HeaderMargin/HeaderRow/PhaseLabel
 @onready var _objective_label: Label = $Header/HeaderMargin/HeaderRow/ObjectiveLabel
+@onready var _gold_label: Label = $Header/HeaderMargin/HeaderRow/GoldLabel
 @onready var _status_label: Label = $Footer/FooterMargin/FooterVBox/StatusLabel
 @onready var _hint_label: Label = $Footer/FooterMargin/FooterVBox/HintLabel
 @onready var _action_menu = $ActionMenu
@@ -86,6 +92,12 @@ var _danger_zone_tiles: Dictionary = {}
 @onready var _system_suspend_button: Button = $SystemMenu/SystemMargin/SystemVBox/SuspendButton
 @onready var _system_restart_button: Button = $SystemMenu/SystemMargin/SystemVBox/RestartButton
 @onready var _system_close_button: Button = $SystemMenu/SystemMargin/SystemVBox/CloseButton
+@onready var _shop_menu: PanelContainer = $ShopMenu
+@onready var _shop_title: Label = $ShopMenu/ShopMargin/ShopVBox/Title
+@onready var _shop_description: Label = $ShopMenu/ShopMargin/ShopVBox/Description
+@onready var _shop_gold_label: Label = $ShopMenu/ShopMargin/ShopVBox/GoldLabel
+@onready var _shop_potion_button: Button = $ShopMenu/ShopMargin/ShopVBox/PotionButton
+@onready var _shop_leave_button: Button = $ShopMenu/ShopMargin/ShopVBox/LeaveButton
 @onready var _end_turn_confirm: PanelContainer = $EndTurnConfirm
 @onready var _end_turn_yes_button: Button = $EndTurnConfirm/ConfirmMargin/ConfirmVBox/ButtonRow/YesButton
 @onready var _end_turn_no_button: Button = $EndTurnConfirm/ConfirmMargin/ConfirmVBox/ButtonRow/NoButton
@@ -99,6 +111,7 @@ func _ready() -> void:
 	add_child(_battle_transition)
 	_help_panel.visible = false
 	_system_menu.visible = false
+	_shop_menu.visible = false
 	_end_turn_confirm.visible = false
 	if _help_close_button != null:
 		_help_close_button.pressed.connect(func() -> void:
@@ -107,6 +120,8 @@ func _ready() -> void:
 	_system_suspend_button.pressed.connect(Callable(self, "_on_system_suspend_pressed"))
 	_system_restart_button.pressed.connect(Callable(self, "_on_system_restart_pressed"))
 	_system_close_button.pressed.connect(Callable(self, "_close_system_menu"))
+	_shop_potion_button.pressed.connect(Callable(self, "_on_shop_buy_potion_pressed"))
+	_shop_leave_button.pressed.connect(Callable(self, "_on_shop_leave_pressed"))
 	_end_turn_yes_button.pressed.connect(Callable(self, "_on_end_turn_yes_pressed"))
 	_end_turn_no_button.pressed.connect(Callable(self, "_on_end_turn_no_pressed"))
 	_battle_transition.battle_overlay_requested.connect(Callable(self, "_show_battle_overlay"))
@@ -265,6 +280,8 @@ func _draw_board() -> void:
 				draw_texture_rect(RIVER_TEXTURE, rect, false)
 			if terrain_id == "road" and ROAD_TEXTURE != null:
 				draw_texture_rect(ROAD_TEXTURE, rect, false)
+			if terrain_id == "store" and STORE_TEXTURE != null:
+				draw_texture_rect(STORE_TEXTURE, rect, false)
 			if terrain_id == "tall_mountain" and TALL_MOUNTAIN_TEXTURE != null:
 				draw_texture_rect(TALL_MOUNTAIN_TEXTURE, rect, false)
 			if terrain_id == "mountain" and MOUNTAIN_TEXTURE != null:
@@ -369,6 +386,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	if _system_menu.visible:
 		if event.is_action_pressed("ui_cancel"):
 			_close_system_menu()
+		return
+	if _shop_menu.visible:
+		if event.is_action_pressed("ui_cancel"):
+			_on_shop_leave_pressed()
 		return
 	if _end_turn_confirm.visible:
 		if event.is_action_pressed("ui_cancel"):
@@ -537,7 +558,7 @@ func _show_action_menu(unit: UnitState) -> void:
 		"wait": true,
 		"cancel": true,
 	}
-	if _can_visit_village(unit):
+	if _can_visit_location(unit):
 		action_states["visit"] = true
 	_action_menu.show_actions(action_states)
 	_update_status("Choose an action for %s." % unit.display_name)
@@ -598,6 +619,7 @@ func _execute_attack(source: UnitState, target: UnitState) -> void:
 		"defender_start_hp": target.get_current_hp(),
 		"result": _combat_resolver.resolve_battle(source, target, attacker_terrain, defender_terrain),
 	}
+	_pending_battle_result = payload["result"] as BattleResult
 	_selection.mode = SelectionController.Mode.BATTLE
 	_forecast_panel.hide_panel()
 	_selection.target_tiles.clear()
@@ -642,11 +664,65 @@ func _play_pre_battle_dialogue_if_needed(attacker: UnitState, defender: UnitStat
 
 
 func _execute_visit(source: UnitState) -> void:
-	var visit_events: Array[Dictionary] = _event_director.peek_tile_events(source.unit_id, source.position, _chapter)
+	var terrain_id: String = _get_terrain_id_at(source.position)
 	source.consume_turn()
+	if terrain_id == "store":
+		_open_shop_menu(source)
+		return
+	var visit_events: Array[Dictionary] = _event_director.peek_tile_events(source.unit_id, source.position, _chapter)
 	if visit_events.is_empty():
 		_update_status("%s visits the village, but it has no further aid to offer." % source.display_name)
 	_finish_unit_action(true)
+
+
+func _open_shop_menu(source: UnitState) -> void:
+	_action_menu.hide_menu()
+	_forecast_panel.hide_panel()
+	_help_panel.visible = false
+	_system_menu.visible = false
+	_end_turn_confirm.visible = false
+	_shop_customer = source
+	_shop_menu.visible = true
+	_refresh_shop_menu()
+	_shop_potion_button.grab_focus()
+	_update_status("%s visits the shop." % source.display_name)
+
+
+func _refresh_shop_menu() -> void:
+	var potion_count: int = 0
+	if _shop_customer != null:
+		potion_count = _shop_customer.get_available_item_count(SHOP_POTION_ITEM_ID)
+		_shop_title.text = "%s at the Shop" % _shop_customer.display_name
+	else:
+		_shop_title.text = "Shop"
+	_shop_description.text = "Potion restores 10 HP.\nPotions carried: %d" % potion_count
+	_shop_gold_label.text = "Gold: %d" % GameState.gold
+	_shop_potion_button.text = "Potion - %dG" % SHOP_POTION_PRICE
+	_shop_potion_button.disabled = _shop_customer == null or GameState.gold < SHOP_POTION_PRICE
+
+
+func _close_shop_menu() -> void:
+	_shop_menu.visible = false
+	_shop_customer = null
+
+
+func _on_shop_buy_potion_pressed() -> void:
+	if _shop_customer == null:
+		return
+	if not GameState.spend_gold(SHOP_POTION_PRICE):
+		_update_status("Not enough gold to buy a Potion.")
+		_refresh_shop_menu()
+		return
+	_shop_customer.add_item(SHOP_POTION_ITEM_ID)
+	_update_header()
+	_refresh_shop_menu()
+	_update_hover_status()
+	_update_status("%s buys a Potion." % _shop_customer.display_name)
+
+
+func _on_shop_leave_pressed() -> void:
+	_close_shop_menu()
+	_finish_unit_action()
 
 
 func _show_battle_overlay(payload: Dictionary) -> void:
@@ -666,8 +742,24 @@ func _on_battle_finished() -> void:
 	if _active_battle != null:
 		_active_battle.queue_free()
 		_active_battle = null
+	_apply_battle_rewards()
 	_refresh_danger_zone()
 	queue_redraw()
+
+
+func _apply_battle_rewards() -> void:
+	if _pending_battle_result == null:
+		return
+	var battle_result: BattleResult = _pending_battle_result
+	_pending_battle_result = null
+	if battle_result.gold_awarded <= 0:
+		return
+	GameState.add_gold(battle_result.gold_awarded)
+	_update_header()
+	if battle_result.gold_sources.size() == 1:
+		_update_status("Earned %d gold from %s." % [battle_result.gold_awarded, battle_result.gold_sources[0]])
+	else:
+		_update_status("Earned %d gold." % battle_result.gold_awarded)
 
 
 func _finish_unit_action(allow_village_tile_events: bool = false) -> void:
@@ -725,6 +817,7 @@ func _run_enemy_phase() -> void:
 						"defender_start_hp": target.get_current_hp(),
 						"result": _combat_resolver.resolve_battle(unit, target, _get_terrain_at(unit.position), _get_terrain_at(target.position)),
 					}
+					_pending_battle_result = payload["result"] as BattleResult
 					_battle_transition.begin_battle(payload)
 					await _battle_completed()
 		_refresh_danger_zone()
@@ -808,8 +901,11 @@ func _has_usable_items(unit: UnitState) -> bool:
 	return _item_service.can_use_any_item(unit)
 
 
-func _can_visit_village(unit: UnitState) -> bool:
-	return unit != null and unit.faction == "player" and _get_terrain_id_at(unit.position) == "village"
+func _can_visit_location(unit: UnitState) -> bool:
+	if unit == null or unit.faction != "player":
+		return false
+	var terrain_id: String = _get_terrain_id_at(unit.position)
+	return terrain_id == "village" or terrain_id == "store"
 
 
 func _valid_attack_tiles(unit: UnitState) -> Array[Vector2i]:
@@ -924,6 +1020,7 @@ func _update_header() -> void:
 	_turn_label.text = "Turn %d" % _turn_controller.turn_number
 	_phase_label.text = "Player Phase" if _turn_controller.phase == "player" else "Enemy Phase"
 	_objective_label.text = _objective_controller.get_objective_text(_chapter)
+	_gold_label.text = "Gold %d" % GameState.gold
 
 
 func _update_hint() -> void:
@@ -1036,10 +1133,12 @@ func _format_unit_weapon_status(unit: UnitState) -> String:
 
 
 func _format_unit_potion_status(unit: UnitState) -> String:
-	var potion_index: int = unit.find_item_index("health_potion")
-	if potion_index == -1 or unit.get_item_uses_at(potion_index) <= 0:
-		return "Potion: Used"
-	return "Potion: Ready"
+	var potion_count: int = unit.get_available_item_count("health_potion")
+	if potion_count <= 0:
+		return "Potions: 0"
+	if potion_count == 1:
+		return "Potion: 1"
+	return "Potions: %d" % potion_count
 
 
 func _build_unit_break_warning(unit: UnitState) -> String:

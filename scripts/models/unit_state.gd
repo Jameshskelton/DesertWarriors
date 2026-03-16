@@ -15,6 +15,7 @@ var faction: String = "player"
 var ai_profile: String = "hold"
 var join_event_id: String = ""
 var story_flags: PackedStringArray = PackedStringArray()
+var gold_drop: int = -1
 var position: Vector2i = Vector2i.ZERO
 var moved: bool = false
 var acted: bool = false
@@ -38,6 +39,7 @@ static func from_unit_data(data: UnitData, tile_position: Vector2i, faction_over
 	state.ai_profile = data.ai_profile
 	state.join_event_id = data.join_event_id
 	state.story_flags = data.story_flags.duplicate()
+	state.gold_drop = data.gold_drop
 	state.position = tile_position
 	state.has_joined = faction_override != "reserve"
 	return state
@@ -82,6 +84,7 @@ func apply_persistent_state(state: Dictionary) -> void:
 	faction = str(state.get("faction", faction))
 	ai_profile = str(state.get("ai_profile", ai_profile))
 	join_event_id = str(state.get("join_event_id", join_event_id))
+	gold_drop = int(state.get("gold_drop", gold_drop))
 	var stats_value = state.get("stats", stats)
 	if typeof(stats_value) == TYPE_DICTIONARY:
 		stats = (stats_value as Dictionary).duplicate(true)
@@ -127,6 +130,7 @@ func to_persistent_state() -> Dictionary:
 		"ai_profile": ai_profile,
 		"join_event_id": join_event_id,
 		"story_flags": _packed_string_array_to_array(story_flags),
+		"gold_drop": gold_drop,
 	}
 
 
@@ -223,8 +227,38 @@ func consume_item_use(item_index: int) -> bool:
 	return true
 
 
+func add_item(item_id: String, uses: int = -1) -> void:
+	_ensure_item_uses_synced()
+	inventory.append(item_id)
+	var starting_uses: int = uses if uses >= 0 else _get_default_uses_for_item(item_id)
+	item_uses.append(maxi(0, starting_uses))
+
+
+func get_available_item_count(item_id: String) -> int:
+	_ensure_item_uses_synced()
+	var count: int = 0
+	for item_index in range(inventory.size()):
+		if str(inventory[item_index]) != item_id:
+			continue
+		if item_index < item_uses.size() and int(item_uses[item_index]) > 0:
+			count += 1
+	return count
+
+
 func has_flag(flag_name: String) -> bool:
 	return story_flags.has(flag_name)
+
+
+func get_gold_drop() -> int:
+	if faction != "enemy":
+		return 0
+	if gold_drop >= 0:
+		return gold_drop
+	if has_flag("boss"):
+		return 25
+	if has_flag("miniboss"):
+		return 10
+	return 5
 
 
 func _ensure_item_uses_synced() -> void:

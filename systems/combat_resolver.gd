@@ -88,6 +88,7 @@ func resolve_battle(attacker: UnitState, defender: UnitState, attacker_terrain: 
 		})
 	result.attacker_ko = not attacker.is_alive()
 	result.defender_ko = not defender.is_alive()
+	_award_gold(attacker, defender, result)
 	_update_xp(attacker, defender, result)
 	result.attacker_hp_delta = attacker.get_current_hp()
 	result.defender_hp_delta = defender.get_current_hp()
@@ -130,6 +131,14 @@ func _update_xp(attacker: UnitState, defender: UnitState, result: BattleResult) 
 		result.level_ups.append(attacker_level_up)
 	if not defender_level_up.is_empty():
 		result.level_ups.append(defender_level_up)
+
+
+func _award_gold(attacker: UnitState, defender: UnitState, result: BattleResult) -> void:
+	for unit in [attacker, defender]:
+		if unit == null or unit.faction != "enemy" or unit.is_alive():
+			continue
+		result.gold_awarded += unit.get_gold_drop()
+		result.gold_sources.append(unit.display_name)
 
 
 func _grant_xp(unit: UnitState, amount: int) -> Dictionary:

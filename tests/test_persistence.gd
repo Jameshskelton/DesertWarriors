@@ -16,6 +16,7 @@ func _assert_true(condition: bool, message: String, failures: PackedStringArray)
 
 func _run_non_permadeath_persistence_checks(failures: PackedStringArray) -> void:
 	GameState.start_new_game(false)
+	GameState.add_gold(17)
 	var george := UnitState.from_unit_data(DataRegistry.get_unit_data("george"), Vector2i(0, 0))
 	george.set_current_hp(9)
 	george.xp = 35
@@ -35,6 +36,8 @@ func _run_non_permadeath_persistence_checks(failures: PackedStringArray) -> void
 	}
 	GameState.apply_chapter_results(summary)
 	_assert_true(GameState.current_chapter_id == "chapter_2", "clearing a chapter should advance the saved chapter ID", failures)
+	_assert_true(GameState.gold == 17, "shared gold should persist across chapter transitions", failures)
+	_assert_true(int(GameState.build_save_payload().get("gold", -1)) == 17, "shared gold should be written into the save payload", failures)
 	_assert_true(not GameState.permadeath_enabled, "permadeath should stay disabled for the default new game flow", failures)
 	_assert_true(GameState.fallen_units.is_empty(), "fallen unit tracking should stay empty when permadeath is off", failures)
 	var restored_george := UnitState.from_unit_data(DataRegistry.get_unit_data("george"), Vector2i(0, 0))

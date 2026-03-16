@@ -11,6 +11,7 @@ var current_chapter_id: String = ""
 var roster_state: Dictionary = {}
 var cleared_chapters: PackedStringArray = PackedStringArray()
 var settings: Dictionary = DEFAULT_SETTINGS.duplicate(true)
+var gold: int = 0
 var permadeath_enabled: bool = false
 var fallen_units: PackedStringArray = PackedStringArray()
 var rng_seed: int = 424242
@@ -52,6 +53,7 @@ func reset_runtime() -> void:
 	roster_state.clear()
 	cleared_chapters.clear()
 	settings = DEFAULT_SETTINGS.duplicate(true)
+	gold = 0
 	permadeath_enabled = false
 	fallen_units.clear()
 	last_results.clear()
@@ -90,6 +92,7 @@ func continue_game() -> bool:
 		current_chapter_id = "chapter_1"
 	cleared_chapters = save_data.get("cleared_chapters", PackedStringArray())
 	settings = save_data.get("settings", DEFAULT_SETTINGS.duplicate(true)).duplicate(true)
+	gold = maxi(0, int(save_data.get("gold", 0)))
 	permadeath_enabled = bool(save_data.get("permadeath_enabled", false))
 	fallen_units = _variant_to_packed_string_array(save_data.get("fallen_units", PackedStringArray()))
 	rng_seed = save_data.get("rng_seed", 424242)
@@ -165,6 +168,7 @@ func build_save_payload() -> Dictionary:
 		"current_chapter_id": current_chapter_id,
 		"cleared_chapters": cleared_chapters,
 		"settings": settings,
+		"gold": gold,
 		"permadeath_enabled": permadeath_enabled,
 		"fallen_units": fallen_units,
 		"rng_seed": rng_seed,
@@ -191,6 +195,21 @@ func set_suspend_state(state: Dictionary) -> void:
 
 func clear_suspend_state() -> void:
 	suspend_state.clear()
+
+
+func add_gold(amount: int) -> void:
+	if amount <= 0:
+		return
+	gold += amount
+
+
+func spend_gold(amount: int) -> bool:
+	if amount <= 0:
+		return true
+	if gold < amount:
+		return false
+	gold -= amount
+	return true
 
 
 func _normalize_roster_state(raw_roster: Variant, heal_to_full: bool = false) -> Dictionary:

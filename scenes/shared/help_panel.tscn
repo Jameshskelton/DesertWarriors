@@ -87,6 +87,7 @@ text = "Forest: +20 AVOID, +1 DEF
 Road: Standard terrain
 River: Impassable terrain
 Village: End movement here, then choose Visit
+Store: End movement here, then choose Visit to buy a Potion for 10 Gold
 Castle: Fortified terrain
 Mountain: Impassable terrain
 Tall Mountain: Costs a full turn to cross

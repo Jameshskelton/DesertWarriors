@@ -41,6 +41,28 @@ func run() -> PackedStringArray:
 	fragile_hale.item_uses[0] = 1
 	resolver.resolve_staff(fragile_hale, wounded_rowan)
 	_assert_true(fragile_hale.get_equipped_weapon_id().is_empty(), "staff should break after its last use", failures)
+	var rich_george := UnitState.from_unit_data(DataRegistry.get_unit_data("george"), Vector2i(0, 0))
+	rich_george.stats["str"] = 99
+	rich_george.stats["skl"] = 99
+	rich_george.stats["lck"] = 99
+	var doomed_brigand := UnitState.from_unit_data(DataRegistry.get_unit_data("brigand_grunt"), Vector2i(0, 1), "enemy")
+	doomed_brigand.set_current_hp(1)
+	doomed_brigand.stats["spd"] = 0
+	doomed_brigand.stats["lck"] = 0
+	var regular_result: BattleResult = resolver.resolve_battle(rich_george, doomed_brigand, plains, plains)
+	_assert_true(regular_result.gold_awarded == 5, "regular enemies should award 5 gold on defeat", failures)
+	var doomed_captain := UnitState.from_unit_data(DataRegistry.get_unit_data("captain"), Vector2i(0, 1), "enemy")
+	doomed_captain.set_current_hp(1)
+	doomed_captain.stats["spd"] = 0
+	doomed_captain.stats["lck"] = 0
+	var miniboss_result: BattleResult = resolver.resolve_battle(rich_george, doomed_captain, plains, plains)
+	_assert_true(miniboss_result.gold_awarded == 10, "minibosses should award 10 gold on defeat", failures)
+	var doomed_briar := UnitState.from_unit_data(DataRegistry.get_unit_data("captain_briar"), Vector2i(0, 1), "enemy")
+	doomed_briar.set_current_hp(1)
+	doomed_briar.stats["spd"] = 0
+	doomed_briar.stats["lck"] = 0
+	var boss_result: BattleResult = resolver.resolve_battle(rich_george, doomed_briar, plains, plains)
+	_assert_true(boss_result.gold_awarded == 25, "bosses should award 25 gold on defeat", failures)
 	return failures
 
 

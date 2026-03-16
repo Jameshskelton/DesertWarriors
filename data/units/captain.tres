@@ -25,4 +25,4 @@ portrait_id = "captain_grunt"
 faction = "enemy"
 ai_profile = "guard"
 join_event_id = ""
-story_flags = PackedStringArray()
+story_flags = PackedStringArray("miniboss")
