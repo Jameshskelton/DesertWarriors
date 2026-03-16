@@ -9,7 +9,7 @@ display_name = "Chapter 2: The Old Monastery"
 objective_type = "defeat_boss"
 map_width = 20
 map_height = 15
-terrain_rows = PackedStringArray("FFFFFFFFPPFFFFFCCCCF", "FFFFFRRRRRRFFFFCCCCF", "FFFFRRRRRRRRRFFCCCCF", "FFFFFRRRRRRRRFFCCCCF", "FFFFFFFFPRRRRFFFFFFF", "FFFFFPPPRRRRFFFFFFFF", "FFFFPPPRRRRRRFFFFFFF", "FFPPPPPRRRRRRRFFFFFF", "FFPPPPPRRRRRRRFFFFFF", "FFFFPPPPRRRRRRFFFFFF", "FFFFFPPPPRRRRRFFFFFF", "FFFFFFFPPPRRRRFFFFFF", "FFFFFFFRRRRRRRFFFFFF", "FFFFFFFRRRRRRRFFFFFF", "FFFFFFFPRRRRRFFFFFFF")
+terrain_rows = PackedStringArray("FFFPPPPPPPPFFPPCCCCP", "FFFPPRRRRRRFFPPCCCCP", "PPPPRRRRRRRRRFFCCCCP", "PPPPPRRRRRRRRFPCCCCP", "FFFPPPPPPRRRRFFPPPPP", "FFFPPPPPRRRRPPPPFFPP", "FFFPPPPRRRRRRPPPFFPP", "FFPPPPRRRRRRRPPPPPPP", "FFPFFPRRRRRRRPPPPPPP", "PPPFFPPPRRRRRRPPPPPP", "PPPPPPPPPRRRRRPPFFFP", "FFPPPPPPPPRRRRPPFFFP", "FFPPPPPRRRRRRRPPFFFP", "PPPPPPPRRRRRRRPPPPPP", "PPPPPPPPRRRRRPPPPPPP")
 terrain_legend = {
 "C": "castle",
 "F": "forest",
@@ -43,32 +43,32 @@ starting_units = [{
 enemy_units = [{
 "faction": "enemy",
 "instance_id": "scout_1",
-"position": Vector2i(6, 12),
+"position": Vector2i(14, 1),
 "unit_id": "hunter_grunt"
 }, {
 "faction": "enemy",
 "instance_id": "scout_2",
-"position": Vector2i(8, 10),
+"position": Vector2i(19, 1),
 "unit_id": "hunter_grunt"
 }, {
 "faction": "enemy",
 "instance_id": "brigand_1",
-"position": Vector2i(10, 8),
+"position": Vector2i(15, 4),
 "unit_id": "brigand_grunt"
 }, {
 "faction": "enemy",
 "instance_id": "brigand_2",
-"position": Vector2i(12, 6),
+"position": Vector2i(18, 4),
 "unit_id": "brigand_grunt"
 }, {
 "faction": "enemy",
 "instance_id": "knight_1",
-"position": Vector2i(14, 4),
+"position": Vector2i(14, 3),
 "unit_id": "knight"
 }, {
 "faction": "enemy",
 "instance_id": "knight_2",
-"position": Vector2i(15, 3),
+"position": Vector2i(17, 4),
 "unit_id": "knight"
 }, {
 "faction": "enemy",
@@ -82,10 +82,22 @@ reinforcements = [{
 "dialogue_lines": [{
 "chapter": "Chapter 2: The Old Monastery",
 "speaker": "Balt",
-"text": "Oh my goodness! Those folks look like they're being chased by Brigands! I better help them out."
+"text": "Oh my goodness! Those folks look like they're being chased by brigands!"
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Balt",
+"text": "The crown's scouts have been bullying every pilgrim on this road, and the brothers keep telling me to stay inside the orchard. I have tried staying inside. It is dreadful."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "George",
+"text": "Then stop trying. If your aim is true, we can use you."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Balt",
+"text": "Splendid! I am Balt, and I would be delighted to ruin a few brigands before supper."
 }],
-"message": "Balt emerges from the monastery grounds and looses an arrow for the prince's cause!",
-"position": Vector2i(19, 2),
+"message": "Balt races up from the southern road and looses an arrow for the prince's cause!",
+"position": Vector2i(9, 14),
 "turn": 2,
 "unit_id": "balt"
 }, {
@@ -96,51 +108,105 @@ reinforcements = [{
 "turn": 4,
 "unit_id": "hunter_grunt"
 }]
-event_triggers = []
-opening_dialogue = [{
+event_triggers = [{
+"boss_id": "abbot_vermis",
+"dialogue_lines": [{
 "chapter": "Chapter 2: The Old Monastery",
-"speaker": "Narrator",
-"text": "The road east stretches through open plains, the Greenwood thinning behind them. Ember leads the way, her eyes scanning for familiar landmarks—a burned mill, a hollow oak, the stone marker of an old covenant."
-}, {
-"chapter": "Chapter 2: The Old Monastery",
-"speaker": "Ember",
-"text": "The monastery stands at the crossroads of old trade routes. When the Verdant Kingdom was young, the monks there served as healers for both king and commoner alike.The current abbot... Abbot Vermis. He was a friend to your father once. Whether he remains a friend to your memory, I cannot say."
+"speaker": "Abbot Vermis",
+"text": "Prince George. You choose a poor hour to return to holy ground."
 }, {
 "chapter": "Chapter 2: The Old Monastery",
 "speaker": "George",
-"text": "We have little choice but to try. The resistance Brother Hale spoke of—if it exists—we need their numbers. We cannot win this with five souls."
+"text": "Holy ground should not bristle with hired steel. Did my father save your life so you could sell your gates to my uncle?"
 }, {
 "chapter": "Chapter 2: The Old Monastery",
-"speaker": "Rowan",
-"text": "Cavalry scouts ahead, my prince. Royal lancers by their banners, not mere brigands. They know we're coming."
-}, {
-"chapter": "Chapter 2: The Old Monastery",
-"speaker": "Bram",
-"text": "Then we ride through them. My shield has stopped better blades than theirs. Let them come."
+"speaker": "Abbot Vermis",
+"text": "Your father saved a frightened monk. Malrec rewarded a practical abbot. One kindness bought my gratitude; one throne bought my obedience."
 }, {
 "chapter": "Chapter 2: The Old Monastery",
 "speaker": "Brother Hale",
-"text": "The spirits of the road whisper warning. I sense treachery ahead—not from the knights, but from within the monastery walls themselves.Trust nothing until you see the abbot's true face, George. Old alliances rot quickly in the shadow of crowns."
+"text": "You have turned sanctuary into a toll house for tyrants."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Abbot Vermis",
+"text": "Sanctuary does not survive on prayer. Coin, grain, and armed friends keep roofs standing. What did Alden offer? Ideals. Malrec offered survival."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Ember",
+"text": "He offered mercy. You spat on it."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Abbot Vermis",
+"text": "Mercy is a luxury for men who expect to live through winter. Surrender, George. I will send your body to the capital with incense, and history will call it a sad necessity."
+}],
+"id": "abbot_vermis_confront",
+"trigger": "boss_confront",
+"unit_id": "george"
+}]
+opening_dialogue = [{
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Narrator",
+"text": "At dawn they leave the Greenwood behind. Refugees drift west along the road with carts, blankets, and the stunned silence of people who have learned not to speak the king's name too loudly."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Ember",
+"text": "The old monastery lies ahead. When my mother took sick, the brothers there treated her and never asked for coin. I lead you there because I owe that place a debt - and because if Abbot Vermis has bent the knee to Malrec, I want to see it with my own eyes."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "George",
+"text": "If Vermis still remembers my father, he may know which houses remain loyal. If he has sold his conscience, then we learn how far my uncle's rot has spread."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Rowan",
+"text": "I joined you because you fight like a prince should. Let me say it plain: I do not want another master. I want a kingdom where men are not whipped into loyalty."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Bram",
+"text": "And I want Malrec's captains broken one by one until the cowards in his court remember what honor looks like."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Brother Hale",
+"text": "Vermis was once learned and gentle, but fear has a way of dressing itself in piety. If he has made peace with wickedness, he will call it prudence."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "George",
+"text": "Then we go in with open eyes. I will not let my uncle turn every memory of my father into a weapon against us."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Narrator",
+"text": "Before noon, riders appear on the plain. Steel glitters on the road to the monastery. Whatever waits at the crossroads, it has already chosen a side."
 }]
 victory_dialogue = [{
 "chapter": "Chapter 2: The Old Monastery",
 "speaker": "Abbot Vermis",
-"text": "Enough! I did not become abbot by being a fool. Your father saved my life twenty years ago during the Border Rebellion—I have not forgotten.But neither have I forgotten what happened to him. He was betrayed by those he trusted. If I shelter you, the king's armies will burn this monastery to ash."
+"text": "Enough! Enough, I yield. Curse you, boy - you have your father's talent for making cowards feel seen."
 }, {
 "chapter": "Chapter 2: The Old Monastery",
 "speaker": "George",
-"text": "Then we will not stay. We only need your blessing, Abbot—and the names of those who still remember the true crown."
+"text": "Do not speak his name as if you kept faith with him."
 }, {
 "chapter": "Chapter 2: The Old Monastery",
 "speaker": "Abbot Vermis",
-"text": "There is a knight named Sir Aldric, formerly of the Silverguard. He and twelve loyal men have hidden in the canyons to the south. They call themselves the Unbroken.He will not come to you easily—he carries the weight of his oath to the usurper king. But if you can defeat him in fair combat... he may listen."
-}, {
-"chapter": "Chapter 2: The Old Monastery",
-"speaker": "Ember",
-"text": "The southern canyons. I know them well—my family once farmed in the valley below. The Silverguard's shame runs deep; they will not accept a new master easily."
+"text": "Faith? Faith starves. Malrec asked for names, grain, obedience, and silence. I gave them because stone is easier to love than people."
 }, {
 "chapter": "Chapter 2: The Old Monastery",
 "speaker": "Brother Hale",
-"text": "The monks offer provisions and healing. We rest here one night, then ride south. Sir Aldric awaits—and with him, the first true test of your claim to the throne."
+"text": "Then you have already lost what mattered. A monastery that fears the powerful more than it shelters the weak is holy in name alone."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Abbot Vermis",
+"text": "Spare me the sermon. If you want living allies, ride south. Sir Aldric and the Unbroken hide in the canyons there. They still carry their shame like a second sword."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Ember",
+"text": "The valley roads are treacherous, but I know the old farming path. If Aldric still honors anything, it will not be won by soft words."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Bram",
+"text": "Good. I have had my fill of priests who bargain like merchants."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "George",
+"text": "Then we ride at first light. Let Vermis keep his walls. We will gather living hearts instead of borrowed shelter."
 }]
 next_chapter_id = "chapter_3"

@@ -536,6 +536,7 @@ func _try_target_action() -> void:
 
 
 func _execute_attack(source: UnitState, target: UnitState) -> void:
+	await _play_pre_battle_dialogue_if_needed(source, target)
 	source.consume_turn()
 	var attacker_terrain := _get_terrain_at(source.position)
 	var defender_terrain := _get_terrain_at(target.position)
@@ -573,6 +574,20 @@ func _execute_item(source: UnitState) -> void:
 		outcome.get("heal_amount", 0),
 	])
 	_finish_unit_action()
+
+
+func _play_pre_battle_dialogue_if_needed(attacker: UnitState, defender: UnitState) -> void:
+	var event: Dictionary = _event_director.consume_boss_confront_event(attacker, defender, _chapter)
+	if event.is_empty():
+		return
+	if event.has("message"):
+		_update_status(str(event.get("message", "")))
+	var lines: Array = event.get("dialogue_lines", [])
+	if lines.is_empty():
+		return
+	_show_dialogue_overlay(lines)
+	while _active_dialogue != null:
+		await get_tree().process_frame
 
 
 func _execute_visit(source: UnitState) -> void:
@@ -649,6 +664,7 @@ func _run_enemy_phase() -> void:
 				unit.position = action.get("destination", unit.position)
 				var target := action.get("target") as UnitState
 				if target != null and target.is_alive():
+					await _play_pre_battle_dialogue_if_needed(unit, target)
 					var payload := {
 						"attacker": unit,
 						"defender": target,

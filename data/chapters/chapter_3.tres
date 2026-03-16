@@ -90,11 +90,19 @@ event_triggers = [{
 "dialogue_lines": [{
 "chapter": "Chapter 3: The Unbroken",
 "speaker": "Ricodial",
-"text": "George! By the old king's cloak, it really is you! I am Ricodial, once a retainer to your father, and I had hoped the day would come when I could serve his son with a smile."
+"text": "George! By the old king's cloak, it really is you! I am Ricodial - your father's reader, letter-writer, and occasional saver of singed draperies."
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "George",
+"text": "Ricodial? I thought my uncle had seized every soul from the old court."
 }, {
 "chapter": "Chapter 3: The Unbroken",
 "speaker": "Ricodial",
-"text": "These dour knights could use a little cheering up, so let me lend you my fire and my good spirits. Lead on, my prince!"
+"text": "He tried. When Malrec started hanging servants for remembering Alden fondly, I decided hiding in a valley village was the better professional choice."
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Ricodial",
+"text": "You look like a better banner to me, my prince. Let me join you. I bring respectable fire, indecent optimism, and a memory for every lord who ever dined happily at your father's table."
 }],
 "id": "ricodial_join",
 "message": "Ricodial emerges from the village and gladly rejoins the Verdant cause.",
@@ -107,63 +115,105 @@ event_triggers = [{
 },
 "trigger": "tile",
 "unit_id": ""
+}, {
+"boss_id": "sir_aldric",
+"dialogue_lines": [{
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Sir Aldric",
+"text": "Hold, George. If you would claim men who have buried brothers for the crown's sins, do not do it with speeches from horseback."
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "George",
+"text": "Then judge me at sword's reach."
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Sir Aldric",
+"text": "I mean to. Your father won my respect because he stood where arrows fell thickest. If you are only Malrec's mirror with gentler words, I will see it in a single charge."
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "George",
+"text": "I did not come to buy loyalty with fear. I came to earn it."
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Sir Aldric",
+"text": "Good. Then let the valley witness whether Alden's blood still carries iron."
+}],
+"id": "sir_aldric_confront",
+"trigger": "boss_confront",
+"unit_id": "george"
 }]
 opening_dialogue = [{
 "chapter": "Chapter 3: The Unbroken",
 "speaker": "Narrator",
-"text": "The southern canyons open into a hidden valley—a patchwork of farms and watchtowers, half-reclaimed by nature. Here, the Silverguard's remnants have made their final stand: thirteen knights who refused the usurper's oath, led by Sir Aldric of the Verdant Guard."
+"text": "South of the monastery, the land breaks into canyons and hidden farms. George's band reaches a valley where abandoned watchtowers, stubborn cropland, and wary sentries share the same uneasy silence."
 }, {
 "chapter": "Chapter 3: The Unbroken",
-"speaker": "George",
-"text": "I see their banners. The silver stag, once the symbol of the king's own guard. They must have torn those from their armor when they fled."
+"speaker": "Narrator",
+"text": "Here the remnants of the Silverguard have made their stand: men who refused Malrec's oath, yet could not forgive themselves for ever wearing the crown that crowned him. They call themselves the Unbroken."
 }, {
 "chapter": "Chapter 3: The Unbroken",
 "speaker": "Ember",
-"text": "They call themselves the Unbroken. Not out of pride—but as a promise. They will not bend again, not for king, not for prince, not for anyone who would ask them to break their oaths."
+"text": "My family once traded grain in this valley. Then Malrec's tax riders came, and after them the Silverguard vanished into these hills. The people here learned to keep their heads down and their doors barred."
 }, {
 "chapter": "Chapter 3: The Unbroken",
-"speaker": "Sir Aldric",
-"text": "Halt, travelers. This valley belongs to the Unbroken. State your business, or depart in peace—we have no quarrel with wandering souls."
-}, {
-"chapter": "Chapter 3: The Unbroken",
-"speaker": "George",
-"text": "I am George, son of King Alden, heir to the Verdant Throne. I come to claim the allegiance of the Silverguard—as my father once commanded them."
-}, {
-"chapter": "Chapter 3: The Unbroken",
-"speaker": "Sir Aldric",
-"text": "You are either mad or brave—perhaps both. The king's price for your head would feed my men for a year. Why should I not take it?"
+"speaker": "Rowan",
+"text": "Even now their lines are disciplined. Those are not brigands pretending to be soldiers. They still remember the work."
 }, {
 "chapter": "Chapter 3: The Unbroken",
 "speaker": "Bram",
-"text": "Because you know in your bones that the throne was stolen. You know the usurper's oath is poison. You've been hiding in this hole, waiting for exactly this moment—for someone worth fighting for."
+"text": "Aye. They stand like men ashamed of the banner they served and unwilling to wear another."
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Brother Hale",
+"text": "The spirits are restless, but not wrathful. They do not hate these men. They grieve them."
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "George",
+"text": "Then I will not threaten them with birthright alone. If Sir Aldric wants proof, he shall have it."
 }, {
 "chapter": "Chapter 3: The Unbroken",
 "speaker": "Sir Aldric",
-"text": "Words. My brothers in arms have died for less than a traitor's promises. If you want the Unbroken, come and take them. Defeat me in single combat, and my blade—and my oath—will be yours.If you cannot... then flee back to your monastery and leave us to our fate."
+"text": "Halt, travelers. This valley belongs to the Unbroken. State your business plainly, or depart in peace."
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "George",
+"text": "I am George, son of King Alden. I have not come to command your allegiance. I have come to ask whether any of the old kingdom still remembers what it was meant to protect."
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Sir Aldric",
+"text": "I remember what it protected. That is why I buried good men after Malrec took the throne. If you want the Unbroken, prince, do not ask for us with your father's name on your tongue. Earn us."
 }]
 victory_dialogue = [{
 "chapter": "Chapter 3: The Unbroken",
 "speaker": "Sir Aldric",
-"text": "Enough... enough. You fight like your father. He was the only man who ever bested me in the training yard.I swore an oath to defend the Verdant line—not to any crown, but to the blood itself. That blood flows in you. I see that now."
+"text": "Enough. Enough. That last stroke was Alden's exactly. I have spent three years telling my men there was nothing left in this kingdom worth swearing to, and you have made a liar of me."
 }, {
 "chapter": "Chapter 3: The Unbroken",
 "speaker": "George",
-"text": "Then the oath is renewed?"
+"text": "Then swear to the truth instead of the throne that betrayed it."
 }, {
 "chapter": "Chapter 3: The Unbroken",
 "speaker": "Sir Aldric",
-"text": "A new oath, my prince. The Unbroken are yours. Thirteen blades, ready to ride against the usurper—and whatever armies he sends after us.The road ahead leads to the Valley of Echoes, where the old resistance makes its stand. I will send word ahead. Your father saved lives there, once. They will not forget."
+"text": "Gladly. I served your father because he could look a beaten man in the eye without contempt. You fought the same way today. The Unbroken are yours if you will have us."
 }, {
 "chapter": "Chapter 3: The Unbroken",
-"speaker": "Brother Hale",
-"text": "The spirits of the valley whisper welcome. This is no longer a flight—it is a crusade. Word will spread. Other exiles, other broken oaths—they will come.We are no longer fugitives, George. We are the seed of a new army."
+"speaker": "Bram",
+"text": "Thirteen blades, a hidden valley, and a captain who still remembers honor. That is more than we had yesterday."
 }, {
 "chapter": "Chapter 3: The Unbroken",
 "speaker": "Rowan",
-"text": "I've never seen anything like this. In a single campaign, you've gathered a knight, a mage, a priest, and warriors beyond counting.When we ride on the Valley of Echoes, the usurper will know fear."
+"text": "That is not a company anymore. That is the beginning of an army."
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Brother Hale",
+"text": "More than an army. A reckoning. The valley's dead can rest easier tonight."
 }, {
 "chapter": "Chapter 3: The Unbroken",
 "speaker": "Ember",
-"text": "The first chapter ends, but the story continues. The king sits on a throne of lies—we will show him the truth of steel.My village burns no more. Its people may yet return, when the kingdom is whole again. That is enough for me."
+"text": "And when Malrec hears Sir Aldric bent the knee, he will know the old fear has changed sides."
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "George",
+"text": "Then let him fear. We ride for the Valley of Echoes, and we ride as more than fugitives now."
 }]
 next_chapter_id = null

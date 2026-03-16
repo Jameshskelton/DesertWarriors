@@ -44,3 +44,33 @@ func peek_tile_events(unit_id: String, tile: Vector2i, chapter: ChapterData) -> 
 		if event_tile == tile and (allowed_unit.is_empty() or allowed_unit == unit_id):
 			result.append(event)
 	return result
+
+
+func consume_boss_confront_event(attacker: UnitState, defender: UnitState, chapter: ChapterData) -> Dictionary:
+	var george: UnitState = null
+	var boss: UnitState = null
+	for unit in [attacker, defender]:
+		if unit == null:
+			continue
+		if unit.unit_id == "george" or unit.base_unit_id == "george":
+			george = unit
+		if unit.has_flag("boss"):
+			boss = unit
+	if george == null or boss == null:
+		return {}
+	for event in chapter.event_triggers:
+		if event.get("trigger", "") != "boss_confront":
+			continue
+		var event_id: String = str(event.get("id", ""))
+		if handled_events.has(event_id):
+			continue
+		var allowed_unit: String = str(event.get("unit_id", ""))
+		if not allowed_unit.is_empty() and allowed_unit != george.unit_id and allowed_unit != george.base_unit_id:
+			continue
+		var boss_id: String = str(event.get("boss_id", ""))
+		if not boss_id.is_empty() and boss_id != boss.unit_id and boss_id != boss.base_unit_id:
+			continue
+		if not event_id.is_empty():
+			handled_events.append(event_id)
+		return event
+	return {}
