@@ -10,8 +10,10 @@ const BATTLE_SCENE := preload("res://scenes/battle/battle_scene.tscn")
 const DIALOGUE_SCENE := preload("res://scenes/dialogue/dialogue_scene.tscn")
 const CASTLE_TEXTURE := preload("res://assets/terrain/castle.png")
 const MOUNTAIN_TEXTURE := preload("res://assets/terrain/mountain.png")
+const TALL_MOUNTAIN_TEXTURE := preload("res://assets/terrain/tall_mountain.png")
 const THICKET_TEXTURE := preload("res://assets/terrain/thicket.png")
 const VILLAGE_TEXTURE := preload("res://assets/terrain/village.png")
+const PORTRAIT_DIR := "res://assets/portraits"
 const UI_FONT := preload("res://font/new_font.ttf")
 const UI_SCALE := 1.5
 const MAP_UNIT_TEXTURE_DIR := "res://assets/map_units"
@@ -245,6 +247,8 @@ func _draw_board() -> void:
 			draw_rect(rect, terrain.map_color)
 			if terrain_id == "castle" and CASTLE_TEXTURE != null:
 				draw_texture_rect(CASTLE_TEXTURE, rect, false)
+			if terrain_id == "tall_mountain" and TALL_MOUNTAIN_TEXTURE != null:
+				draw_texture_rect(TALL_MOUNTAIN_TEXTURE, rect, false)
 			if terrain_id == "mountain" and MOUNTAIN_TEXTURE != null:
 				draw_texture_rect(MOUNTAIN_TEXTURE, rect, false)
 			if terrain_id == "forest" and THICKET_TEXTURE != null:
@@ -1008,10 +1012,23 @@ func _load_portrait_for_unit(unit: UnitState) -> Texture2D:
 func _load_portrait_by_id(portrait_id: String) -> Texture2D:
 	if portrait_id.is_empty():
 		return null
-	var path := "res://assets/portraits/%s.png" % portrait_id
+	var path := _resolve_portrait_path(portrait_id)
 	if not ResourceLoader.exists(path):
 		return null
 	return load(path) as Texture2D
+
+
+func _resolve_portrait_path(portrait_id: String) -> String:
+	var exact_path: String = "%s/%s.png" % [PORTRAIT_DIR, portrait_id]
+	if ResourceLoader.exists(exact_path):
+		return exact_path
+	var portrait_key: String = portrait_id.to_lower()
+	for file_name in DirAccess.get_files_at(PORTRAIT_DIR):
+		if file_name.get_extension().to_lower() != "png":
+			continue
+		if file_name.get_basename().to_lower() == portrait_key:
+			return "%s/%s" % [PORTRAIT_DIR, file_name]
+	return exact_path
 
 
 func _load_map_unit_texture_for_unit(unit: UnitState) -> Texture2D:

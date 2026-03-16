@@ -13,6 +13,8 @@ func compute_reachable(
 	moving_faction: String = ""
 ) -> Dictionary:
 	var grid_size: Vector2i = Vector2i(terrain_grid[0].size(), terrain_grid.size())
+	if _terrain_id_at(start, terrain_grid) == "tall_mountain":
+		return _compute_tall_mountain_reachable(start, terrain_grid, occupied_tiles, moving_faction)
 	var frontier: Array[Vector2i] = [start]
 	var cost_so_far: Dictionary = {start: 0}
 	var destination_costs: Dictionary = {start: 0}
@@ -48,6 +50,43 @@ func compute_reachable(
 		"traversal_costs": cost_so_far,
 		"came_from": came_from,
 	}
+
+
+func _compute_tall_mountain_reachable(
+	start: Vector2i,
+	terrain_grid: Array,
+	occupied_tiles: Dictionary,
+	moving_faction: String
+) -> Dictionary:
+	var grid_size: Vector2i = Vector2i(terrain_grid[0].size(), terrain_grid.size())
+	var cost_so_far: Dictionary = {start: 0}
+	var destination_costs: Dictionary = {start: 0}
+	var came_from: Dictionary = {start: start}
+	for next_tile in _grid.neighbors(start, grid_size):
+		var can_stop_on_tile: bool = true
+		if occupied_tiles.has(next_tile):
+			var occupant = occupied_tiles[next_tile]
+			var occupant_state: UnitState = occupant as UnitState
+			if occupant_state == null or moving_faction.is_empty() or occupant_state.faction != moving_faction:
+				continue
+			can_stop_on_tile = false
+		var terrain_id: String = _terrain_id_at(next_tile, terrain_grid)
+		var terrain: TerrainData = DataRegistry.get_terrain_data(terrain_id)
+		if terrain == null or terrain.is_blocking:
+			continue
+		cost_so_far[next_tile] = 1
+		came_from[next_tile] = start
+		if can_stop_on_tile:
+			destination_costs[next_tile] = 1
+	return {
+		"costs": destination_costs,
+		"traversal_costs": cost_so_far,
+		"came_from": came_from,
+	}
+
+
+func _terrain_id_at(tile: Vector2i, terrain_grid: Array) -> String:
+	return str(terrain_grid[tile.y][tile.x])
 
 
 func build_path(start: Vector2i, destination: Vector2i, reachability: Dictionary) -> Array[Vector2i]:

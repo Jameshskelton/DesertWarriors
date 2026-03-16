@@ -4,15 +4,15 @@
 
 [resource]
 script = ExtResource("1")
-id = "mountain"
-name = "Mountain"
+id = "tall_mountain"
+name = "Tall Mountain"
 move_cost_by_type = {
-"armored": 99,
-"cavalry": 99,
-"infantry": 99
+"armored": 4,
+"cavalry": 7,
+"infantry": 5
 }
 avoid_bonus = 30
 def_bonus = 2
-is_blocking = true
-tile_tags = PackedStringArray("mountain", "blocking")
-map_color = Color(0.545098, 0.411765, 0.270588, 1)
+is_blocking = false
+tile_tags = PackedStringArray("mountain", "tall_mountain", "difficult")
+map_color = Color(0.478431, 0.337255, 0.211765, 1)

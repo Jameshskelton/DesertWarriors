@@ -2,6 +2,8 @@ extends Control
 
 signal dialogue_finished(next_tag: String)
 
+const PORTRAIT_DIR := "res://assets/portraits"
+
 var _lines: Array = []
 var _line_index: int = 0
 var _next_tag: String = ""
@@ -103,7 +105,20 @@ func _load_portrait_for_speaker(speaker: String) -> Texture2D:
 func _load_portrait_by_id(portrait_id: String) -> Texture2D:
 	if portrait_id.is_empty():
 		return null
-	var path := "res://assets/portraits/%s.png" % portrait_id
+	var path := _resolve_portrait_path(portrait_id)
 	if not ResourceLoader.exists(path):
 		return null
 	return load(path) as Texture2D
+
+
+func _resolve_portrait_path(portrait_id: String) -> String:
+	var exact_path: String = "%s/%s.png" % [PORTRAIT_DIR, portrait_id]
+	if ResourceLoader.exists(exact_path):
+		return exact_path
+	var portrait_key: String = portrait_id.to_lower()
+	for file_name in DirAccess.get_files_at(PORTRAIT_DIR):
+		if file_name.get_extension().to_lower() != "png":
+			continue
+		if file_name.get_basename().to_lower() == portrait_key:
+			return "%s/%s" % [PORTRAIT_DIR, file_name]
+	return exact_path

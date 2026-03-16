@@ -34,6 +34,14 @@ func run() -> PackedStringArray:
 	_assert_true(not allied_result.get("costs", {}).has(Vector2i(1, 0)), "friendly occupied tiles should not be legal destinations", failures)
 	_assert_true(not allied_result.get("costs", {}).has(Vector2i(2, 0)), "friendly occupied tiles should not become legal destinations further along the path", failures)
 	_assert_true(allied_result.get("costs", {}).has(Vector2i(2, 1)), "friendly occupied tiles should still be traversable to reach open tiles beyond them", failures)
+	var tall_mountain_grid := [
+		["plains", "plains", "plains"],
+		["plains", "tall_mountain", "plains"],
+		["plains", "plains", "plains"],
+	]
+	var tall_mountain_result: Dictionary = pathfinding.compute_reachable(Vector2i(1, 1), 5, tall_mountain_grid, "infantry", {})
+	_assert_true(tall_mountain_result.get("costs", {}).has(Vector2i(1, 0)), "units on tall mountains should still be able to step to an adjacent tile", failures)
+	_assert_true(not tall_mountain_result.get("costs", {}).has(Vector2i(0, 0)), "units on tall mountains should be limited to one adjacent step per turn", failures)
 	return failures
 
 

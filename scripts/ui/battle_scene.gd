@@ -3,6 +3,7 @@ extends Control
 signal battle_finished
 
 const FIGHT_ANIMATION_DIR := "res://assets/fight_animations"
+const PORTRAIT_DIR := "res://assets/portraits"
 const FIGHT_ANIMATION_FRAME_TIME := 1.0 / 18.0
 const FIGHT_ANIMATION_CLASS_FALLBACKS := {
 	"brigand": "brigand_grunt",
@@ -211,7 +212,20 @@ func _load_portrait_for_unit(unit: UnitState) -> Texture2D:
 func _load_portrait_by_id(portrait_id: String) -> Texture2D:
 	if portrait_id.is_empty():
 		return null
-	var path: String = "res://assets/portraits/%s.png" % portrait_id
+	var path: String = _resolve_portrait_path(portrait_id)
 	if not ResourceLoader.exists(path):
 		return null
 	return load(path) as Texture2D
+
+
+func _resolve_portrait_path(portrait_id: String) -> String:
+	var exact_path: String = "%s/%s.png" % [PORTRAIT_DIR, portrait_id]
+	if ResourceLoader.exists(exact_path):
+		return exact_path
+	var portrait_key: String = portrait_id.to_lower()
+	for file_name in DirAccess.get_files_at(PORTRAIT_DIR):
+		if file_name.get_extension().to_lower() != "png":
+			continue
+		if file_name.get_basename().to_lower() == portrait_key:
+			return "%s/%s" % [PORTRAIT_DIR, file_name]
+	return exact_path
