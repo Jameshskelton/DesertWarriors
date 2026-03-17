@@ -31,7 +31,7 @@ grow_vertical = 2
 
 [node name="Panel" type="PanelContainer" parent="Overlay/Center"]
 layout_mode = 2
-custom_minimum_size = Vector2(920, 580)
+custom_minimum_size = Vector2(960, 620)
 
 [node name="Margin" type="MarginContainer" parent="Overlay/Center/Panel"]
 layout_mode = 2
@@ -98,6 +98,13 @@ theme_override_font_sizes/font_size = 28
 autowrap_mode = 2
 text = "Class\nLevel 1 -> 2"
 
+[node name="Flavor" type="Label" parent="Overlay/Center/Panel/Margin/VBox/ContentRow/InfoColumn"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(1, 0.886275, 0.592157, 1)
+autowrap_mode = 2
+text = "A new strength settles into place."
+
 [node name="Gains" type="Label" parent="Overlay/Center/Panel/Margin/VBox/ContentRow/InfoColumn"]
 layout_mode = 2
 size_flags_vertical = 3
@@ -110,3 +117,6 @@ custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 theme_override_font_sizes/font_size = 30
 text = "Continue"
+
+[node name="StingPlayer" type="AudioStreamPlayer" parent="."]
+bus = &"Master"
