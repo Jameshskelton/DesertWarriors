@@ -24,6 +24,8 @@ Campaign highlights:
 
 ## Current Features
 
+![Battle Scene](https://github.com/Jameshskelton/DesertWarriors/blob/main/assets/readme_assets/battle_scene.gif)
+
 - Grid-based tactical combat with movement, attacks, healing, items, shops, and turn phases
 - Weapon durability and item inventories for each unit
 - Shared party gold, enemy gold drops, and shop purchases
