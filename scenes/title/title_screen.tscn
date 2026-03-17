@@ -17,6 +17,20 @@ corner_radius_bottom_left = 10
 shadow_color = Color(0, 0, 0, 0.4)
 shadow_size = 10
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_chapter_select_panel"]
+bg_color = Color(0.0823529, 0.0627451, 0.0470588, 0.98)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.611765, 0.47451, 0.282353, 0.95)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 10
+
 [node name="TitleScreen" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -169,6 +183,7 @@ offset_left = 207.0
 offset_top = 135.0
 offset_right = 1713.0
 offset_bottom = 945.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_chapter_select_panel")
 
 [node name="ChapterSelectMargin" type="MarginContainer" parent="ChapterSelectPanel"]
 layout_mode = 2
