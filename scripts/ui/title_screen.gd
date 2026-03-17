@@ -17,6 +17,12 @@ var _menu_visible: bool = false
 @onready var _chapter_select_button: Button = $MenuPanel/MenuMargin/MenuVBox/ChapterSelectButton
 @onready var _options_button: Button = $MenuPanel/MenuMargin/MenuVBox/OptionsButton
 @onready var _quit_button: Button = $MenuPanel/MenuMargin/MenuVBox/QuitButton
+@onready var _chapter_1_button: Button = $ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer/Chapter1Button
+@onready var _chapter_2_button: Button = $ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer/Chapter2Button
+@onready var _chapter_3_button: Button = $ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer/Chapter3Button
+@onready var _chapter_4_button: Button = $ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer/Chapter4Button
+@onready var _chapter_5_button: Button = $ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer/Chapter5Button
+@onready var _chapter_select_back_button: Button = $ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/BackButton2
 @onready var _music_slider: HSlider = $OptionsPanel/OptionsMargin/OptionsVBox/MusicSlider
 @onready var _sfx_slider: HSlider = $OptionsPanel/OptionsMargin/OptionsVBox/SFXSlider
 @onready var _speed_slider: HSlider = $OptionsPanel/OptionsMargin/OptionsVBox/SpeedSlider
@@ -25,6 +31,7 @@ var _menu_visible: bool = false
 func _ready() -> void:
 	AudioDirector.play_track("title_theme")
 	_connect_signals()
+	_configure_chapter_select_navigation()
 	_apply_settings()
 	_menu_visible = false
 	_menu_panel.visible = false
@@ -42,14 +49,34 @@ func _connect_signals() -> void:
 	_sfx_slider.value_changed.connect(_on_sfx_changed)
 	_speed_slider.value_changed.connect(_on_speed_changed)
 	$OptionsPanel/OptionsMargin/OptionsVBox/BackButton.pressed.connect(_on_options_back)
-	$ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/BackButton2.pressed.connect(_on_chapter_select_back)
-	$ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer/Chapter1Button.pressed.connect(_on_chapter_1_selected)
-	$ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer/Chapter2Button.pressed.connect(_on_chapter_2_selected)
-	$ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer/Chapter3Button.pressed.connect(_on_chapter_3_selected)
-	$ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer/Chapter4Button.pressed.connect(_on_chapter_4_selected)
-	$ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer/Chapter5Button.pressed.connect(_on_chapter_5_selected)
+	_chapter_select_back_button.pressed.connect(_on_chapter_select_back)
+	_chapter_1_button.pressed.connect(_on_chapter_1_selected)
+	_chapter_2_button.pressed.connect(_on_chapter_2_selected)
+	_chapter_3_button.pressed.connect(_on_chapter_3_selected)
+	_chapter_4_button.pressed.connect(_on_chapter_4_selected)
+	_chapter_5_button.pressed.connect(_on_chapter_5_selected)
 	$PermadeathPanel/PermadeathMargin/PermadeathVBox/ButtonRow/YesButton.pressed.connect(_on_permadeath_yes_pressed)
 	$PermadeathPanel/PermadeathMargin/PermadeathVBox/ButtonRow/NoButton.pressed.connect(_on_permadeath_no_pressed)
+
+
+func _configure_chapter_select_navigation() -> void:
+	var chapter_buttons: Array[Button] = [
+		_chapter_1_button,
+		_chapter_2_button,
+		_chapter_3_button,
+		_chapter_4_button,
+		_chapter_5_button,
+	]
+	for index in range(chapter_buttons.size()):
+		var current_button: Button = chapter_buttons[index]
+		var up_target: Control = _chapter_select_back_button if index == 0 else chapter_buttons[index - 1]
+		var down_target: Control = _chapter_select_back_button if index == chapter_buttons.size() - 1 else chapter_buttons[index + 1]
+		current_button.focus_mode = Control.FOCUS_ALL
+		current_button.set_focus_neighbor(SIDE_TOP, current_button.get_path_to(up_target))
+		current_button.set_focus_neighbor(SIDE_BOTTOM, current_button.get_path_to(down_target))
+	_chapter_select_back_button.focus_mode = Control.FOCUS_ALL
+	_chapter_select_back_button.set_focus_neighbor(SIDE_TOP, _chapter_select_back_button.get_path_to(_chapter_5_button))
+	_chapter_select_back_button.set_focus_neighbor(SIDE_BOTTOM, _chapter_select_back_button.get_path_to(_chapter_1_button))
 
 
 func _apply_settings() -> void:
@@ -104,7 +131,7 @@ func _on_continue_pressed() -> void:
 
 func _on_chapter_select_pressed() -> void:
 	_chapter_select_panel.visible = true
-	$ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer/Chapter1Button.grab_focus()
+	_chapter_1_button.grab_focus()
 
 
 func _on_options_pressed() -> void:
