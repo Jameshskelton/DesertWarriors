@@ -2,67 +2,124 @@
 
 ![Title Screen](https://github.com/Jameshskelton/DesertWarriors/blob/main/assets/ui/menu_start.png)
 
-`Desert Warriors` is a Godot 4 tactical RPG prototype inspired by classic Fire Emblem structure. The current build includes a title screen, dialogue scenes with portraits, tactical map battles, recruitable allies, boss objectives, and battle cutaways with frame-based attack animations.
+`Desert Warriors` is a Godot 4 tactical RPG campaign inspired by classic Fire Emblem structure. The current build includes four playable chapters, preparation screens, recruit events, shops, persistent gold and inventory state, frame-based battle animations, and data-driven dialogue and map content.
 
-## Current Game
+## Current Campaign
 
-The playable campaign currently includes three linked chapters:
+The playable story currently runs through four chapters:
 
 - `Chapter 1: Exile in the Greenwood`
 - `Chapter 2: The Old Monastery`
 - `Chapter 3: The Unbroken`
+- `Chapter 4: Monastery Siege`
 
-Current in-game features:
+Campaign highlights:
 
-- Tile-based tactical combat with movement, attacks, healing, and turn phases
-- Terrain effects and art for forests, castles, and villages
-- Recruit events, reinforcements, and chapter-specific dialogue overlays
-- Hover portraits on the tactical map
-- Custom map sprites from `assets/map_units/`
-- Portrait-driven battle scenes with extracted fight-animation frame sequences from `assets/fight_animations/`
-- Looping background music and a custom UI font
-- Save/load support through autoloaded game systems
+- George's exile is framed as the work of his jealous uncle, King Malrec.
+- Allies such as Ember, Rowan, Balt, and Ricodial join through chapter events and recruitment scenes.
+- Bosses have confrontation dialogue, enhanced battle presentation, and distinct danger-zone emphasis.
+- Chapter 4 is a survival map with an alternate boss-kill victory condition against `Lysandra Quill`.
 
-## Chapter Highlights
+## Current Features
 
-- Chapter 1 introduces George's escape through the Greenwood and allows Ember to be recruited by visiting the village tile.
-- Chapter 2 moves the party to the monastery and brings Balt in as a turn-2 ally reinforcement.
-- Chapter 3 centers on the confrontation with Sir Aldric and the Unbroken.
+- Grid-based tactical combat with movement, attacks, healing, items, shops, and turn phases
+- Weapon durability and item inventories for each unit
+- Shared party gold, enemy gold drops, and shop purchases
+- Hero weapon-type restrictions and purchasable upgraded weapons
+- Preparation screen with inventory reordering, trading, portrait display, and deployment slot swapping
+- Hover portraits, unit inspection, enemy-specific threat previews, and on-map combat math previews
+- Toggleable enemy danger zone plus player move+attack range overlay
+- Villages and stores as explicit `Visit` actions
+- Recruit events, reinforcements, and data-driven chapter scripting
+- Suspend save / resume suspend and restart-chapter flow from the map system menu
+- Optional permadeath chosen at the start of a new game
+- Persistent campaign state across chapters for roster, XP, durability, items, recruits, and gold
+- Chapter-end summaries showing EXP gained, gold earned, recruits, weapon breaks, and used items
+- Level-up report screens with stat gain breakdowns
+- Portrait-driven battle scenes with boss banners, floating combat feedback, and frame-based fight animations
+- Map sprites with optional two-frame idle alternation support
+- Crossfading music, including a dedicated battle track that resumes the map track afterward
 
-## Project Layout
+## Tactical Map Presentation
 
-- `autoload/`: global systems such as game state, saves, data registry, and audio
-- `data/`: classes, weapons, terrains, units, and chapter resources
-- `scenes/`: title, dialogue, map, battle, results, and shared scenes
-- `scripts/controllers/`: main flow and tactical map control
-- `scripts/models/`: runtime state and resource-backed data types
-- `systems/`: pathfinding, combat, AI, events, turn flow, and objectives
-- `assets/portraits/`: dialogue and hover portraits
-- `assets/map_units/`: tactical map character sprites
-- `assets/fight_animations/`: source attack clips and extracted frame folders used in battle
-- `assets/terrain/`: terrain art such as thicket, castle, and village tiles
-- `docs/`: game notes, art guide, and supporting documentation
-- `tests/`: lightweight validation scripts
+The tactical map currently supports custom terrain art and gameplay rules for:
+
+- `plains`
+- `forest`
+- `road`
+- `castle`
+- `village`
+- `store`
+- `cobblestone`
+- `river`
+- `mountain`
+- `tall_mountain`
+
+Map readability features include:
+
+- right-side hover portrait panel
+- highlighted movement path previews
+- enemy movement previews during enemy phase
+- boss-specific danger tinting
+- unit inspection panel with terrain bonuses, range, and inventory
 
 ## Running
 
-1. Open the project in `Godot 4.6`.
+1. Open the project in `Godot 4.6.x`.
 2. Load this folder as a Godot project.
 3. Run the main scene at `res://scenes/shared/main.tscn`.
 
-The project is configured for a `1920x1080` base viewport with integer-scaled 2D rendering.
+The project is configured for a `1920x1080` base viewport.
+
+## Title Screen Flow
+
+- Press `Space` on launch to open the main menu.
+- `New Game` prompts for permadeath on or off.
+- `Continue` resumes the saved campaign, or `Resume Suspend` if a suspend save exists.
+- `Chapter Select` always works, even without a prior save, and seeds a chapter-appropriate default roster.
 
 ## Controls
 
-- `Arrow keys`: move the cursor on the tactical map
-- `Enter` or `Space`: confirm / advance dialogue
-- `Esc`: cancel
-- `T`: end the player phase
-- `H` or `F1`: toggle the help panel on the map
-- Mouse left click: move the map cursor and confirm a tile
+- `Arrow keys` or `WASD`: move the map cursor
+- `Enter` or `Space`: confirm / advance dialogue / continue prompts
+- `Esc`: cancel / back
+- `T`: open the end-turn confirmation
+- `V`: toggle enemy danger zone
+- `I`: inspect the unit under the cursor
+- `P`: open the system menu on the map
+- Mouse left click: move the cursor, select tiles, and use menus
+
+## Data and Content Editing
+
+Most campaign content is data-driven:
+
+- `data/chapters/`: chapter layouts, dialogue, reinforcements, events, and objectives
+- `data/units/`: character and enemy definitions
+- `data/weapons/`: weapon stats and durability
+- `data/items/`: consumable item definitions
+- `data/terrains/`: terrain rules and map colors
+
+Primary runtime scenes and systems:
+
+- `scenes/title/`: title flow and chapter select
+- `scenes/preparation/`: pre-battle inventory, trade, and deployment
+- `scenes/map/`: tactical map UI and overlays
+- `scenes/battle/`: battle cutaway scene
+- `scenes/results/`: chapter-end summary
+- `scenes/level_up/`: level-up report overlay
+- `autoload/`: save, audio, registry, and campaign state systems
+- `systems/`: combat, pathfinding, AI, danger zone, events, objectives, and items
+
+Art and media paths:
+
+- `assets/portraits/`: dialogue, prep, inspection, and battle portraits
+- `assets/map_units/`: tactical map sprites
+- `assets/fight_animations/`: battle animation frame folders and source clips
+- `assets/terrain/`: terrain textures
+- `assets/music/`: overworld and battle music
 
 ## Notes
 
-- Dialogue, recruit events, reinforcements, and victory scenes are data-driven from the files in `data/chapters/`.
-- Character art currently flows through portraits, map sprites, and battle animation frame folders rather than full map-unit or battle-unit node scenes.
-- If you are editing content, the most useful files to start with are in `data/chapters/`, `data/units/`, and `docs/adding_artwork.md`.
+- Dialogue, recruit events, reinforcement waves, and boss confrontations are defined in chapter resource files.
+- Character portraits are reused across dialogue, map hover, inspection, preparation, trade, battle, and level-up scenes.
+- If you are adding or updating art, start with [docs/adding_artwork.md](/Users/jamesskelton/Downloads/DesertWarriors/docs/adding_artwork.md).
