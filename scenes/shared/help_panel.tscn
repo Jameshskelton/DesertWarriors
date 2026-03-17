@@ -148,7 +148,7 @@ text = "Arrow Keys / WASD: Move cursor
 Z / Enter: Select / Confirm
 X / Escape: Cancel / Back
 I: Inspect unit under cursor
-Hover an enemy: Show that enemy's exact threat tiles and current player targets
+Hover an enemy: Show that enemy's exact threat tiles, current player targets, and combat preview for a selected ally
 V: Toggle enemy danger zone (gold-rimmed tiles mark boss threat)
 P: Open system menu
 T: End-turn confirmation

@@ -24,13 +24,33 @@ expand_mode = 1
 stretch_mode = 6
 mouse_filter = 2
 
+[node name="StartPrompt" type="Label" parent="."]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -330.0
+offset_top = -118.0
+offset_right = 330.0
+offset_bottom = -52.0
+theme_override_font_sizes/font_size = 34
+theme_override_colors/font_color = Color(1, 0.952941, 0.811765, 1)
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "Press \"Space\" to start game"
+
 [node name="MenuPanel" type="PanelContainer" parent="."]
 visible = false
 layout_mode = 0
-offset_left = 1236.0
-offset_top = 660.0
-offset_right = 1842.0
-offset_bottom = 1050.0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -303.0
+offset_top = -195.0
+offset_right = 303.0
+offset_bottom = 195.0
 
 [node name="MenuMargin" type="MarginContainer" parent="MenuPanel"]
 layout_mode = 2

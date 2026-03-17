@@ -31,6 +31,10 @@ func can_unit_heal_from_tile(healer: UnitState, target: UnitState, tile: Vector2
 
 
 func build_forecast(attacker: UnitState, defender: UnitState, attacker_terrain: TerrainData, defender_terrain: TerrainData) -> CombatForecast:
+	return build_forecast_for_tile(attacker, defender, attacker.position, attacker_terrain, defender_terrain)
+
+
+func build_forecast_for_tile(attacker: UnitState, defender: UnitState, attacker_tile: Vector2i, attacker_terrain: TerrainData, defender_terrain: TerrainData) -> CombatForecast:
 	var forecast := CombatForecast.new()
 	var attacker_weapon: WeaponData = _get_usable_weapon(attacker)
 	var defender_weapon: WeaponData = _get_usable_weapon(defender)
@@ -39,7 +43,7 @@ func build_forecast(attacker: UnitState, defender: UnitState, attacker_terrain: 
 	forecast.attacker_damage = _calculate_damage(attacker, defender, attacker_weapon, defender_terrain)
 	forecast.attacker_hit = _calculate_hit(attacker, defender, attacker_weapon, defender_terrain)
 	forecast.attacker_crit = _calculate_crit(attacker, defender, attacker_weapon)
-	forecast.counter_allowed = _can_counter(attacker, defender, defender_weapon)
+	forecast.counter_allowed = _can_counter_for_tiles(attacker_tile, defender.position, defender_weapon)
 	if forecast.counter_allowed:
 		forecast.defender_damage = _calculate_damage(defender, attacker, defender_weapon, attacker_terrain)
 		forecast.defender_hit = _calculate_hit(defender, attacker, defender_weapon, attacker_terrain)
@@ -182,9 +186,13 @@ func _grant_xp(unit: UnitState, amount: int) -> Dictionary:
 
 
 func _can_counter(attacker: UnitState, defender: UnitState, defender_weapon: WeaponData) -> bool:
+	return _can_counter_for_tiles(attacker.position, defender.position, defender_weapon)
+
+
+func _can_counter_for_tiles(attacker_tile: Vector2i, defender_tile: Vector2i, defender_weapon: WeaponData) -> bool:
 	if defender_weapon == null or defender_weapon.weapon_type == "staff":
 		return false
-	var distance := absi(attacker.position.x - defender.position.x) + absi(attacker.position.y - defender.position.y)
+	var distance := absi(attacker_tile.x - defender_tile.x) + absi(attacker_tile.y - defender_tile.y)
 	return distance >= defender_weapon.min_range and distance <= defender_weapon.max_range
 
 

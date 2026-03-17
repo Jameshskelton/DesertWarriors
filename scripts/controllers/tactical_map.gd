@@ -96,6 +96,7 @@ var _hover_enemy_threat_tiles: Dictionary = {}
 var _hover_enemy_target_tiles: Dictionary = {}
 var _hover_enemy_target_names: PackedStringArray = PackedStringArray()
 var _hover_enemy_is_boss: bool = false
+var _hover_combat_preview: Dictionary = {}
 var _shop_customer: UnitState
 var _shop_preview_item: String = "upgrade"
 var _inspected_unit: UnitState
@@ -217,6 +218,7 @@ func _load_chapter() -> void:
 	_hover_enemy_target_tiles.clear()
 	_hover_enemy_target_names.clear()
 	_hover_enemy_is_boss = false
+	_hover_combat_preview.clear()
 	_event_director.reset()
 	if not _restore_suspend_state(GameState.suspend_state):
 		for entry in _chapter.starting_units:
@@ -1528,6 +1530,9 @@ func _update_status(message: String) -> void:
 func _update_hover_status() -> void:
 	var unit := _get_unit_at(_cursor_tile)
 	_refresh_hover_enemy_readability(_resolve_hover_enemy_focus(unit))
+	_hover_combat_preview.clear()
+	if _selection.mode == SelectionController.Mode.UNIT_SELECTED and _selection.selected_unit != null and unit != null and unit.faction != _selection.selected_unit.faction:
+		_hover_combat_preview = _build_hover_combat_preview(_selection.selected_unit, unit)
 	if unit != null:
 		_show_hover_portrait(unit)
 	elif _selection.selected_unit != null:
@@ -1550,7 +1555,11 @@ func _update_hover_status() -> void:
 	_forecast_panel.hide_panel()
 	if unit != null and not _unit_inspect_panel.visible:
 		if unit.faction == "enemy":
-			_status_label.text = _build_enemy_hover_status(unit)
+			var combat_status: String = _build_hover_combat_status()
+			if not combat_status.is_empty():
+				_status_label.text = combat_status
+			else:
+				_status_label.text = _build_enemy_hover_status(unit)
 		else:
 			_status_label.text = "%s Lv.%d HP %d/%d" % [unit.display_name, unit.level, unit.get_current_hp(), unit.get_max_hp()]
 
@@ -1584,6 +1593,8 @@ func _show_hover_portrait(unit: UnitState) -> void:
 	detail_lines.append(_format_unit_weapon_status(unit))
 	detail_lines.append(_format_unit_potion_status(unit))
 	if unit.faction == "enemy":
+		for line in _build_hover_combat_detail_lines():
+			detail_lines.append(line)
 		detail_lines.append("Threatens: %d tiles" % _hover_enemy_threat_tiles.size())
 		detail_lines.append(_build_enemy_target_summary())
 	_portrait_details.text = "\n".join(detail_lines)
@@ -1674,6 +1685,122 @@ func _build_enemy_target_summary() -> String:
 	if _hover_enemy_target_names.is_empty():
 		return "Can target: nobody"
 	return "Can target: %s" % ", ".join(_packed_string_array_to_array(_hover_enemy_target_names))
+
+
+func _build_hover_combat_preview(attacker: UnitState, defender: UnitState) -> Dictionary:
+	var attacker_name: String = ""
+	if attacker != null:
+		attacker_name = attacker.display_name
+	var defender_name: String = ""
+	if defender != null:
+		defender_name = defender.display_name
+	var preview := {
+		"attacker_name": attacker_name,
+		"defender_name": defender_name,
+		"can_attack": false,
+	}
+	if attacker == null or defender == null or attacker.faction == defender.faction:
+		return preview
+	if _selection.reachability.is_empty():
+		return preview
+	var attacker_weapon: WeaponData = DataRegistry.get_weapon_data(attacker.get_equipped_weapon_id())
+	if attacker_weapon == null or attacker_weapon.weapon_type == "staff" or attacker.get_equipped_weapon_uses() <= 0:
+		return preview
+	var defender_terrain: TerrainData = _get_terrain_at(defender.position)
+	var best_preview: Dictionary = {}
+	for tile_value in _selection.reachability.get("costs", {}).keys():
+		var attacker_tile: Vector2i = _vector2i_from_variant(tile_value)
+		if not _combat_resolver.can_unit_attack_from_tile(attacker, defender, attacker_tile):
+			continue
+		var attacker_terrain: TerrainData = _get_terrain_at(attacker_tile)
+		var forecast: CombatForecast = _combat_resolver.build_forecast_for_tile(attacker, defender, attacker_tile, attacker_terrain, defender_terrain)
+		var attack_swings: int = 1 + int(forecast.attacker_follow_up)
+		var counter_swings: int = 0
+		if forecast.counter_allowed:
+			counter_swings = 1 + int(forecast.defender_follow_up)
+		var score: int = forecast.attacker_damage * attack_swings * 1000
+		score += forecast.attacker_hit * 10
+		score += forecast.attacker_crit
+		score -= forecast.defender_damage * counter_swings * 150
+		score -= forecast.defender_hit
+		if not forecast.counter_allowed:
+			score += 400
+		score -= int(_selection.highlighted_tiles.get(attacker_tile, 0))
+		if best_preview.is_empty() or score > int(best_preview.get("score", -999999)):
+			best_preview = {
+				"attacker_name": attacker.display_name,
+				"defender_name": defender.display_name,
+				"can_attack": true,
+				"tile": attacker_tile,
+				"forecast": forecast,
+				"score": score,
+			}
+	if best_preview.is_empty():
+		return preview
+	return best_preview
+
+
+func _build_hover_combat_detail_lines() -> Array[String]:
+	var lines: Array[String] = []
+	if _hover_combat_preview.is_empty():
+		return lines
+	var attacker_name: String = str(_hover_combat_preview.get("attacker_name", ""))
+	if not bool(_hover_combat_preview.get("can_attack", false)):
+		if not attacker_name.is_empty():
+			lines.append("%s: Out of range" % attacker_name)
+		return lines
+	var forecast: CombatForecast = _hover_combat_preview.get("forecast") as CombatForecast
+	if forecast == null:
+		return lines
+	var attack_swings: int = 1 + int(forecast.attacker_follow_up)
+	lines.append("%s: %d x%d  HIT %d  CRT %d" % [
+		attacker_name,
+		forecast.attacker_damage,
+		attack_swings,
+		forecast.attacker_hit,
+		forecast.attacker_crit,
+	])
+	if forecast.counter_allowed:
+		var counter_swings: int = 1 + int(forecast.defender_follow_up)
+		lines.append("Counter: %d x%d  HIT %d  CRT %d" % [
+			forecast.defender_damage,
+			counter_swings,
+			forecast.defender_hit,
+			forecast.defender_crit,
+		])
+	else:
+		lines.append("Counter: none")
+	return lines
+
+
+func _build_hover_combat_status() -> String:
+	if _hover_combat_preview.is_empty():
+		return ""
+	var attacker_name: String = str(_hover_combat_preview.get("attacker_name", ""))
+	var defender_name: String = str(_hover_combat_preview.get("defender_name", ""))
+	if not bool(_hover_combat_preview.get("can_attack", false)):
+		return "%s cannot attack %s from current move range." % [attacker_name, defender_name]
+	var forecast: CombatForecast = _hover_combat_preview.get("forecast") as CombatForecast
+	if forecast == null:
+		return ""
+	var attack_swings: int = 1 + int(forecast.attacker_follow_up)
+	var attack_summary: String = "%s -> %s: %dx%d @%d crt %d" % [
+		attacker_name,
+		defender_name,
+		forecast.attacker_damage,
+		attack_swings,
+		forecast.attacker_hit,
+		forecast.attacker_crit,
+	]
+	if not forecast.counter_allowed:
+		return "%s | counter none" % attack_summary
+	var counter_swings: int = 1 + int(forecast.defender_follow_up)
+	return "%s | counter %dx%d @%d" % [
+		attack_summary,
+		forecast.defender_damage,
+		counter_swings,
+		forecast.defender_hit,
+	]
 
 
 func _is_boss_unit(unit: UnitState) -> bool:

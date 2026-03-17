@@ -11,6 +11,7 @@ var _menu_visible: bool = false
 @onready var _options_panel: PanelContainer = $OptionsPanel
 @onready var _chapter_select_panel: PanelContainer = $ChapterSelectPanel
 @onready var _permadeath_panel: PanelContainer = $PermadeathPanel
+@onready var _start_prompt: Label = $StartPrompt
 @onready var _new_game_button: Button = $MenuPanel/MenuMargin/MenuVBox/NewGameButton
 @onready var _continue_button: Button = $MenuPanel/MenuMargin/MenuVBox/ContinueButton
 @onready var _chapter_select_button: Button = $MenuPanel/MenuMargin/MenuVBox/ChapterSelectButton
@@ -28,6 +29,7 @@ func _ready() -> void:
 	_menu_visible = false
 	_menu_panel.visible = false
 	_permadeath_panel.visible = false
+	_start_prompt.visible = true
 
 
 func _connect_signals() -> void:
@@ -74,6 +76,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _show_menu() -> void:
 	_menu_visible = true
+	_start_prompt.visible = false
 	_menu_panel.visible = true
 	_continue_button.disabled = not SaveSystem.has_save()
 	_continue_button.text = "Resume Suspend" if SaveSystem.has_suspend_save() else "Continue"
@@ -85,6 +88,7 @@ func _hide_menu() -> void:
 	_menu_visible = false
 	_menu_panel.visible = false
 	_permadeath_panel.visible = false
+	_start_prompt.visible = true
 
 
 func _on_new_game_pressed() -> void:
