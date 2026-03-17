@@ -2,23 +2,25 @@
 
 ![Title Screen](https://github.com/Jameshskelton/DesertWarriors/blob/main/assets/ui/menu_start.png)
 
-`Desert Warriors` is a Godot 4 tactical RPG campaign inspired by classic Fire Emblem structure. The current build includes four playable chapters, preparation screens, recruit events, shops, persistent gold and inventory state, frame-based battle animations, and data-driven dialogue and map content.
+`Desert Warriors` is a Godot 4 tactical RPG campaign inspired by classic Fire Emblem structure. The current build includes five playable chapters, preparation screens, recruit events, shops, persistent gold and inventory state, frame-based battle animations, and data-driven dialogue and map content.
 
 ## Current Campaign
 
-The playable story currently runs through four chapters:
+The playable story currently runs through five chapters:
 
 - `Chapter 1: Exile in the Greenwood`
 - `Chapter 2: The Old Monastery`
 - `Chapter 3: The Unbroken`
-- `Chapter 4: Monastery Siege`
+- `Chapter 4: Hunters at the Cloister`
+- `Chapter 5: The Hercule Desert`
 
 Campaign highlights:
 
 - George's exile is framed as the work of his jealous uncle, King Malrec.
-- Allies such as Ember, Rowan, Balt, and Ricodial join through chapter events and recruitment scenes.
+- Allies such as Ember, Rowan, Balt, Ricodial, and Ysult join through chapter events and recruitment scenes.
 - Bosses have confrontation dialogue, enhanced battle presentation, and distinct danger-zone emphasis.
 - Chapter 4 is a survival map with an alternate boss-kill victory condition against `Lysandra Quill`.
+- Chapter 5 pushes the company into the desert against brigands, hunters, and the lance-wielding boss `Bartram`.
 
 ## Current Features
 
@@ -54,6 +56,7 @@ The tactical map currently supports custom terrain art and gameplay rules for:
 - `river`
 - `mountain`
 - `tall_mountain`
+- `sand`
 
 Map readability features include:
 
