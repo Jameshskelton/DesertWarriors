@@ -19,6 +19,7 @@ var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var last_results: Dictionary = {}
 var is_continuing: bool = false
 var suspend_state: Dictionary = {}
+var preparation_assignments: Dictionary = {}
 
 
 func _ready() -> void:
@@ -59,6 +60,7 @@ func reset_runtime() -> void:
 	fallen_units.clear()
 	last_results.clear()
 	suspend_state.clear()
+	preparation_assignments.clear()
 	rng.seed = rng_seed
 	is_continuing = false
 
@@ -100,6 +102,7 @@ func continue_game() -> bool:
 	rng.seed = rng_seed
 	last_results = save_data.get("last_results", {}).duplicate(true)
 	suspend_state = _normalize_suspend_state(save_data.get("suspend_state", {}))
+	preparation_assignments = _normalize_preparation_assignments(save_data.get("preparation_assignments", {}))
 	
 	# Apply saved roster state
 	roster_state = _normalize_roster_state(save_data.get("roster_state", {}), true)
@@ -202,6 +205,98 @@ func store_preparation_roster(units: Array[UnitState]) -> void:
 		roster_state[unit.unit_id] = _normalize_roster_entry(unit.unit_id, unit.to_persistent_state(), false)
 
 
+func get_chapter_deployment_slots(chapter_id: String) -> Array[Vector2i]:
+	var chapter: ChapterData = DataRegistry.get_chapter_data(_normalize_chapter_id(chapter_id))
+	var slots: Array[Vector2i] = []
+	if chapter == null:
+		return slots
+	for entry_value in chapter.starting_units:
+		if typeof(entry_value) != TYPE_DICTIONARY:
+			continue
+		var entry: Dictionary = entry_value
+		if str(entry.get("faction", "")) != "player":
+			continue
+		var slot_position: Vector2i = _vector2i_from_variant(entry.get("position", Vector2i.ZERO))
+		if not slots.has(slot_position):
+			slots.append(slot_position)
+	return slots
+
+
+func build_preparation_assignments(chapter_id: String, units: Array[UnitState]) -> Dictionary:
+	var slots: Array[Vector2i] = get_chapter_deployment_slots(chapter_id)
+	var assignments: Dictionary = {}
+	if slots.is_empty() or units.is_empty():
+		return assignments
+	var valid_unit_ids: PackedStringArray = PackedStringArray()
+	for unit in units:
+		if unit == null:
+			continue
+		valid_unit_ids.append(unit.unit_id)
+	var chapter_key: String = _normalize_chapter_id(chapter_id)
+	var saved_assignments_value: Variant = preparation_assignments.get(chapter_key, {})
+	var used_slots: Array[Vector2i] = []
+	if typeof(saved_assignments_value) == TYPE_DICTIONARY:
+		var saved_assignments: Dictionary = saved_assignments_value
+		for unit_id_value in saved_assignments.keys():
+			var unit_id: String = str(unit_id_value)
+			if not valid_unit_ids.has(unit_id):
+				continue
+			var slot_position: Vector2i = _vector2i_from_variant(saved_assignments.get(unit_id_value, Vector2i.ZERO))
+			if not slots.has(slot_position) or used_slots.has(slot_position):
+				continue
+			assignments[unit_id] = _serialize_vector2i(slot_position)
+			used_slots.append(slot_position)
+	var slot_index: int = 0
+	for unit in units:
+		if unit == null or assignments.has(unit.unit_id):
+			continue
+		while slot_index < slots.size() and used_slots.has(slots[slot_index]):
+			slot_index += 1
+		if slot_index >= slots.size():
+			break
+		assignments[unit.unit_id] = _serialize_vector2i(slots[slot_index])
+		used_slots.append(slots[slot_index])
+		slot_index += 1
+	return assignments
+
+
+func store_preparation_assignments(chapter_id: String, assignments: Dictionary, units: Array[UnitState]) -> void:
+	var chapter_key: String = _normalize_chapter_id(chapter_id)
+	if chapter_key.is_empty():
+		return
+	var slots: Array[Vector2i] = get_chapter_deployment_slots(chapter_key)
+	var valid_unit_ids: PackedStringArray = PackedStringArray()
+	for unit in units:
+		if unit == null:
+			continue
+		valid_unit_ids.append(unit.unit_id)
+	var normalized_assignments: Dictionary = {}
+	var used_slots: Array[Vector2i] = []
+	for unit_id_value in assignments.keys():
+		var unit_id: String = str(unit_id_value)
+		if not valid_unit_ids.has(unit_id):
+			continue
+		var slot_position: Vector2i = _vector2i_from_variant(assignments.get(unit_id_value, Vector2i.ZERO))
+		if not slots.has(slot_position) or used_slots.has(slot_position):
+			continue
+		normalized_assignments[unit_id] = _serialize_vector2i(slot_position)
+		used_slots.append(slot_position)
+	preparation_assignments[chapter_key] = normalized_assignments
+
+
+func resolve_preparation_position(chapter_id: String, unit_id: String, fallback_position: Vector2i) -> Vector2i:
+	var chapter_key: String = _normalize_chapter_id(chapter_id)
+	if chapter_key.is_empty() or not preparation_assignments.has(chapter_key):
+		return fallback_position
+	var assignments_value: Variant = preparation_assignments.get(chapter_key, {})
+	if typeof(assignments_value) != TYPE_DICTIONARY:
+		return fallback_position
+	var assignments: Dictionary = assignments_value
+	if not assignments.has(unit_id):
+		return fallback_position
+	return _vector2i_from_variant(assignments.get(unit_id, fallback_position))
+
+
 func build_save_payload() -> Dictionary:
 	return {
 		"version": SAVE_VERSION,
@@ -215,6 +310,7 @@ func build_save_payload() -> Dictionary:
 		"last_results": last_results,
 		"roster_state": roster_state,
 		"suspend_state": suspend_state,
+		"preparation_assignments": preparation_assignments,
 	}
 
 
@@ -275,6 +371,37 @@ func _normalize_suspend_state(raw_suspend_state: Variant) -> Dictionary:
 	if typeof(raw_suspend_state) != TYPE_DICTIONARY:
 		return {}
 	return (raw_suspend_state as Dictionary).duplicate(true)
+
+
+func _normalize_preparation_assignments(raw_assignments: Variant) -> Dictionary:
+	var normalized: Dictionary = {}
+	if typeof(raw_assignments) != TYPE_DICTIONARY:
+		return normalized
+	var raw_dictionary: Dictionary = raw_assignments
+	for chapter_key_value in raw_dictionary.keys():
+		var chapter_key: String = _normalize_chapter_id(chapter_key_value)
+		if chapter_key.is_empty():
+			continue
+		var chapter_slots: Array[Vector2i] = get_chapter_deployment_slots(chapter_key)
+		if chapter_slots.is_empty():
+			continue
+		var raw_chapter_assignments: Variant = raw_dictionary.get(chapter_key_value, {})
+		if typeof(raw_chapter_assignments) != TYPE_DICTIONARY:
+			continue
+		var chapter_assignments: Dictionary = raw_chapter_assignments
+		var normalized_chapter_assignments: Dictionary = {}
+		var used_slots: Array[Vector2i] = []
+		for unit_id_value in chapter_assignments.keys():
+			var unit_id: String = str(unit_id_value)
+			if DataRegistry.get_unit_data(unit_id) == null:
+				continue
+			var slot_position: Vector2i = _vector2i_from_variant(chapter_assignments.get(unit_id_value, Vector2i.ZERO))
+			if not chapter_slots.has(slot_position) or used_slots.has(slot_position):
+				continue
+			normalized_chapter_assignments[unit_id] = _serialize_vector2i(slot_position)
+			used_slots.append(slot_position)
+		normalized[chapter_key] = normalized_chapter_assignments
+	return normalized
 
 
 func _normalize_roster_entry(unit_id: String, raw_entry: Dictionary, heal_to_full: bool = false) -> Dictionary:
@@ -339,6 +466,22 @@ func _get_chapter_select_unit_ids(chapter_id: String) -> PackedStringArray:
 			return PackedStringArray(["george", "bram", "brother_hale", "ember", "rowan", "balt", "ricodial"])
 		_:
 			return PackedStringArray(["george", "bram", "brother_hale"])
+
+
+func _vector2i_from_variant(value: Variant) -> Vector2i:
+	if value is Vector2i:
+		return value
+	if typeof(value) == TYPE_DICTIONARY:
+		var dictionary: Dictionary = value
+		return Vector2i(int(dictionary.get("x", 0)), int(dictionary.get("y", 0)))
+	return Vector2i.ZERO
+
+
+func _serialize_vector2i(value: Vector2i) -> Dictionary:
+	return {
+		"x": value.x,
+		"y": value.y,
+	}
 
 
 func _variant_to_packed_string_array(value: Variant) -> PackedStringArray:

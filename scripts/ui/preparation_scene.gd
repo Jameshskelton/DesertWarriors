@@ -8,8 +8,11 @@ const PORTRAIT_DIR := "res://assets/portraits"
 var _chapter_id: String = ""
 var _chapter: ChapterData
 var _units: Array[UnitState] = []
+var _deployment_slots: Array[Vector2i] = []
+var _deployment_assignments: Dictionary = {}
 var _selected_unit_index: int = 0
 var _selected_item_index: int = -1
+var _selected_deployment_index: int = 0
 var _selected_target_index: int = 0
 var _trade_target_indices: Array[int] = []
 
@@ -26,6 +29,9 @@ var _trade_target_indices: Array[int] = []
 @onready var _move_up_button: Button = $MainMargin/MainVBox/BodyHBox/InventoryPanel/InventoryMargin/InventoryVBox/ButtonRow/MoveUpButton
 @onready var _move_down_button: Button = $MainMargin/MainVBox/BodyHBox/InventoryPanel/InventoryMargin/InventoryVBox/ButtonRow/MoveDownButton
 @onready var _transfer_button: Button = $MainMargin/MainVBox/BodyHBox/InventoryPanel/InventoryMargin/InventoryVBox/ButtonRow/TransferButton
+@onready var _deployment_list: ItemList = $MainMargin/MainVBox/BodyHBox/TransferPanel/TransferMargin/TransferVBox/TargetList
+@onready var _deployment_details: Label = $MainMargin/MainVBox/BodyHBox/TransferPanel/TransferMargin/TransferVBox/TargetDetails
+@onready var _assign_button: Button = $MainMargin/MainVBox/BodyHBox/TransferPanel/TransferMargin/TransferVBox/DeploymentButtonRow/AssignButton
 @onready var _begin_button: Button = $MainMargin/MainVBox/FooterPanel/FooterMargin/FooterRow/BeginButton
 @onready var _return_button: Button = $MainMargin/MainVBox/FooterPanel/FooterMargin/FooterRow/ReturnButton
 @onready var _trade_modal: PanelContainer = $TradeModal
@@ -74,9 +80,12 @@ func _connect_signals() -> void:
 	_unit_list.item_selected.connect(Callable(self, "_on_unit_selected"))
 	_inventory_list.item_selected.connect(Callable(self, "_on_inventory_selected"))
 	_inventory_list.item_activated.connect(Callable(self, "_on_inventory_activated"))
+	_deployment_list.item_selected.connect(Callable(self, "_on_deployment_selected"))
+	_deployment_list.item_activated.connect(Callable(self, "_on_deployment_activated"))
 	_move_up_button.pressed.connect(Callable(self, "_on_move_up_pressed"))
 	_move_down_button.pressed.connect(Callable(self, "_on_move_down_pressed"))
 	_transfer_button.pressed.connect(Callable(self, "_on_transfer_pressed"))
+	_assign_button.pressed.connect(Callable(self, "_on_assign_pressed"))
 	_begin_button.pressed.connect(Callable(self, "_on_begin_pressed"))
 	_return_button.pressed.connect(Callable(self, "_on_return_pressed"))
 	_trade_target_list.item_selected.connect(Callable(self, "_on_trade_target_selected"))
@@ -93,6 +102,11 @@ func _configure_focus_navigation() -> void:
 	_move_down_button.focus_neighbor_left = _move_up_button.get_path()
 	_move_down_button.focus_neighbor_right = _transfer_button.get_path()
 	_transfer_button.focus_neighbor_left = _move_down_button.get_path()
+	_inventory_list.focus_neighbor_right = _deployment_list.get_path()
+	_deployment_list.focus_neighbor_left = _inventory_list.get_path()
+	_deployment_list.focus_neighbor_bottom = _assign_button.get_path()
+	_assign_button.focus_neighbor_top = _deployment_list.get_path()
+	_assign_button.focus_neighbor_left = _inventory_list.get_path()
 	_trade_target_list.focus_neighbor_bottom = _trade_confirm_button.get_path()
 	_trade_confirm_button.focus_neighbor_top = _trade_target_list.get_path()
 	_trade_cancel_button.focus_neighbor_top = _trade_target_list.get_path()
@@ -103,15 +117,20 @@ func _configure_focus_navigation() -> void:
 func _load_preparation_data() -> void:
 	_chapter = DataRegistry.get_chapter_data(_chapter_id)
 	_units = GameState.build_preparation_roster(_chapter_id)
+	_deployment_slots = GameState.get_chapter_deployment_slots(_chapter_id)
+	_deployment_assignments = GameState.build_preparation_assignments(_chapter_id, _units)
 	_selected_unit_index = clampi(_selected_unit_index, 0, maxi(0, _units.size() - 1))
 	_selected_item_index = -1
+	_selected_deployment_index = clampi(_selected_deployment_index, 0, maxi(0, _deployment_slots.size() - 1))
 	_selected_target_index = clampi(_selected_target_index, 0, maxi(0, _units.size() - 1))
 	_trade_target_indices.clear()
 	_ensure_valid_target_selection()
 
 
 func _refresh_view() -> void:
-	var chapter_name: String = _chapter.display_name if _chapter != null else _chapter_id
+	var chapter_name: String = _chapter_id
+	if _chapter != null:
+		chapter_name = _chapter.display_name
 	_title_label.text = "Preparation"
 	_subtitle_label.text = "%s\n%s" % [chapter_name, _build_objective_text()]
 	_gold_label.text = "Gold: %d" % GameState.gold
@@ -120,6 +139,7 @@ func _refresh_view() -> void:
 	_refresh_unit_summary()
 	_refresh_unit_portrait()
 	_refresh_item_details()
+	_refresh_deployment_panel()
 	_refresh_buttons()
 	if _trade_modal.visible:
 		_refresh_trade_modal()
@@ -132,11 +152,13 @@ func _refresh_view() -> void:
 func _refresh_unit_list() -> void:
 	_unit_list.clear()
 	for unit in _units:
-		_unit_list.add_item("%s  Lv.%d  HP %d/%d" % [
+		var deployment_text: String = _format_deployment_tag(unit.unit_id)
+		_unit_list.add_item("%s  Lv.%d  HP %d/%d%s" % [
 			unit.display_name,
 			unit.level,
 			unit.get_current_hp(),
 			unit.get_max_hp(),
+			deployment_text,
 		])
 	if _units.is_empty():
 		return
@@ -174,11 +196,12 @@ func _refresh_unit_summary() -> void:
 	if weapon != null:
 		equipped_weapon = "%s (%d uses)" % [weapon.name, unit.get_equipped_weapon_uses()]
 	var potion_count: int = unit.get_available_item_count("health_potion")
-	_unit_summary.text = "Class: %s\nLevel: %d\nHP: %d / %d\nEquipped: %s\nPotions: %d" % [
+	_unit_summary.text = "Class: %s\nLevel: %d\nHP: %d / %d\nDeploy: %s\nEquipped: %s\nPotions: %d" % [
 		unit.class_id.capitalize(),
 		unit.level,
 		unit.get_current_hp(),
 		unit.get_max_hp(),
+		_format_deployment_label(unit.unit_id),
 		equipped_weapon,
 		potion_count,
 	]
@@ -201,7 +224,9 @@ func _refresh_item_details() -> void:
 	var uses: int = unit.get_item_uses_at(_selected_item_index)
 	var weapon: WeaponData = DataRegistry.get_weapon_data(item_id)
 	if weapon != null:
-		var equipped_tag: String = "Equipped weapon" if _selected_item_index == unit.get_equipped_weapon_index() else "Carried weapon"
+		var equipped_tag: String = "Carried weapon"
+		if _selected_item_index == unit.get_equipped_weapon_index():
+			equipped_tag = "Equipped weapon"
 		_item_details.text = "%s\nType: %s\nUses: %d\n%s" % [
 			weapon.name,
 			weapon.weapon_type.capitalize(),
@@ -220,6 +245,30 @@ func _refresh_item_details() -> void:
 	_item_details.text = "%s\nUses: %d" % [item_id, uses]
 
 
+func _refresh_deployment_panel() -> void:
+	_deployment_list.clear()
+	if _deployment_slots.is_empty():
+		_deployment_details.text = "This chapter has fixed starting positions."
+		_assign_button.disabled = true
+		return
+	for slot_index in range(_deployment_slots.size()):
+		var slot_position: Vector2i = _deployment_slots[slot_index]
+		var assigned_unit: UnitState = _get_unit_assigned_to_slot(slot_position)
+		var assigned_name: String = "Open"
+		if assigned_unit != null:
+			assigned_name = assigned_unit.display_name
+		_deployment_list.add_item("Slot %d  (%d, %d)  %s" % [
+			slot_index + 1,
+			slot_position.x,
+			slot_position.y,
+			assigned_name,
+		])
+	if not _deployment_slots.is_empty():
+		_selected_deployment_index = clampi(_selected_deployment_index, 0, _deployment_slots.size() - 1)
+		_deployment_list.select(_selected_deployment_index)
+	_refresh_deployment_details()
+
+
 func _refresh_buttons() -> void:
 	var unit: UnitState = _get_selected_unit()
 	var inventory_size: int = 0
@@ -230,6 +279,7 @@ func _refresh_buttons() -> void:
 	var transfer_ready: bool = _can_open_trade_modal()
 	_transfer_button.disabled = not transfer_ready
 	_transfer_button.text = "Trade"
+	_assign_button.disabled = unit == null or _deployment_slots.is_empty()
 	_begin_button.disabled = _units.is_empty()
 
 
@@ -247,6 +297,17 @@ func _on_inventory_selected(index: int) -> void:
 	_selected_item_index = clampi(index, 0, unit.inventory.size() - 1)
 	_refresh_item_details()
 	_refresh_buttons()
+
+
+func _on_deployment_selected(index: int) -> void:
+	_selected_deployment_index = clampi(index, 0, maxi(0, _deployment_slots.size() - 1))
+	_refresh_deployment_details()
+	_refresh_buttons()
+
+
+func _on_deployment_activated(index: int) -> void:
+	_selected_deployment_index = clampi(index, 0, maxi(0, _deployment_slots.size() - 1))
+	_assign_selected_unit_to_slot()
 
 
 func _on_inventory_activated(index: int) -> void:
@@ -291,6 +352,10 @@ func _on_move_down_pressed() -> void:
 
 func _on_transfer_pressed() -> void:
 	_open_trade_modal()
+
+
+func _on_assign_pressed() -> void:
+	_assign_selected_unit_to_slot()
 
 
 func _on_trade_target_selected(index: int) -> void:
@@ -342,7 +407,35 @@ func _on_return_pressed() -> void:
 
 func _commit_roster() -> void:
 	GameState.store_preparation_roster(_units)
+	GameState.store_preparation_assignments(_chapter_id, _deployment_assignments, _units)
 	SaveSystem.save_game(GameState.build_save_payload())
+
+
+func _assign_selected_unit_to_slot() -> void:
+	var unit: UnitState = _get_selected_unit()
+	if unit == null or _deployment_slots.is_empty():
+		return
+	var slot_index: int = clampi(_selected_deployment_index, 0, _deployment_slots.size() - 1)
+	var destination_slot: Vector2i = _deployment_slots[slot_index]
+	var current_slot: Vector2i = _get_assigned_slot_for_unit(unit.unit_id)
+	var occupying_unit: UnitState = _get_unit_assigned_to_slot(destination_slot)
+	var status_message: String = ""
+	if current_slot == destination_slot:
+		_status_label.text = "%s is already assigned there." % unit.display_name
+		return
+	_deployment_assignments[unit.unit_id] = _serialize_vector2i(destination_slot)
+	if occupying_unit != null:
+		if current_slot != Vector2i(-1, -1):
+			_deployment_assignments[occupying_unit.unit_id] = _serialize_vector2i(current_slot)
+		else:
+			_deployment_assignments.erase(occupying_unit.unit_id)
+		status_message = "%s swaps starting positions with %s." % [unit.display_name, occupying_unit.display_name]
+	else:
+		status_message = "%s deploys to Slot %d." % [unit.display_name, slot_index + 1]
+	_commit_roster()
+	_refresh_view()
+	_status_label.text = status_message
+	_deployment_list.grab_focus()
 
 
 func _open_trade_modal() -> void:
@@ -391,7 +484,9 @@ func _refresh_trade_modal() -> void:
 			continue
 		var target: UnitState = _units[index]
 		var can_receive: bool = target.can_receive_item(item_id)
-		var suffix: String = "" if can_receive else " (Can't carry)"
+		var suffix: String = ""
+		if not can_receive:
+			suffix = " (Can't carry)"
 		var list_index: int = _trade_target_indices.size()
 		_trade_target_indices.append(index)
 		_trade_target_list.add_item("%s%s" % [target.display_name, suffix])
@@ -476,6 +571,57 @@ func _ensure_valid_target_selection() -> void:
 		_selected_target_index = (_selected_unit_index + 1) % _units.size()
 
 
+func _refresh_deployment_details() -> void:
+	var unit: UnitState = _get_selected_unit()
+	if _deployment_slots.is_empty():
+		_deployment_details.text = "This chapter has fixed starting positions."
+		return
+	var slot_index: int = clampi(_selected_deployment_index, 0, _deployment_slots.size() - 1)
+	var slot_position: Vector2i = _deployment_slots[slot_index]
+	var occupying_unit: UnitState = _get_unit_assigned_to_slot(slot_position)
+	var occupant_name: String = "Open"
+	if occupying_unit != null:
+		occupant_name = occupying_unit.display_name
+	var selected_name: String = "No unit selected"
+	if unit != null:
+		selected_name = unit.display_name
+	_deployment_details.text = "Selected ally: %s\nChosen slot: (%d, %d)\nCurrent occupant: %s\nPress Assign Selected to move or swap the start position." % [
+		selected_name,
+		slot_position.x,
+		slot_position.y,
+		occupant_name,
+	]
+
+
+func _get_assigned_slot_for_unit(unit_id: String) -> Vector2i:
+	if not _deployment_assignments.has(unit_id):
+		return Vector2i(-1, -1)
+	return _vector2i_from_variant(_deployment_assignments.get(unit_id, Vector2i(-1, -1)))
+
+
+func _get_unit_assigned_to_slot(slot_position: Vector2i) -> UnitState:
+	for unit in _units:
+		if unit == null:
+			continue
+		if _get_assigned_slot_for_unit(unit.unit_id) == slot_position:
+			return unit
+	return null
+
+
+func _format_deployment_tag(unit_id: String) -> String:
+	var slot: Vector2i = _get_assigned_slot_for_unit(unit_id)
+	if slot == Vector2i(-1, -1):
+		return "  [Bench]"
+	return "  @ (%d,%d)" % [slot.x, slot.y]
+
+
+func _format_deployment_label(unit_id: String) -> String:
+	var slot: Vector2i = _get_assigned_slot_for_unit(unit_id)
+	if slot == Vector2i(-1, -1):
+		return "Bench"
+	return "(%d, %d)" % [slot.x, slot.y]
+
+
 func _format_inventory_entry(unit: UnitState, item_index: int) -> String:
 	var item_id: String = str(unit.inventory[item_index])
 	var uses: int = unit.get_item_uses_at(item_index)
@@ -501,7 +647,7 @@ func _build_objective_text() -> String:
 
 
 func _default_status_text() -> String:
-	return "Review gear, press Space on an item to reach Trade, then click Begin Battle."
+	return "Set gear, trade items, and assign starting positions before you begin the battle."
 
 
 func _apply_portrait(unit: UnitState, texture_rect: TextureRect, fallback_label: Label, fallback_text: String) -> void:
@@ -544,3 +690,19 @@ func _resolve_portrait_path(portrait_id: String) -> String:
 		if file_name.get_basename().to_lower() == portrait_key:
 			return "%s/%s" % [PORTRAIT_DIR, file_name]
 	return exact_path
+
+
+func _vector2i_from_variant(value: Variant) -> Vector2i:
+	if value is Vector2i:
+		return value
+	if typeof(value) == TYPE_DICTIONARY:
+		var dictionary: Dictionary = value
+		return Vector2i(int(dictionary.get("x", 0)), int(dictionary.get("y", 0)))
+	return Vector2i.ZERO
+
+
+func _serialize_vector2i(value: Vector2i) -> Dictionary:
+	return {
+		"x": value.x,
+		"y": value.y,
+	}

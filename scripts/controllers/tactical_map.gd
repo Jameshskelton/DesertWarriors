@@ -84,6 +84,7 @@ var _hover_enemy_threat_tiles: Dictionary = {}
 var _hover_enemy_target_tiles: Dictionary = {}
 var _hover_enemy_target_names: PackedStringArray = PackedStringArray()
 var _shop_customer: UnitState
+var _shop_preview_item: String = "upgrade"
 var _inspected_unit: UnitState
 
 @onready var _chapter_label: Label = $Header/HeaderMargin/HeaderRow/ChapterLabel
@@ -123,6 +124,10 @@ var _inspected_unit: UnitState
 @onready var _shop_title: Label = $ShopMenu/ShopMargin/ShopVBox/Title
 @onready var _shop_description: Label = $ShopMenu/ShopMargin/ShopVBox/Description
 @onready var _shop_gold_label: Label = $ShopMenu/ShopMargin/ShopVBox/GoldLabel
+@onready var _shop_compare_title: Label = $ShopMenu/ShopMargin/ShopVBox/CompareTitle
+@onready var _shop_current_label: Label = $ShopMenu/ShopMargin/ShopVBox/CurrentLabel
+@onready var _shop_offer_label: Label = $ShopMenu/ShopMargin/ShopVBox/OfferLabel
+@onready var _shop_compare_notes: Label = $ShopMenu/ShopMargin/ShopVBox/CompareNotes
 @onready var _shop_potion_button: Button = $ShopMenu/ShopMargin/ShopVBox/PotionButton
 @onready var _shop_upgrade_button: Button = $ShopMenu/ShopMargin/ShopVBox/UpgradeButton
 @onready var _shop_leave_button: Button = $ShopMenu/ShopMargin/ShopVBox/LeaveButton
@@ -152,6 +157,12 @@ func _ready() -> void:
 	_shop_potion_button.pressed.connect(Callable(self, "_on_shop_buy_potion_pressed"))
 	_shop_upgrade_button.pressed.connect(Callable(self, "_on_shop_buy_upgrade_pressed"))
 	_shop_leave_button.pressed.connect(Callable(self, "_on_shop_leave_pressed"))
+	_shop_potion_button.focus_entered.connect(func() -> void:
+		_set_shop_preview_item("potion")
+	)
+	_shop_upgrade_button.focus_entered.connect(func() -> void:
+		_set_shop_preview_item("upgrade")
+	)
 	_end_turn_yes_button.pressed.connect(Callable(self, "_on_end_turn_yes_pressed"))
 	_end_turn_no_button.pressed.connect(Callable(self, "_on_end_turn_no_pressed"))
 	_inspect_close_button.pressed.connect(Callable(self, "_close_unit_inspection"))
@@ -285,6 +296,8 @@ func _spawn_unit(entry: Dictionary, allow_missing_player_state: bool = false) ->
 	var can_fall_back_to_default_state: bool = allow_missing_player_state or not unit_data.join_event_id.is_empty()
 	if state.faction == "player" and not GameState.restore_player_unit_state(state, unit_id, can_fall_back_to_default_state):
 		return
+	if state.faction == "player":
+		state.position = GameState.resolve_preparation_position(_chapter_id, unit_id, state.position)
 	if entry.has("instance_id") and state.faction != "player":
 		state.unit_id = entry["instance_id"]
 	_units.append(state)
@@ -839,9 +852,15 @@ func _open_shop_menu(source: UnitState) -> void:
 	_system_menu.visible = false
 	_end_turn_confirm.visible = false
 	_shop_customer = source
+	_shop_preview_item = "upgrade"
+	if DataRegistry.get_weapon_data(_get_shop_upgrade_weapon_id(source)) == null:
+		_shop_preview_item = "potion"
 	_shop_menu.visible = true
 	_refresh_shop_menu()
-	_shop_potion_button.grab_focus()
+	if not _shop_upgrade_button.disabled:
+		_shop_upgrade_button.grab_focus()
+	else:
+		_shop_potion_button.grab_focus()
 	_update_status("%s visits the shop." % source.display_name)
 
 
@@ -871,11 +890,122 @@ func _refresh_shop_menu() -> void:
 		if has_upgrade:
 			_shop_upgrade_button.text = "%s - Owned" % upgrade_weapon.name
 		_shop_upgrade_button.disabled = _shop_customer == null or has_upgrade or GameState.gold < SHOP_UPGRADE_PRICE
+	_refresh_shop_compare()
 
 
 func _close_shop_menu() -> void:
 	_shop_menu.visible = false
 	_shop_customer = null
+
+
+func _set_shop_preview_item(item_key: String) -> void:
+	if _shop_preview_item == item_key:
+		return
+	_shop_preview_item = item_key
+	if _shop_menu.visible:
+		_refresh_shop_compare()
+
+
+func _refresh_shop_compare() -> void:
+	if _shop_customer == null:
+		_shop_compare_title.text = "Shop Compare"
+		_shop_current_label.text = "Current"
+		_shop_offer_label.text = "Offer"
+		_shop_compare_notes.text = "Select a customer to compare shop items."
+		return
+	if _shop_preview_item == "potion":
+		_refresh_potion_compare()
+		return
+	_refresh_upgrade_compare()
+
+
+func _refresh_potion_compare() -> void:
+	var potion_data: ItemData = DataRegistry.get_item_data(SHOP_POTION_ITEM_ID)
+	var current_count: int = _shop_customer.get_available_item_count(SHOP_POTION_ITEM_ID)
+	var heal_amount: int = 10
+	var can_use_now: String = "No"
+	if potion_data != null:
+		heal_amount = int(potion_data.heal_amount)
+	if _shop_customer.get_current_hp() < _shop_customer.get_max_hp():
+		can_use_now = "Yes"
+	_shop_compare_title.text = "Shop Compare: Potion"
+	_shop_current_label.text = "Current Stock\nPotions: %d\nHP: %d/%d" % [
+		current_count,
+		_shop_customer.get_current_hp(),
+		_shop_customer.get_max_hp(),
+	]
+	_shop_offer_label.text = "For Sale\nPotion\nPrice: %dG\nHeal: %d HP" % [
+		SHOP_POTION_PRICE,
+		heal_amount,
+	]
+	_shop_compare_notes.text = "After purchase: %d potions\nCan use now: %s" % [
+		current_count + 1,
+		can_use_now,
+	]
+
+
+func _refresh_upgrade_compare() -> void:
+	var current_weapon: WeaponData = DataRegistry.get_weapon_data(_shop_customer.get_equipped_weapon_id())
+	var upgrade_weapon_id: String = _get_shop_upgrade_weapon_id(_shop_customer)
+	var upgrade_weapon: WeaponData = DataRegistry.get_weapon_data(upgrade_weapon_id)
+	var offer_uses: int = 0
+	var can_equip_text: String = "No"
+	_shop_compare_title.text = "Shop Compare: Weapon"
+	_shop_current_label.text = _format_shop_weapon_block("Current", current_weapon, _shop_customer.get_equipped_weapon_uses())
+	if upgrade_weapon != null:
+		offer_uses = int(upgrade_weapon.uses)
+		if _shop_customer.can_use_weapon(upgrade_weapon):
+			can_equip_text = "Yes"
+	_shop_offer_label.text = _format_shop_weapon_block("For Sale", upgrade_weapon, offer_uses)
+	if upgrade_weapon == null:
+		_shop_compare_notes.text = "No matching weapon upgrade is sold for %s." % _shop_customer.display_name
+		return
+	var ownership_note: String = "Not owned"
+	if _shop_customer.has_item(upgrade_weapon_id):
+		ownership_note = "Already owned"
+	_shop_compare_notes.text = "Delta  %s\nCan Equip: %s\nPrice: %dG\nStatus: %s" % [
+		_format_shop_weapon_delta(current_weapon, upgrade_weapon, _shop_customer.get_equipped_weapon_uses()),
+		can_equip_text,
+		SHOP_UPGRADE_PRICE,
+		ownership_note,
+	]
+
+
+func _format_shop_weapon_block(title: String, weapon: WeaponData, current_uses: int) -> String:
+	if weapon == null:
+		return "%s\nBroken / None" % title
+	return "%s\n%s\nMt %d  Hit %d  Crit %d\nRange %s  Uses %d/%d" % [
+		title,
+		weapon.name,
+		weapon.might,
+		weapon.hit,
+		weapon.crit,
+		_format_weapon_range(weapon),
+		current_uses,
+		int(weapon.uses),
+	]
+
+
+func _format_shop_weapon_delta(current_weapon: WeaponData, upgrade_weapon: WeaponData, current_uses: int) -> String:
+	if upgrade_weapon == null:
+		return "No upgrade"
+	var current_might: int = 0
+	var current_hit: int = 0
+	var current_crit: int = 0
+	var current_range: String = "--"
+	if current_weapon != null:
+		current_might = current_weapon.might
+		current_hit = current_weapon.hit
+		current_crit = current_weapon.crit
+		current_range = _format_weapon_range(current_weapon)
+	return "Mt %s  Hit %s  Crit %s\nRange %s -> %s\nDurability %s current uses" % [
+		_format_signed_value(upgrade_weapon.might - current_might),
+		_format_signed_value(upgrade_weapon.hit - current_hit),
+		_format_signed_value(upgrade_weapon.crit - current_crit),
+		current_range,
+		_format_weapon_range(upgrade_weapon),
+		_format_signed_value(int(upgrade_weapon.uses) - current_uses),
+	]
 
 
 func _on_shop_buy_potion_pressed() -> void:

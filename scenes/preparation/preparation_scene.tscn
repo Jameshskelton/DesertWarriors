@@ -226,7 +226,6 @@ custom_minimum_size = Vector2(150, 48)
 text = "Trade"
 
 [node name="TransferPanel" type="PanelContainer" parent="MainMargin/MainVBox/BodyHBox"]
-visible = false
 custom_minimum_size = Vector2(420, 0)
 layout_mode = 2
 size_flags_horizontal = 3
@@ -248,18 +247,30 @@ theme_override_constants/separation = 12
 layout_mode = 2
 theme_override_font_sizes/font_size = 36
 horizontal_alignment = 1
-text = "Transfer Target"
+text = "Deployment"
 
 [node name="TargetList" type="ItemList" parent="MainMargin/MainVBox/BodyHBox/TransferPanel/TransferMargin/TransferVBox"]
 custom_minimum_size = Vector2(0, 420)
 layout_mode = 2
 size_flags_vertical = 3
+theme_override_font_sizes/font_size = 26
 
 [node name="TargetDetails" type="Label" parent="MainMargin/MainVBox/BodyHBox/TransferPanel/TransferMargin/TransferVBox"]
 custom_minimum_size = Vector2(0, 180)
 layout_mode = 2
+theme_override_font_sizes/font_size = 22
 autowrap_mode = 2
-text = "Choose an ally to receive the selected item."
+text = "Choose a deployment slot for the selected ally."
+
+[node name="DeploymentButtonRow" type="HBoxContainer" parent="MainMargin/MainVBox/BodyHBox/TransferPanel/TransferMargin/TransferVBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="AssignButton" type="Button" parent="MainMargin/MainVBox/BodyHBox/TransferPanel/TransferMargin/TransferVBox/DeploymentButtonRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(220, 48)
+theme_override_font_sizes/font_size = 24
+text = "Assign Selected"
 
 [node name="FooterPanel" type="PanelContainer" parent="MainMargin/MainVBox"]
 layout_mode = 2

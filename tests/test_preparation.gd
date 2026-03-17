@@ -21,10 +21,23 @@ func run() -> PackedStringArray:
 	_assert_true(not george.has_item("health_potion"), "source unit should lose transferred items", failures)
 	_assert_true(bram.get_available_item_count("health_potion") >= 2, "target unit should gain transferred consumables", failures)
 	_assert_true(not george.transfer_item_to(0, bram), "units should not hand off weapons the receiver cannot use", failures)
+	var deployment_slots: Array[Vector2i] = GameState.get_chapter_deployment_slots("chapter_1")
+	_assert_true(deployment_slots.size() >= 2, "chapter 1 should expose deployment slots for preparation", failures)
+	var deployment_assignments: Dictionary = GameState.build_preparation_assignments("chapter_1", prep_units)
+	_assert_true(deployment_assignments.has("george"), "George should receive a deployment assignment in preparation", failures)
+	if deployment_slots.size() >= 2:
+		deployment_assignments["george"] = {"x": deployment_slots[1].x, "y": deployment_slots[1].y}
+		deployment_assignments["bram"] = {"x": deployment_slots[0].x, "y": deployment_slots[0].y}
+	GameState.store_preparation_assignments("chapter_1", deployment_assignments, prep_units)
 	GameState.store_preparation_roster(prep_units)
 	var restored_george := UnitState.from_unit_data(DataRegistry.get_unit_data("george"), Vector2i.ZERO)
 	_assert_true(GameState.restore_player_unit_state(restored_george, "george"), "stored preparation changes should persist into roster state", failures)
 	_assert_true(restored_george.get_equipped_weapon_id() == "bronze_sword", "restored roster state should keep the selected equipped weapon", failures)
+	if deployment_slots.size() >= 2:
+		var george_slot: Vector2i = GameState.resolve_preparation_position("chapter_1", "george", deployment_slots[0])
+		var bram_slot: Vector2i = GameState.resolve_preparation_position("chapter_1", "bram", deployment_slots[1])
+		_assert_true(george_slot == deployment_slots[1], "stored preparation deployment should move George to his chosen slot", failures)
+		_assert_true(bram_slot == deployment_slots[0], "stored preparation deployment should swap Bram into the vacated slot", failures)
 	return failures
 
 
