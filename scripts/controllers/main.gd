@@ -2,6 +2,7 @@ extends Control
 
 const TITLE_SCENE := preload("res://scenes/title/title_screen.tscn")
 const DIALOGUE_SCENE := preload("res://scenes/dialogue/dialogue_scene.tscn")
+const PREPARATION_SCENE := preload("res://scenes/preparation/preparation_scene.tscn")
 const TACTICAL_MAP_SCENE := preload("res://scenes/map/tactical_map.tscn")
 const RESULTS_SCENE := preload("res://scenes/results/results_scene.tscn")
 
@@ -69,6 +70,19 @@ func _show_map(chapter_id: String) -> void:
 	_mount_scene(scene)
 
 
+func _show_preparation(chapter_id: String) -> void:
+	if chapter_id.is_empty():
+		push_warning("Chapter ID is empty, returning to title")
+		_show_title()
+		return
+	GameState.current_chapter_id = chapter_id
+	var scene = PREPARATION_SCENE.instantiate()
+	scene.setup(chapter_id)
+	scene.battle_requested.connect(_on_preparation_battle_requested)
+	scene.return_to_title.connect(_show_title)
+	_mount_scene(scene)
+
+
 func _show_results(summary: Dictionary) -> void:
 	var scene = RESULTS_SCENE.instantiate()
 	scene.setup(summary)
@@ -98,10 +112,10 @@ func _on_continue_requested(chapter_id: String) -> void:
 		push_error("Failed to load chapter: " + chapter_id)
 		_show_title()
 		return
-	# Show opening dialogue if it's a fresh chapter, otherwise go straight to map
+	# Show opening dialogue if it's a fresh chapter, otherwise go straight to preparation
 	var is_already_playing = GameState.cleared_chapters.has(chapter_id)
 	if is_already_playing:
-		_show_map(chapter_id)
+		_show_preparation(chapter_id)
 	else:
 		_show_dialogue(chapter.opening_dialogue, "intro_complete", chapter_id)
 
@@ -114,7 +128,7 @@ func _on_chapter_select_requested() -> void:
 func _on_dialogue_finished(next_tag: String) -> void:
 	match next_tag:
 		"intro_complete":
-			_show_map(GameState.current_chapter_id)
+			_show_preparation(GameState.current_chapter_id)
 		"victory_results":
 			_show_results(GameState.last_results)
 		"next_chapter":
@@ -122,7 +136,7 @@ func _on_dialogue_finished(next_tag: String) -> void:
 				push_warning("No next chapter to continue to")
 				_show_title()
 			else:
-				_show_map(_last_chapter_cleared)
+				_show_preparation(_last_chapter_cleared)
 		_:
 			_show_title()
 
@@ -169,4 +183,8 @@ func _on_suspend_requested() -> void:
 
 
 func _on_restart_requested(chapter_id: String) -> void:
+	_show_map(chapter_id)
+
+
+func _on_preparation_battle_requested(chapter_id: String) -> void:
 	_show_map(chapter_id)

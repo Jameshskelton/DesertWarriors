@@ -162,6 +162,45 @@ func restore_player_unit_state(unit: UnitState, unit_id: String, allow_missing_r
 	return true
 
 
+func build_preparation_roster(chapter_id: String) -> Array[UnitState]:
+	var chapter: ChapterData = DataRegistry.get_chapter_data(_normalize_chapter_id(chapter_id))
+	var roster: Array[UnitState] = []
+	if chapter == null:
+		return roster
+	var seen_units: PackedStringArray = PackedStringArray()
+	for entry_value in chapter.starting_units:
+		if typeof(entry_value) != TYPE_DICTIONARY:
+			continue
+		var entry: Dictionary = entry_value
+		var unit_id: String = str(entry.get("unit_id", ""))
+		if unit_id.is_empty() or seen_units.has(unit_id):
+			continue
+		var unit_data: UnitData = DataRegistry.get_unit_data(unit_id)
+		if unit_data == null:
+			continue
+		var faction_override: String = str(entry.get("faction", ""))
+		var unit: UnitState = UnitState.from_unit_data(unit_data, Vector2i.ZERO, faction_override)
+		if unit.faction != "player":
+			continue
+		var can_fall_back_to_default_state: bool = not unit_data.join_event_id.is_empty()
+		if not restore_player_unit_state(unit, unit_id, can_fall_back_to_default_state):
+			continue
+		unit.position = Vector2i.ZERO
+		unit.reset_turn_state()
+		roster.append(unit)
+		seen_units.append(unit_id)
+	return roster
+
+
+func store_preparation_roster(units: Array[UnitState]) -> void:
+	for unit in units:
+		if unit == null or unit.faction != "player":
+			continue
+		if permadeath_enabled and fallen_units.has(unit.unit_id):
+			continue
+		roster_state[unit.unit_id] = _normalize_roster_entry(unit.unit_id, unit.to_persistent_state(), false)
+
+
 func build_save_payload() -> Dictionary:
 	return {
 		"version": SAVE_VERSION,

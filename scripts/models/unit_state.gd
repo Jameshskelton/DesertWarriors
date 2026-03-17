@@ -182,6 +182,11 @@ func get_equipped_weapon_id() -> String:
 	return str(inventory[weapon_index])
 
 
+func get_equipped_weapon_index() -> int:
+	_ensure_item_uses_synced()
+	return _find_first_equippable_weapon_index()
+
+
 func get_equipped_weapon_uses() -> int:
 	_ensure_item_uses_synced()
 	var weapon_index: int = _find_first_equippable_weapon_index()
@@ -243,6 +248,44 @@ func add_equipped_weapon(weapon_id: String, uses: int = -1) -> void:
 		updated_inventory.append(str(existing_item_id))
 	inventory = updated_inventory
 	item_uses.insert(0, maxi(0, starting_uses))
+
+
+func move_item(from_index: int, to_index: int) -> bool:
+	_ensure_item_uses_synced()
+	if from_index < 0 or from_index >= inventory.size():
+		return false
+	var target_index: int = clampi(to_index, 0, inventory.size() - 1)
+	if from_index == target_index:
+		return false
+	var item_id: String = str(inventory[from_index])
+	var uses: int = int(item_uses[from_index])
+	inventory.remove_at(from_index)
+	item_uses.remove_at(from_index)
+	inventory.insert(target_index, item_id)
+	item_uses.insert(target_index, uses)
+	return true
+
+
+func can_receive_item(item_id: String) -> bool:
+	var weapon: WeaponData = DataRegistry.get_weapon_data(item_id)
+	if weapon != null:
+		return can_use_weapon(weapon)
+	return DataRegistry.get_item_data(item_id) != null
+
+
+func transfer_item_to(item_index: int, target: UnitState) -> bool:
+	_ensure_item_uses_synced()
+	if target == null or target == self:
+		return false
+	if item_index < 0 or item_index >= inventory.size() or item_index >= item_uses.size():
+		return false
+	var item_id: String = str(inventory[item_index])
+	if not target.can_receive_item(item_id):
+		return false
+	var uses: int = int(item_uses[item_index])
+	_remove_item_at(item_index)
+	target.add_item(item_id, uses)
+	return true
 
 
 func get_available_item_count(item_id: String) -> int:
