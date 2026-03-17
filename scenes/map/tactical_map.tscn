@@ -87,7 +87,7 @@ text = "Move the cursor and select George."
 
 [node name="HintLabel" type="Label" parent="Footer/FooterMargin/FooterVBox"]
 layout_mode = 2
-text = "Enter/Space confirm, Esc cancel, V danger zone off, P system menu, select a unit for attack range, T end turn."
+text = "Enter/Space confirm, Esc cancel, I inspect, V danger zone off, P system menu, select a unit for attack range, T end turn."
 
 [node name="ActionMenu" parent="." instance=ExtResource("2")]
 
@@ -160,6 +160,128 @@ theme_override_colors/font_color = Color(0.980392, 0.760784, 0.427451, 1)
 theme_override_font_sizes/font_size = 24
 horizontal_alignment = 1
 text = "Warning"
+
+[node name="UnitInspectPanel" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 486.0
+offset_top = 120.0
+offset_right = 1434.0
+offset_bottom = 930.0
+z_index = 27
+
+[node name="InspectMargin" type="MarginContainer" parent="UnitInspectPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 24
+
+[node name="InspectVBox" type="VBoxContainer" parent="UnitInspectPanel/InspectMargin"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Title" type="Label" parent="UnitInspectPanel/InspectMargin/InspectVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 46
+horizontal_alignment = 1
+text = "Unit Inspection"
+
+[node name="Name" type="Label" parent="UnitInspectPanel/InspectMargin/InspectVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 38
+horizontal_alignment = 1
+text = "Unit"
+
+[node name="ContentRow" type="HBoxContainer" parent="UnitInspectPanel/InspectMargin/InspectVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 24
+
+[node name="LeftColumn" type="VBoxContainer" parent="UnitInspectPanel/InspectMargin/InspectVBox/ContentRow"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 18
+
+[node name="PortraitFrame" type="ColorRect" parent="UnitInspectPanel/InspectMargin/InspectVBox/ContentRow/LeftColumn"]
+custom_minimum_size = Vector2(0, 360)
+layout_mode = 2
+size_flags_vertical = 3
+color = Color(0.121569, 0.14902, 0.184314, 1)
+
+[node name="PortraitTexture" type="TextureRect" parent="UnitInspectPanel/InspectMargin/InspectVBox/ContentRow/LeftColumn/PortraitFrame"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PortraitFallback" type="Label" parent="UnitInspectPanel/InspectMargin/InspectVBox/ContentRow/LeftColumn/PortraitFrame"]
+layout_mode = 0
+offset_left = 33.0
+offset_top = 154.0
+offset_right = 267.0
+offset_bottom = 206.0
+theme_override_font_sizes/font_size = 26
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "NO PORTRAIT"
+
+[node name="Summary" type="Label" parent="UnitInspectPanel/InspectMargin/InspectVBox/ContentRow/LeftColumn"]
+layout_mode = 2
+size_flags_vertical = 3
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Faction: Player\nClass: Lord"
+
+[node name="RightColumn" type="VBoxContainer" parent="UnitInspectPanel/InspectMargin/InspectVBox/ContentRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 18
+
+[node name="StatsTitle" type="Label" parent="UnitInspectPanel/InspectMargin/InspectVBox/ContentRow/RightColumn"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "Stats"
+
+[node name="Stats" type="Label" parent="UnitInspectPanel/InspectMargin/InspectVBox/ContentRow/RightColumn"]
+layout_mode = 2
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "HP 18/18"
+
+[node name="TerrainTitle" type="Label" parent="UnitInspectPanel/InspectMargin/InspectVBox/ContentRow/RightColumn"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "Terrain"
+
+[node name="Terrain" type="Label" parent="UnitInspectPanel/InspectMargin/InspectVBox/ContentRow/RightColumn"]
+layout_mode = 2
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Plains"
+
+[node name="InventoryTitle" type="Label" parent="UnitInspectPanel/InspectMargin/InspectVBox/ContentRow/RightColumn"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "Inventory"
+
+[node name="Inventory" type="Label" parent="UnitInspectPanel/InspectMargin/InspectVBox/ContentRow/RightColumn"]
+layout_mode = 2
+size_flags_vertical = 3
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "[E] Bronze Sword (45 uses)"
+
+[node name="CloseButton" type="Button" parent="UnitInspectPanel/InspectMargin/InspectVBox"]
+layout_mode = 2
+text = "Close"
 
 [node name="BattleLayer" type="Control" parent="."]
 layout_mode = 1

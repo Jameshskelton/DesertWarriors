@@ -36,6 +36,7 @@ func ensure_input_actions() -> void:
 	_bind_action("skip_battle", [KEY_SPACE, KEY_ENTER])
 	_bind_action("toggle_danger_zone", [KEY_V])
 	_bind_action("open_system_menu", [KEY_P])
+	_bind_action("inspect_unit", [KEY_I])
 
 
 func _bind_action(action_name: String, keycodes: Array) -> void:

@@ -28,6 +28,9 @@ const MOVEMENT_PATH_SHADOW := Color(0.0392157, 0.0745098, 0.121569, 0.28)
 const DANGER_ZONE_BASE_COLOR := Color(0.839216, 0.215686, 0.176471, 0.16)
 const DANGER_ZONE_INTENSE_COLOR := Color(0.960784, 0.333333, 0.27451, 0.28)
 const PLAYER_ATTACK_RANGE_COLOR := Color(0.980392, 0.647059, 0.196078, 0.26)
+const HOVER_ENEMY_THREAT_COLOR := Color(1.0, 0.509804, 0.258824, 0.34)
+const HOVER_ENEMY_TARGET_FILL := Color(1.0, 0.866667, 0.364706, 0.24)
+const HOVER_ENEMY_TARGET_OUTLINE := Color(1.0, 0.937255, 0.729412, 0.96)
 const MAP_HEAL_POPUP_COLOR := Color(0.552941, 0.941176, 0.682353, 1.0)
 const MAP_BREAK_POPUP_COLOR := Color(1.0, 0.764706, 0.423529, 1.0)
 const SHOP_POTION_ITEM_ID := "health_potion"
@@ -77,7 +80,11 @@ var _map_unit_texture_cache: Dictionary = {}
 var _spawned_reinforcements: PackedStringArray = PackedStringArray()
 var _danger_zone_visible: bool = false
 var _danger_zone_tiles: Dictionary = {}
+var _hover_enemy_threat_tiles: Dictionary = {}
+var _hover_enemy_target_tiles: Dictionary = {}
+var _hover_enemy_target_names: PackedStringArray = PackedStringArray()
 var _shop_customer: UnitState
+var _inspected_unit: UnitState
 
 @onready var _chapter_label: Label = $Header/HeaderMargin/HeaderRow/ChapterLabel
 @onready var _turn_label: Label = $Header/HeaderMargin/HeaderRow/TurnLabel
@@ -95,6 +102,16 @@ var _shop_customer: UnitState
 @onready var _portrait_fallback: Label = $PortraitPanel/PortraitMargin/PortraitVBox/PortraitFrame/PortraitFallback
 @onready var _portrait_details: Label = $PortraitPanel/PortraitMargin/PortraitVBox/PortraitDetails
 @onready var _portrait_warning: Label = $PortraitPanel/PortraitMargin/PortraitVBox/PortraitWarning
+@onready var _unit_inspect_panel: PanelContainer = $UnitInspectPanel
+@onready var _inspect_name: Label = $UnitInspectPanel/InspectMargin/InspectVBox/Name
+@onready var _inspect_portrait_frame: ColorRect = $UnitInspectPanel/InspectMargin/InspectVBox/ContentRow/LeftColumn/PortraitFrame
+@onready var _inspect_portrait_texture: TextureRect = $UnitInspectPanel/InspectMargin/InspectVBox/ContentRow/LeftColumn/PortraitFrame/PortraitTexture
+@onready var _inspect_portrait_fallback: Label = $UnitInspectPanel/InspectMargin/InspectVBox/ContentRow/LeftColumn/PortraitFrame/PortraitFallback
+@onready var _inspect_summary: Label = $UnitInspectPanel/InspectMargin/InspectVBox/ContentRow/LeftColumn/Summary
+@onready var _inspect_stats: Label = $UnitInspectPanel/InspectMargin/InspectVBox/ContentRow/RightColumn/Stats
+@onready var _inspect_terrain: Label = $UnitInspectPanel/InspectMargin/InspectVBox/ContentRow/RightColumn/Terrain
+@onready var _inspect_inventory: Label = $UnitInspectPanel/InspectMargin/InspectVBox/ContentRow/RightColumn/Inventory
+@onready var _inspect_close_button: Button = $UnitInspectPanel/InspectMargin/InspectVBox/CloseButton
 @onready var _battle_layer: Control = $BattleLayer
 @onready var _help_panel = $HelpPanel
 @onready var _help_close_button: Button = $HelpPanel/HelpMargin/HelpVBox/CloseButton
@@ -124,6 +141,7 @@ func _ready() -> void:
 	_system_menu.visible = false
 	_shop_menu.visible = false
 	_end_turn_confirm.visible = false
+	_unit_inspect_panel.visible = false
 	if _help_close_button != null:
 		_help_close_button.pressed.connect(func() -> void:
 			_help_panel.visible = false
@@ -136,6 +154,7 @@ func _ready() -> void:
 	_shop_leave_button.pressed.connect(Callable(self, "_on_shop_leave_pressed"))
 	_end_turn_yes_button.pressed.connect(Callable(self, "_on_end_turn_yes_pressed"))
 	_end_turn_no_button.pressed.connect(Callable(self, "_on_end_turn_no_pressed"))
+	_inspect_close_button.pressed.connect(Callable(self, "_close_unit_inspection"))
 	_battle_transition.battle_overlay_requested.connect(Callable(self, "_show_battle_overlay"))
 	_action_menu.action_selected.connect(Callable(self, "_on_action_menu_selected"))
 	_load_chapter()
@@ -150,10 +169,15 @@ func _load_chapter() -> void:
 	_grid_size = Vector2i(_chapter.map_width, _chapter.map_height)
 	_terrain_grid = _build_terrain_grid(_chapter)
 	_selection.reset()
+	_inspected_unit = null
+	_unit_inspect_panel.visible = false
 	_action_menu.hide_menu()
 	_forecast_panel.hide_panel()
 	_spawned_reinforcements.clear()
 	_units.clear()
+	_hover_enemy_threat_tiles.clear()
+	_hover_enemy_target_tiles.clear()
+	_hover_enemy_target_names.clear()
 	_event_director.reset()
 	if not _restore_suspend_state(GameState.suspend_state):
 		for entry in _chapter.starting_units:
@@ -310,6 +334,11 @@ func _draw_board() -> void:
 					threat_color = DANGER_ZONE_INTENSE_COLOR
 				threat_color.a = threat_alpha
 				draw_rect(rect.grow(-2.0), threat_color)
+			if _hover_enemy_threat_tiles.has(tile):
+				draw_rect(rect.grow(-7.0), HOVER_ENEMY_THREAT_COLOR)
+			if _hover_enemy_target_tiles.has(tile):
+				draw_rect(rect.grow(-10.0), HOVER_ENEMY_TARGET_FILL)
+				draw_rect(rect.grow(-5.0), HOVER_ENEMY_TARGET_OUTLINE, false, 4.0)
 			if player_attack_preview_tiles.has(tile):
 				draw_rect(rect.grow(-4.0), PLAYER_ATTACK_RANGE_COLOR)
 			draw_rect(rect, Color(0, 0, 0, 0.2), false, 1.5)
@@ -400,6 +429,8 @@ func _draw_units() -> void:
 			draw_string(font, rect.position + Vector2(6.0, 18.0) * UI_SCALE, unit.display_name.left(1), HORIZONTAL_ALIGNMENT_LEFT, -1, 24, Color.WHITE)
 		if unit.moved and unit.faction == "player":
 			draw_rect(visual_rect.grow(-4.5), Color(0, 0, 0, 0.4), false, 3.0)
+		if unit.faction == "player" and _hover_enemy_target_tiles.has(unit.position):
+			draw_rect(visual_rect.grow(-2.0), HOVER_ENEMY_TARGET_OUTLINE, false, 4.0)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -411,6 +442,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and (event.keycode == KEY_H or event.keycode == KEY_F1):
 		if _system_menu.visible:
 			return
+		if not _help_panel.visible:
+			_close_unit_inspection(false)
 		_help_panel.visible = not _help_panel.visible
 		return
 	if _help_panel.visible:
@@ -429,10 +462,30 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.is_action_pressed("ui_cancel"):
 			_close_end_turn_confirm()
 		return
+	if _unit_inspect_panel.visible:
+		if event.is_action_pressed("ui_cancel") or event.is_action_pressed("inspect_unit"):
+			_close_unit_inspection()
+			return
+		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			var inspect_tile := _screen_to_tile(event.position)
+			if _grid.in_bounds(inspect_tile, _grid_size):
+				_cursor_tile = inspect_tile
+				var inspect_unit := _get_unit_at(inspect_tile)
+				if inspect_unit != null:
+					_open_unit_inspection(inspect_unit)
+				else:
+					_close_unit_inspection()
+				_update_hover_status()
+				queue_redraw()
+			return
+		return
 	if _active_battle != null or _turn_controller.phase != "player":
 		return
 	if event.is_action_pressed("end_turn"):
 		_open_end_turn_confirm()
+		return
+	if event.is_action_pressed("inspect_unit"):
+		_try_open_unit_inspection_under_cursor()
 		return
 	if event is InputEventMouseMotion:
 		var hovered_tile := _screen_to_tile(event.position)
@@ -446,6 +499,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		var clicked_tile := _screen_to_tile(event.position)
 		if _grid.in_bounds(clicked_tile, _grid_size):
 			_cursor_tile = clicked_tile
+			var clicked_unit := _get_unit_at(clicked_tile)
+			if _should_open_inspection_on_click(clicked_unit):
+				_open_unit_inspection(clicked_unit)
+				_update_hover_status()
+				queue_redraw()
+				return
 			_confirm_cursor()
 			_update_movement_preview()
 			_update_hover_status()
@@ -505,6 +564,7 @@ func _toggle_system_menu() -> void:
 	if _selection.mode != SelectionController.Mode.IDLE:
 		_update_status("Finish or cancel the current action before opening the system menu.")
 		return
+	_close_unit_inspection(false)
 	_help_panel.visible = false
 	_system_menu.visible = true
 	_system_suspend_button.grab_focus()
@@ -515,6 +575,7 @@ func _close_system_menu() -> void:
 
 
 func _open_end_turn_confirm() -> void:
+	_close_unit_inspection(false)
 	_help_panel.visible = false
 	_system_menu.visible = false
 	_end_turn_confirm.visible = true
@@ -525,6 +586,52 @@ func _open_end_turn_confirm() -> void:
 func _close_end_turn_confirm() -> void:
 	_end_turn_confirm.visible = false
 	_update_status("Continue your turn.")
+
+
+func _can_open_unit_inspection() -> bool:
+	return _selection.mode == SelectionController.Mode.IDLE or _selection.mode == SelectionController.Mode.UNIT_SELECTED
+
+
+func _should_open_inspection_on_click(unit: UnitState) -> bool:
+	if unit == null or not _can_open_unit_inspection():
+		return false
+	if _selection.mode == SelectionController.Mode.IDLE:
+		return unit.faction != "player" or unit.moved
+	return unit != _selection.selected_unit or unit.position != _selection.origin_tile
+
+
+func _try_open_unit_inspection_under_cursor() -> void:
+	if not _can_open_unit_inspection():
+		return
+	var unit := _get_unit_at(_cursor_tile)
+	if unit == null:
+		_update_status("Move the cursor over a unit to inspect them.")
+		return
+	_open_unit_inspection(unit)
+
+
+func _open_unit_inspection(unit: UnitState) -> void:
+	if unit == null:
+		return
+	_inspected_unit = unit
+	_unit_inspect_panel.visible = true
+	_refresh_unit_inspection()
+	_inspect_close_button.grab_focus()
+	_update_status("Inspecting %s." % unit.display_name)
+
+
+func _close_unit_inspection(refresh_hover: bool = true) -> void:
+	_inspected_unit = null
+	_unit_inspect_panel.visible = false
+	_inspect_portrait_texture.texture = null
+	if refresh_hover:
+		_update_hover_status()
+		var hovered_unit := _get_unit_at(_cursor_tile)
+		if hovered_unit == null:
+			if _selection.mode == SelectionController.Mode.UNIT_SELECTED and _selection.selected_unit != null:
+				_update_status("%s selected. Choose a destination." % _selection.selected_unit.display_name)
+			else:
+				_update_status(_build_resume_status())
 
 
 func _on_end_turn_yes_pressed() -> void:
@@ -725,6 +832,7 @@ func _execute_visit(source: UnitState) -> void:
 
 
 func _open_shop_menu(source: UnitState) -> void:
+	_close_unit_inspection(false)
 	_action_menu.hide_menu()
 	_forecast_panel.hide_panel()
 	_help_panel.visible = false
@@ -878,6 +986,7 @@ func _finish_unit_action(allow_village_tile_events: bool = false) -> void:
 
 
 func _begin_enemy_phase() -> void:
+	_close_unit_inspection(false)
 	_turn_controller.enter_enemy_phase()
 	_selection.mode = SelectionController.Mode.ENEMY_PHASE
 	_update_header()
@@ -946,6 +1055,7 @@ func _process_turn_events() -> void:
 func _show_dialogue_overlay(lines: Array) -> void:
 	if lines.is_empty() or _active_dialogue != null:
 		return
+	_close_unit_inspection(false)
 	_action_menu.hide_menu()
 	_forecast_panel.hide_panel()
 	_help_panel.visible = false
@@ -1137,7 +1247,7 @@ func _update_hint() -> void:
 	var danger_zone_state: String = "off"
 	if _danger_zone_visible:
 		danger_zone_state = "on"
-	_hint_label.text = "Enter/Space confirm, Esc cancel, V danger zone %s, P system menu, select a unit for attack range, T end-turn prompt." % [danger_zone_state]
+	_hint_label.text = "Enter/Space confirm, Esc cancel, I inspect, V danger zone %s, P system menu, select a unit for attack range, T end-turn prompt." % [danger_zone_state]
 
 
 func _toggle_danger_zone() -> void:
@@ -1177,6 +1287,7 @@ func _update_status(message: String) -> void:
 
 func _update_hover_status() -> void:
 	var unit := _get_unit_at(_cursor_tile)
+	_refresh_hover_enemy_readability(_resolve_hover_enemy_focus(unit))
 	if unit != null:
 		_show_hover_portrait(unit)
 	elif _selection.selected_unit != null:
@@ -1197,8 +1308,11 @@ func _update_hover_status() -> void:
 			_forecast_panel.show_heal_preview(_selection.selected_unit, unit, amount)
 			return
 	_forecast_panel.hide_panel()
-	if unit != null:
-		_status_label.text = "%s Lv.%d HP %d/%d" % [unit.display_name, unit.level, unit.get_current_hp(), unit.get_max_hp()]
+	if unit != null and not _unit_inspect_panel.visible:
+		if unit.faction == "enemy":
+			_status_label.text = _build_enemy_hover_status(unit)
+		else:
+			_status_label.text = "%s Lv.%d HP %d/%d" % [unit.display_name, unit.level, unit.get_current_hp(), unit.get_max_hp()]
 
 
 func _unit_color(unit: UnitState) -> Color:
@@ -1210,14 +1324,23 @@ func _unit_color(unit: UnitState) -> Color:
 func _show_hover_portrait(unit: UnitState) -> void:
 	_portrait_panel.visible = true
 	_portrait_name.text = unit.display_name
-	_portrait_details.text = "%s  Lv.%d  HP %d/%d\n%s\n%s" % [
-		DataRegistry.get_class_data(unit.class_id).display_name if DataRegistry.get_class_data(unit.class_id) != null else unit.class_id.capitalize(),
+	var class_display_name: String = unit.class_id.capitalize()
+	var class_data: ClassData = DataRegistry.get_class_data(unit.class_id)
+	if class_data != null:
+		class_display_name = class_data.display_name
+	var detail_lines: Array[String] = []
+	detail_lines.append("%s  Lv.%d  HP %d/%d" % [
+		class_display_name,
 		unit.level,
 		unit.get_current_hp(),
 		unit.get_max_hp(),
-		_format_unit_weapon_status(unit),
-		_format_unit_potion_status(unit),
-	]
+	])
+	detail_lines.append(_format_unit_weapon_status(unit))
+	detail_lines.append(_format_unit_potion_status(unit))
+	if unit.faction == "enemy":
+		detail_lines.append("Threatens: %d tiles" % _hover_enemy_threat_tiles.size())
+		detail_lines.append(_build_enemy_target_summary())
+	_portrait_details.text = "\n".join(detail_lines)
 	var warning_text: String = _build_unit_break_warning(unit)
 	_portrait_warning.text = warning_text
 	_portrait_warning.visible = not warning_text.is_empty()
@@ -1226,7 +1349,9 @@ func _show_hover_portrait(unit: UnitState) -> void:
 	_portrait_texture.visible = portrait != null
 	_portrait_fallback.visible = portrait == null
 	_portrait_fallback.text = unit.display_name.to_upper()
-	_portrait_frame.color = Color(0.121569, 0.14902, 0.184314, 1) if portrait != null else _unit_color(unit)
+	_portrait_frame.color = _unit_color(unit)
+	if portrait != null:
+		_portrait_frame.color = Color(0.121569, 0.14902, 0.184314, 1)
 
 
 func _hide_hover_portrait() -> void:
@@ -1256,6 +1381,178 @@ func _build_unit_break_warning(unit: UnitState) -> String:
 	if weapon == null or unit.get_equipped_weapon_uses() != 1:
 		return ""
 	return "%s breaks on next use." % weapon.name
+
+
+func _resolve_hover_enemy_focus(hovered_unit: UnitState) -> UnitState:
+	if hovered_unit != null and hovered_unit.faction == "enemy":
+		return hovered_unit
+	if _unit_inspect_panel.visible and _inspected_unit != null and _inspected_unit.faction == "enemy":
+		return _inspected_unit
+	return null
+
+
+func _refresh_hover_enemy_readability(enemy_unit: UnitState) -> void:
+	_hover_enemy_threat_tiles.clear()
+	_hover_enemy_target_tiles.clear()
+	_hover_enemy_target_names.clear()
+	if enemy_unit == null:
+		queue_redraw()
+		return
+	_hover_enemy_threat_tiles = _danger_zone_service.build_threat_tiles_for_unit(enemy_unit, _units, _terrain_grid)
+	for unit in _units:
+		if unit == null or unit.faction != "player" or not unit.is_alive() or not unit.has_joined:
+			continue
+		if _hover_enemy_threat_tiles.has(unit.position):
+			_hover_enemy_target_tiles[unit.position] = true
+			_hover_enemy_target_names.append(unit.display_name)
+	queue_redraw()
+
+
+func _build_enemy_hover_status(unit: UnitState) -> String:
+	return "%s Lv.%d HP %d/%d | %s" % [
+		unit.display_name,
+		unit.level,
+		unit.get_current_hp(),
+		unit.get_max_hp(),
+		_build_enemy_target_summary(),
+	]
+
+
+func _build_enemy_target_summary() -> String:
+	if _hover_enemy_target_names.is_empty():
+		return "Can target: nobody"
+	return "Can target: %s" % ", ".join(_packed_string_array_to_array(_hover_enemy_target_names))
+
+
+func _refresh_unit_inspection() -> void:
+	if _inspected_unit == null:
+		_close_unit_inspection(false)
+		return
+	var unit: UnitState = _inspected_unit
+	_inspect_name.text = "%s  Lv.%d" % [unit.display_name, unit.level]
+	_inspect_summary.text = _format_inspection_summary(unit)
+	_inspect_stats.text = _format_inspection_stats(unit)
+	_inspect_terrain.text = _format_inspection_terrain(unit)
+	_inspect_inventory.text = _format_inspection_inventory(unit)
+	var portrait := _load_portrait_for_unit(unit)
+	_inspect_portrait_texture.texture = portrait
+	_inspect_portrait_texture.visible = portrait != null
+	_inspect_portrait_fallback.visible = portrait == null
+	_inspect_portrait_fallback.text = unit.display_name.to_upper()
+	_inspect_portrait_frame.color = _unit_color(unit)
+	if portrait != null:
+		_inspect_portrait_frame.color = Color(0.121569, 0.14902, 0.184314, 1)
+
+
+func _format_inspection_summary(unit: UnitState) -> String:
+	var class_data: ClassData = DataRegistry.get_class_data(unit.class_id)
+	var unit_class_name: String = unit.class_id.capitalize()
+	var move_range: int = 0
+	var move_type: String = "--"
+	if class_data != null:
+		unit_class_name = class_data.display_name
+		move_range = class_data.move_range
+		move_type = class_data.move_type.capitalize()
+	var faction_name: String = unit.faction.capitalize()
+	var weapon: WeaponData = DataRegistry.get_weapon_data(unit.get_equipped_weapon_id())
+	var weapon_line: String = "Weapon: Broken"
+	var weapon_range: String = "--"
+	if weapon != null:
+		weapon_line = "Weapon: %s (%d/%d)" % [weapon.name, unit.get_equipped_weapon_uses(), int(weapon.uses)]
+		weapon_range = _format_weapon_range(weapon)
+	return "Faction: %s\nClass: %s\nMove: %d (%s)\nWeapon Range: %s\n%s" % [
+		faction_name,
+		unit_class_name,
+		move_range,
+		move_type,
+		weapon_range,
+		weapon_line,
+	]
+
+
+func _format_inspection_stats(unit: UnitState) -> String:
+	return "HP: %d / %d\nSTR: %d    MAG: %d\nSKL: %d    SPD: %d\nLCK: %d    DEF: %d\nRES: %d    XP: %d" % [
+		unit.get_current_hp(),
+		unit.get_max_hp(),
+		int(unit.stats.get("str", 0)),
+		int(unit.stats.get("mag", 0)),
+		int(unit.stats.get("skl", 0)),
+		int(unit.stats.get("spd", 0)),
+		int(unit.stats.get("lck", 0)),
+		int(unit.stats.get("def", 0)),
+		int(unit.stats.get("res", 0)),
+		unit.xp,
+	]
+
+
+func _format_inspection_terrain(unit: UnitState) -> String:
+	var terrain: TerrainData = _get_terrain_at(unit.position)
+	if terrain == null:
+		return "Unknown terrain"
+	var class_data: ClassData = DataRegistry.get_class_data(unit.class_id)
+	var move_cost_text: String = "--"
+	var def_bonus_text: String = _format_signed_value(int(terrain.def_bonus))
+	var avoid_bonus_text: String = _format_signed_value(int(terrain.avoid_bonus))
+	if class_data != null:
+		var move_cost: int = int(terrain.move_cost_by_type.get(class_data.move_type, 99))
+		move_cost_text = str(move_cost)
+		if terrain.is_blocking:
+			move_cost_text = "Blocked"
+	return "%s at (%d, %d)\nDEF Bonus: %s\nAvoid Bonus: %s\nMove Cost: %s" % [
+		terrain.name,
+		unit.position.x,
+		unit.position.y,
+		def_bonus_text,
+		avoid_bonus_text,
+		move_cost_text,
+	]
+
+
+func _format_inspection_inventory(unit: UnitState) -> String:
+	if unit.inventory.is_empty():
+		return "--"
+	var equipped_index: int = unit.get_equipped_weapon_index()
+	var lines: Array[String] = []
+	for item_index in range(unit.inventory.size()):
+		var item_id: String = str(unit.inventory[item_index])
+		var prefix: String = ""
+		if item_index == equipped_index:
+			prefix = "[E] "
+		var weapon: WeaponData = DataRegistry.get_weapon_data(item_id)
+		if weapon != null:
+			lines.append("%s%s (%d/%d uses, %s range)" % [
+				prefix,
+				weapon.name,
+				unit.get_item_uses_at(item_index),
+				int(weapon.uses),
+				_format_weapon_range(weapon),
+			])
+			continue
+		var item: ItemData = DataRegistry.get_item_data(item_id)
+		if item != null:
+			lines.append("%s%s (%d/%d uses)" % [
+				prefix,
+				item.name,
+				unit.get_item_uses_at(item_index),
+				int(item.uses),
+			])
+			continue
+		lines.append("%s%s (%d uses)" % [prefix, item_id.capitalize(), unit.get_item_uses_at(item_index)])
+	return "\n".join(lines)
+
+
+func _format_weapon_range(weapon: WeaponData) -> String:
+	if weapon == null:
+		return "--"
+	if weapon.min_range == weapon.max_range:
+		return str(weapon.min_range)
+	return "%d-%d" % [weapon.min_range, weapon.max_range]
+
+
+func _format_signed_value(value: int) -> String:
+	if value >= 0:
+		return "+%d" % value
+	return str(value)
 
 
 func _load_portrait_for_unit(unit: UnitState) -> Texture2D:

@@ -9,12 +9,17 @@ func run() -> PackedStringArray:
 	var brigand := UnitState.from_unit_data(DataRegistry.get_unit_data("brigand_grunt"), Vector2i(0, 0), "enemy")
 	var open_units: Array[UnitState] = [brigand]
 	var open_threats: Dictionary = service.build_enemy_threat_tiles(open_units, terrain_grid)
+	var brigand_threats: Dictionary = service.build_threat_tiles_for_unit(brigand, open_units, terrain_grid)
 	_assert_true(open_threats.has(Vector2i(2, 0)), "enemy threat range should extend through open movement space", failures)
+	_assert_true(brigand_threats.has(Vector2i(2, 0)), "single-enemy threat helper should match the full danger zone reach", failures)
 	var george := UnitState.from_unit_data(DataRegistry.get_unit_data("george"), Vector2i(1, 0))
 	var blocked_units: Array[UnitState] = [brigand, george]
 	var blocked_threats: Dictionary = service.build_enemy_threat_tiles(blocked_units, terrain_grid)
+	var blocked_brigand_threats: Dictionary = service.build_threat_tiles_for_unit(brigand, blocked_units, terrain_grid)
 	_assert_true(blocked_threats.has(Vector2i(1, 0)), "adjacent tiles should still be threatened", failures)
 	_assert_true(not blocked_threats.has(Vector2i(2, 0)), "opposing units should block farther threat reach", failures)
+	_assert_true(blocked_brigand_threats.has(Vector2i(1, 0)), "single-enemy helper should still include currently targetable adjacent units", failures)
+	_assert_true(not blocked_brigand_threats.has(Vector2i(2, 0)), "single-enemy helper should respect opposing blockers", failures)
 	var hale_enemy := UnitState.from_unit_data(DataRegistry.get_unit_data("brother_hale"), Vector2i(0, 0), "enemy")
 	var staff_units: Array[UnitState] = [hale_enemy]
 	var staff_threats: Dictionary = service.build_enemy_threat_tiles(staff_units, terrain_grid)
