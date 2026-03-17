@@ -49,6 +49,21 @@ func run() -> PackedStringArray:
 	]
 	var river_result: Dictionary = pathfinding.compute_reachable(Vector2i(0, 0), 3, river_grid, "infantry", {})
 	_assert_true(not river_result.get("costs", {}).has(Vector2i(1, 0)), "river tiles should be impassable", failures)
+	var sand: TerrainData = DataRegistry.get_terrain_data("sand")
+	var forest: TerrainData = DataRegistry.get_terrain_data("forest")
+	_assert_true(sand != null, "sand terrain should be registered", failures)
+	if sand != null and forest != null:
+		_assert_true(int(sand.move_cost_by_type.get("infantry", 0)) == int(forest.move_cost_by_type.get("infantry", -1)), "sand should slow infantry like forest terrain", failures)
+		_assert_true(int(sand.move_cost_by_type.get("cavalry", 0)) == int(forest.move_cost_by_type.get("cavalry", -1)), "sand should slow cavalry like forest terrain", failures)
+		_assert_true(int(sand.avoid_bonus) == 0, "sand should not grant an avoid bonus", failures)
+	var sand_grid := [
+		["sand", "sand", "sand"],
+		["sand", "sand", "sand"],
+		["sand", "sand", "sand"],
+	]
+	var sand_infantry: Dictionary = pathfinding.compute_reachable(Vector2i(1, 1), 4, sand_grid, "infantry", {})
+	var sand_cavalry: Dictionary = pathfinding.compute_reachable(Vector2i(1, 1), 4, sand_grid, "cavalry", {})
+	_assert_true(sand_infantry.get("costs", {}).size() > sand_cavalry.get("costs", {}).size(), "cavalry should also have reduced reach in sand terrain", failures)
 	return failures
 
 

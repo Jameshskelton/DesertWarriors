@@ -15,6 +15,7 @@ const GRASSLAND_TEXTURE := preload("res://assets/terrain/grassland.png")
 const MOUNTAIN_TEXTURE := preload("res://assets/terrain/mountain.png")
 const RIVER_TEXTURE := preload("res://assets/terrain/river.png")
 const ROAD_TEXTURE := preload("res://assets/terrain/road.png")
+const SAND_TEXTURE := preload("res://assets/terrain/sand.png")
 const STORE_TEXTURE := preload("res://assets/terrain/store.png")
 const TALL_MOUNTAIN_TEXTURE := preload("res://assets/terrain/tall_mountain.png")
 const THICKET_TEXTURE := preload("res://assets/terrain/thicket.png")
@@ -385,6 +386,8 @@ func _draw_board() -> void:
 				draw_texture_rect(RIVER_TEXTURE, rect, false)
 			if terrain_id == "road" and ROAD_TEXTURE != null:
 				draw_texture_rect(ROAD_TEXTURE, rect, false)
+			if terrain_id == "sand" and SAND_TEXTURE != null:
+				draw_texture_rect(SAND_TEXTURE, rect, false)
 			if terrain_id == "store" and STORE_TEXTURE != null:
 				draw_texture_rect(STORE_TEXTURE, rect, false)
 			if terrain_id == "tall_mountain" and TALL_MOUNTAIN_TEXTURE != null:
