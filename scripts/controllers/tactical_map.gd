@@ -24,8 +24,12 @@ const UI_SCALE := 1.5
 const MAP_UNIT_TEXTURE_DIR := "res://assets/map_units"
 const MAP_UNIT_SPRITE_SCALE := 1.5
 const MAP_UNIT_ANIMATION_INTERVAL := 0.5
+const ENEMY_PATH_PREVIEW_PAUSE := 0.4
+const ENEMY_PATH_STEP_PAUSE := 0.12
 const MOVEMENT_PATH_COLOR := Color(0.462745, 0.815686, 0.960784, 0.72)
 const MOVEMENT_PATH_SHADOW := Color(0.0392157, 0.0745098, 0.121569, 0.28)
+const ENEMY_MOVEMENT_PATH_COLOR := Color(0.980392, 0.682353, 0.368627, 0.76)
+const ENEMY_MOVEMENT_PATH_SHADOW := Color(0.160784, 0.0745098, 0.0470588, 0.34)
 const DANGER_ZONE_BASE_COLOR := Color(0.839216, 0.215686, 0.176471, 0.16)
 const DANGER_ZONE_INTENSE_COLOR := Color(0.960784, 0.333333, 0.27451, 0.28)
 const BOSS_DANGER_FILL_COLOR := Color(0.890196, 0.227451, 0.176471, 0.22)
@@ -83,6 +87,7 @@ var _pending_battle_result: BattleResult
 var _map_unit_texture_cache: Dictionary = {}
 var _map_unit_animation_elapsed: float = 0.0
 var _map_unit_animation_frame: int = 0
+var _enemy_preview_path: Array[Vector2i] = []
 var _spawned_reinforcements: PackedStringArray = PackedStringArray()
 var _danger_zone_visible: bool = false
 var _danger_zone_tiles: Dictionary = {}
@@ -200,6 +205,7 @@ func _load_chapter() -> void:
 	_selection.reset()
 	_map_unit_animation_elapsed = 0.0
 	_map_unit_animation_frame = 0
+	_enemy_preview_path.clear()
 	_inspected_unit = null
 	_unit_inspect_panel.visible = false
 	_action_menu.hide_menu()
@@ -398,19 +404,24 @@ func _draw_board() -> void:
 
 
 func _draw_movement_preview() -> void:
-	if _selection.preview_path.size() < 2:
+	_draw_preview_path(_enemy_preview_path, ENEMY_MOVEMENT_PATH_SHADOW, ENEMY_MOVEMENT_PATH_COLOR)
+	_draw_preview_path(_selection.preview_path, MOVEMENT_PATH_SHADOW, MOVEMENT_PATH_COLOR)
+
+
+func _draw_preview_path(path: Array[Vector2i], shadow_color: Color, path_color: Color) -> void:
+	if path.size() < 2:
 		return
 	var points := PackedVector2Array()
-	for tile in _selection.preview_path:
+	for tile in path:
 		points.append(_tile_center(tile))
-	draw_polyline(points, MOVEMENT_PATH_SHADOW, 13.5 * UI_SCALE, true)
-	draw_polyline(points, MOVEMENT_PATH_COLOR, 8.0 * UI_SCALE, true)
+	draw_polyline(points, shadow_color, 13.5 * UI_SCALE, true)
+	draw_polyline(points, path_color, 8.0 * UI_SCALE, true)
 	for point in points:
-		draw_circle(point, 4.0 * UI_SCALE, MOVEMENT_PATH_COLOR)
-	_draw_movement_arrowhead(points[points.size() - 2], points[points.size() - 1])
+		draw_circle(point, 4.0 * UI_SCALE, path_color)
+	_draw_movement_arrowhead(points[points.size() - 2], points[points.size() - 1], shadow_color, path_color)
 
 
-func _draw_movement_arrowhead(from_point: Vector2, to_point: Vector2) -> void:
+func _draw_movement_arrowhead(from_point: Vector2, to_point: Vector2, shadow_color: Color, path_color: Color) -> void:
 	var direction := (to_point - from_point).normalized()
 	if direction == Vector2.ZERO:
 		return
@@ -419,11 +430,11 @@ func _draw_movement_arrowhead(from_point: Vector2, to_point: Vector2) -> void:
 	var shadow_side := direction.orthogonal() * (10.0 * UI_SCALE)
 	draw_colored_polygon(
 		PackedVector2Array([tip, shadow_base + shadow_side, shadow_base - shadow_side]),
-		MOVEMENT_PATH_SHADOW
+		shadow_color
 	)
 	var base := tip - direction * (15.0 * UI_SCALE)
 	var side := direction.orthogonal() * (8.0 * UI_SCALE)
-	draw_colored_polygon(PackedVector2Array([tip, base + side, base - side]), MOVEMENT_PATH_COLOR)
+	draw_colored_polygon(PackedVector2Array([tip, base + side, base - side]), path_color)
 
 
 func _tile_center(tile: Vector2i) -> Vector2:
@@ -1120,6 +1131,7 @@ func _on_battle_finished() -> void:
 	_active_battle = null
 	if battle != null and is_instance_valid(battle):
 		battle.queue_free()
+	AudioDirector.resume_previous_track()
 	_apply_battle_rewards()
 	_refresh_danger_zone()
 	queue_redraw()
@@ -1165,6 +1177,8 @@ func _finish_unit_action(allow_village_tile_events: bool = false) -> void:
 
 func _begin_enemy_phase() -> void:
 	_close_unit_inspection(false)
+	_selection.preview_path.clear()
+	_enemy_preview_path.clear()
 	_turn_controller.enter_enemy_phase()
 	_selection.mode = SelectionController.Mode.ENEMY_PHASE
 	_update_header()
@@ -1177,6 +1191,7 @@ func _begin_enemy_phase() -> void:
 	if _check_end_conditions():
 		return
 	_selection.reset()
+	_enemy_preview_path.clear()
 	_update_header()
 	_refresh_danger_zone()
 	_update_status("Player phase. Press T to end turn if needed.")
@@ -1188,12 +1203,14 @@ func _run_enemy_phase() -> void:
 		if unit.faction != "enemy" or not unit.is_alive():
 			continue
 		var action := _ai_controller.choose_action(unit, _units, _terrain_grid)
+		var action_path: Array[Vector2i] = _extract_action_path(action, unit.position)
 		match action.get("type", "wait"):
 			"move_wait":
-				unit.position = action.get("destination", unit.position)
-				await get_tree().create_timer(0.15).timeout
+				await _preview_enemy_path(unit, action_path)
+				await _move_unit_along_path(unit, action_path)
 			"move_attack":
-				unit.position = action.get("destination", unit.position)
+				await _preview_enemy_path(unit, action_path)
+				await _move_unit_along_path(unit, action_path)
 				var target := action.get("target") as UnitState
 				if target != null and target.is_alive():
 					await _play_pre_battle_dialogue_if_needed(unit, target)
@@ -1207,10 +1224,47 @@ func _run_enemy_phase() -> void:
 					_pending_battle_result = payload["result"] as BattleResult
 					_battle_transition.begin_battle(payload)
 					await _battle_completed()
+		_enemy_preview_path.clear()
 		_refresh_danger_zone()
+		_update_hover_status()
 		queue_redraw()
 		if _check_end_conditions():
 			return
+	_enemy_preview_path.clear()
+	queue_redraw()
+
+
+func _extract_action_path(action: Dictionary, origin: Vector2i) -> Array[Vector2i]:
+	var path: Array[Vector2i] = []
+	var raw_path_value: Variant = action.get("path", [])
+	if raw_path_value is Array:
+		for tile_value in raw_path_value:
+			path.append(_vector2i_from_variant(tile_value))
+	if path.is_empty():
+		path.append(origin)
+	elif path[0] != origin:
+		path.push_front(origin)
+	return path
+
+
+func _preview_enemy_path(unit: UnitState, path: Array[Vector2i]) -> void:
+	_enemy_preview_path = path.duplicate()
+	if _enemy_preview_path.size() < 2:
+		return
+	_update_status("%s advances." % unit.display_name)
+	queue_redraw()
+	await get_tree().create_timer(ENEMY_PATH_PREVIEW_PAUSE).timeout
+
+
+func _move_unit_along_path(unit: UnitState, path: Array[Vector2i]) -> void:
+	if unit == null or path.size() < 2:
+		return
+	for step_index in range(1, path.size()):
+		unit.position = path[step_index]
+		_refresh_danger_zone()
+		_update_hover_status()
+		queue_redraw()
+		await get_tree().create_timer(ENEMY_PATH_STEP_PAUSE).timeout
 
 
 func _process_turn_events() -> void:
