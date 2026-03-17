@@ -274,18 +274,32 @@ func can_receive_item(item_id: String) -> bool:
 
 
 func transfer_item_to(item_index: int, target: UnitState) -> bool:
-	_ensure_item_uses_synced()
 	if target == null or target == self:
 		return false
+	_ensure_item_uses_synced()
 	if item_index < 0 or item_index >= inventory.size() or item_index >= item_uses.size():
 		return false
 	var item_id: String = str(inventory[item_index])
 	if not target.can_receive_item(item_id):
 		return false
+	var extracted_item: Dictionary = extract_item_at(item_index)
+	if extracted_item.is_empty():
+		return false
+	target.add_item(item_id, int(extracted_item.get("uses", 0)))
+	return true
+
+
+func extract_item_at(item_index: int) -> Dictionary:
+	_ensure_item_uses_synced()
+	if item_index < 0 or item_index >= inventory.size() or item_index >= item_uses.size():
+		return {}
+	var item_id: String = str(inventory[item_index])
 	var uses: int = int(item_uses[item_index])
 	_remove_item_at(item_index)
-	target.add_item(item_id, uses)
-	return true
+	return {
+		"item_id": item_id,
+		"uses": uses,
+	}
 
 
 func get_available_item_count(item_id: String) -> int:

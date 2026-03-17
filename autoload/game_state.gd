@@ -20,6 +20,7 @@ var last_results: Dictionary = {}
 var is_continuing: bool = false
 var suspend_state: Dictionary = {}
 var preparation_assignments: Dictionary = {}
+var convoy_items: Array = []
 
 
 func _ready() -> void:
@@ -61,6 +62,7 @@ func reset_runtime() -> void:
 	last_results.clear()
 	suspend_state.clear()
 	preparation_assignments.clear()
+	convoy_items.clear()
 	rng.seed = rng_seed
 	is_continuing = false
 
@@ -103,6 +105,7 @@ func continue_game() -> bool:
 	last_results = save_data.get("last_results", {}).duplicate(true)
 	suspend_state = _normalize_suspend_state(save_data.get("suspend_state", {}))
 	preparation_assignments = _normalize_preparation_assignments(save_data.get("preparation_assignments", {}))
+	convoy_items = _normalize_convoy_items(save_data.get("convoy_items", []))
 	
 	# Apply saved roster state
 	roster_state = _normalize_roster_state(save_data.get("roster_state", {}), true)
@@ -311,6 +314,7 @@ func build_save_payload() -> Dictionary:
 		"roster_state": roster_state,
 		"suspend_state": suspend_state,
 		"preparation_assignments": preparation_assignments,
+		"convoy_items": convoy_items,
 	}
 
 
@@ -346,6 +350,41 @@ func spend_gold(amount: int) -> bool:
 		return false
 	gold -= amount
 	return true
+
+
+func get_convoy_items() -> Array:
+	var copied_items: Array = []
+	for entry in convoy_items:
+		copied_items.append(entry.duplicate(true))
+	return copied_items
+
+
+func add_convoy_item(item_id: String, uses: int = -1) -> void:
+	if item_id.is_empty():
+		return
+	var normalized_uses: int = uses
+	if normalized_uses < 0:
+		var weapon: WeaponData = DataRegistry.get_weapon_data(item_id)
+		if weapon != null:
+			normalized_uses = int(weapon.uses)
+		else:
+			var item: ItemData = DataRegistry.get_item_data(item_id)
+			if item != null:
+				normalized_uses = int(item.uses)
+	if normalized_uses < 0:
+		normalized_uses = 0
+	convoy_items.append({
+		"item_id": item_id,
+		"uses": normalized_uses,
+	})
+
+
+func remove_convoy_item(index: int) -> Dictionary:
+	if index < 0 or index >= convoy_items.size():
+		return {}
+	var entry: Dictionary = convoy_items[index].duplicate(true)
+	convoy_items.remove_at(index)
+	return entry
 
 
 func _normalize_roster_state(raw_roster: Variant, heal_to_full: bool = false) -> Dictionary:
@@ -401,6 +440,36 @@ func _normalize_preparation_assignments(raw_assignments: Variant) -> Dictionary:
 			normalized_chapter_assignments[unit_id] = _serialize_vector2i(slot_position)
 			used_slots.append(slot_position)
 		normalized[chapter_key] = normalized_chapter_assignments
+	return normalized
+
+
+func _normalize_convoy_items(raw_convoy_items: Variant) -> Array:
+	var normalized: Array = []
+	if typeof(raw_convoy_items) != TYPE_ARRAY:
+		return normalized
+	for entry_value in raw_convoy_items:
+		if typeof(entry_value) != TYPE_DICTIONARY:
+			continue
+		var entry: Dictionary = entry_value
+		var item_id: String = str(entry.get("item_id", ""))
+		if item_id.is_empty():
+			continue
+		var weapon: WeaponData = DataRegistry.get_weapon_data(item_id)
+		var item: ItemData = DataRegistry.get_item_data(item_id)
+		if weapon == null and item == null:
+			continue
+		var uses: int = int(entry.get("uses", -1))
+		if uses < 0:
+			if weapon != null:
+				uses = int(weapon.uses)
+			elif item != null:
+				uses = int(item.uses)
+			else:
+				uses = 0
+		normalized.append({
+			"item_id": item_id,
+			"uses": maxi(0, uses),
+		})
 	return normalized
 
 

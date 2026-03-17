@@ -14,6 +14,8 @@ var _selected_unit_index: int = 0
 var _selected_item_index: int = -1
 var _selected_deployment_index: int = 0
 var _selected_target_index: int = 0
+var _selected_convoy_unit_item_index: int = -1
+var _selected_convoy_index: int = -1
 var _trade_target_indices: Array[int] = []
 
 @onready var _title_label: Label = $MainMargin/MainVBox/HeaderPanel/HeaderMargin/HeaderVBox/TitleLabel
@@ -29,6 +31,7 @@ var _trade_target_indices: Array[int] = []
 @onready var _move_up_button: Button = $MainMargin/MainVBox/BodyHBox/InventoryPanel/InventoryMargin/InventoryVBox/ButtonRow/MoveUpButton
 @onready var _move_down_button: Button = $MainMargin/MainVBox/BodyHBox/InventoryPanel/InventoryMargin/InventoryVBox/ButtonRow/MoveDownButton
 @onready var _transfer_button: Button = $MainMargin/MainVBox/BodyHBox/InventoryPanel/InventoryMargin/InventoryVBox/ButtonRow/TransferButton
+@onready var _convoy_button: Button = $MainMargin/MainVBox/BodyHBox/InventoryPanel/InventoryMargin/InventoryVBox/ButtonRow/ConvoyButton
 @onready var _deployment_list: ItemList = $MainMargin/MainVBox/BodyHBox/TransferPanel/TransferMargin/TransferVBox/TargetList
 @onready var _deployment_details: Label = $MainMargin/MainVBox/BodyHBox/TransferPanel/TransferMargin/TransferVBox/TargetDetails
 @onready var _assign_button: Button = $MainMargin/MainVBox/BodyHBox/TransferPanel/TransferMargin/TransferVBox/DeploymentButtonRow/AssignButton
@@ -47,6 +50,18 @@ var _trade_target_indices: Array[int] = []
 @onready var _trade_target_details: Label = $TradeModal/TradeMargin/TradeVBox/TradeTargetDetails
 @onready var _trade_confirm_button: Button = $TradeModal/TradeMargin/TradeVBox/TradeButtonRow/TradeConfirmButton
 @onready var _trade_cancel_button: Button = $TradeModal/TradeMargin/TradeVBox/TradeButtonRow/TradeCancelButton
+@onready var _convoy_modal: PanelContainer = $ConvoyModal
+@onready var _convoy_title: Label = $ConvoyModal/ConvoyMargin/ConvoyVBox/ConvoyTitle
+@onready var _convoy_description: Label = $ConvoyModal/ConvoyMargin/ConvoyVBox/ConvoyDescription
+@onready var _convoy_unit_name: Label = $ConvoyModal/ConvoyMargin/ConvoyVBox/ConvoyTopRow/ConvoyUnitVBox/ConvoyUnitName
+@onready var _convoy_unit_portrait_texture: TextureRect = $ConvoyModal/ConvoyMargin/ConvoyVBox/ConvoyTopRow/ConvoyUnitVBox/ConvoyUnitPortraitPanel/ConvoyUnitPortraitMargin/ConvoyUnitPortraitFrame/ConvoyUnitPortraitTexture
+@onready var _convoy_unit_portrait_fallback: Label = $ConvoyModal/ConvoyMargin/ConvoyVBox/ConvoyTopRow/ConvoyUnitVBox/ConvoyUnitPortraitPanel/ConvoyUnitPortraitMargin/ConvoyUnitPortraitFrame/ConvoyUnitPortraitFallback
+@onready var _convoy_unit_inventory_list: ItemList = $ConvoyModal/ConvoyMargin/ConvoyVBox/ConvoyTopRow/ConvoyUnitVBox/ConvoyUnitInventoryList
+@onready var _convoy_list: ItemList = $ConvoyModal/ConvoyMargin/ConvoyVBox/ConvoyTopRow/ConvoyStorageVBox/ConvoyList
+@onready var _convoy_details: Label = $ConvoyModal/ConvoyMargin/ConvoyVBox/ConvoyDetails
+@onready var _convoy_deposit_button: Button = $ConvoyModal/ConvoyMargin/ConvoyVBox/ConvoyButtonRow/ConvoyDepositButton
+@onready var _convoy_withdraw_button: Button = $ConvoyModal/ConvoyMargin/ConvoyVBox/ConvoyButtonRow/ConvoyWithdrawButton
+@onready var _convoy_close_button: Button = $ConvoyModal/ConvoyMargin/ConvoyVBox/ConvoyButtonRow/ConvoyCloseButton
 
 
 func setup(chapter_id: String) -> void:
@@ -57,6 +72,7 @@ func _ready() -> void:
 	_connect_signals()
 	_configure_focus_navigation()
 	_trade_modal.visible = false
+	_convoy_modal.visible = false
 	_load_preparation_data()
 	_refresh_view()
 	if _units.is_empty():
@@ -67,6 +83,9 @@ func _ready() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
+		if _convoy_modal.visible:
+			_close_convoy_modal()
+			return
 		if _trade_modal.visible:
 			_close_trade_modal()
 			return
@@ -85,12 +104,20 @@ func _connect_signals() -> void:
 	_move_up_button.pressed.connect(Callable(self, "_on_move_up_pressed"))
 	_move_down_button.pressed.connect(Callable(self, "_on_move_down_pressed"))
 	_transfer_button.pressed.connect(Callable(self, "_on_transfer_pressed"))
+	_convoy_button.pressed.connect(Callable(self, "_on_convoy_pressed"))
 	_assign_button.pressed.connect(Callable(self, "_on_assign_pressed"))
 	_begin_button.pressed.connect(Callable(self, "_on_begin_pressed"))
 	_return_button.pressed.connect(Callable(self, "_on_return_pressed"))
 	_trade_target_list.item_selected.connect(Callable(self, "_on_trade_target_selected"))
 	_trade_confirm_button.pressed.connect(Callable(self, "_on_trade_confirm_pressed"))
 	_trade_cancel_button.pressed.connect(Callable(self, "_on_trade_cancel_pressed"))
+	_convoy_unit_inventory_list.item_selected.connect(Callable(self, "_on_convoy_unit_item_selected"))
+	_convoy_unit_inventory_list.item_activated.connect(Callable(self, "_on_convoy_unit_item_activated"))
+	_convoy_list.item_selected.connect(Callable(self, "_on_convoy_item_selected"))
+	_convoy_list.item_activated.connect(Callable(self, "_on_convoy_item_activated"))
+	_convoy_deposit_button.pressed.connect(Callable(self, "_on_convoy_deposit_pressed"))
+	_convoy_withdraw_button.pressed.connect(Callable(self, "_on_convoy_withdraw_pressed"))
+	_convoy_close_button.pressed.connect(Callable(self, "_on_convoy_close_pressed"))
 
 
 func _configure_focus_navigation() -> void:
@@ -102,6 +129,8 @@ func _configure_focus_navigation() -> void:
 	_move_down_button.focus_neighbor_left = _move_up_button.get_path()
 	_move_down_button.focus_neighbor_right = _transfer_button.get_path()
 	_transfer_button.focus_neighbor_left = _move_down_button.get_path()
+	_transfer_button.focus_neighbor_right = _convoy_button.get_path()
+	_convoy_button.focus_neighbor_left = _transfer_button.get_path()
 	_inventory_list.focus_neighbor_right = _deployment_list.get_path()
 	_deployment_list.focus_neighbor_left = _inventory_list.get_path()
 	_deployment_list.focus_neighbor_bottom = _assign_button.get_path()
@@ -112,6 +141,17 @@ func _configure_focus_navigation() -> void:
 	_trade_cancel_button.focus_neighbor_top = _trade_target_list.get_path()
 	_trade_confirm_button.focus_neighbor_right = _trade_cancel_button.get_path()
 	_trade_cancel_button.focus_neighbor_left = _trade_confirm_button.get_path()
+	_convoy_unit_inventory_list.focus_neighbor_right = _convoy_list.get_path()
+	_convoy_list.focus_neighbor_left = _convoy_unit_inventory_list.get_path()
+	_convoy_unit_inventory_list.focus_neighbor_bottom = _convoy_deposit_button.get_path()
+	_convoy_list.focus_neighbor_bottom = _convoy_withdraw_button.get_path()
+	_convoy_deposit_button.focus_neighbor_top = _convoy_unit_inventory_list.get_path()
+	_convoy_withdraw_button.focus_neighbor_top = _convoy_list.get_path()
+	_convoy_close_button.focus_neighbor_top = _convoy_list.get_path()
+	_convoy_deposit_button.focus_neighbor_right = _convoy_withdraw_button.get_path()
+	_convoy_withdraw_button.focus_neighbor_left = _convoy_deposit_button.get_path()
+	_convoy_withdraw_button.focus_neighbor_right = _convoy_close_button.get_path()
+	_convoy_close_button.focus_neighbor_left = _convoy_withdraw_button.get_path()
 
 
 func _load_preparation_data() -> void:
@@ -123,6 +163,8 @@ func _load_preparation_data() -> void:
 	_selected_item_index = -1
 	_selected_deployment_index = clampi(_selected_deployment_index, 0, maxi(0, _deployment_slots.size() - 1))
 	_selected_target_index = clampi(_selected_target_index, 0, maxi(0, _units.size() - 1))
+	_selected_convoy_unit_item_index = -1
+	_selected_convoy_index = -1
 	_trade_target_indices.clear()
 	_ensure_valid_target_selection()
 
@@ -143,6 +185,8 @@ func _refresh_view() -> void:
 	_refresh_buttons()
 	if _trade_modal.visible:
 		_refresh_trade_modal()
+	if _convoy_modal.visible:
+		_refresh_convoy_modal()
 	if _units.is_empty():
 		_status_label.text = "No allied units are available for this chapter."
 	else:
@@ -227,22 +271,13 @@ func _refresh_item_details() -> void:
 		var equipped_tag: String = "Carried weapon"
 		if _selected_item_index == unit.get_equipped_weapon_index():
 			equipped_tag = "Equipped weapon"
-		_item_details.text = "%s\nType: %s\nUses: %d\n%s" % [
-			weapon.name,
-			weapon.weapon_type.capitalize(),
-			uses,
-			equipped_tag,
-		]
+		_item_details.text = "%s\n%s" % [_build_item_detail_text(item_id, uses), equipped_tag]
 		return
 	var item: ItemData = DataRegistry.get_item_data(item_id)
 	if item != null:
-		_item_details.text = "%s\nType: %s\nUses: %d" % [
-			item.name,
-			item.item_type.capitalize(),
-			uses,
-		]
+		_item_details.text = _build_item_detail_text(item_id, uses)
 		return
-	_item_details.text = "%s\nUses: %d" % [item_id, uses]
+	_item_details.text = _build_item_detail_text(item_id, uses)
 
 
 func _refresh_deployment_panel() -> void:
@@ -279,6 +314,7 @@ func _refresh_buttons() -> void:
 	var transfer_ready: bool = _can_open_trade_modal()
 	_transfer_button.disabled = not transfer_ready
 	_transfer_button.text = "Trade"
+	_convoy_button.disabled = unit == null
 	_assign_button.disabled = unit == null or _deployment_slots.is_empty()
 	_begin_button.disabled = _units.is_empty()
 
@@ -352,6 +388,10 @@ func _on_move_down_pressed() -> void:
 
 func _on_transfer_pressed() -> void:
 	_open_trade_modal()
+
+
+func _on_convoy_pressed() -> void:
+	_open_convoy_modal()
 
 
 func _on_assign_pressed() -> void:
@@ -536,6 +576,210 @@ func _refresh_trade_target_details() -> void:
 	_trade_confirm_button.disabled = not can_receive
 
 
+func _on_convoy_unit_item_selected(index: int) -> void:
+	var unit: UnitState = _get_selected_unit()
+	if unit == null or unit.inventory.is_empty():
+		_selected_convoy_unit_item_index = -1
+		return
+	_selected_convoy_unit_item_index = clampi(index, 0, unit.inventory.size() - 1)
+	_refresh_convoy_details()
+	_refresh_convoy_buttons()
+
+
+func _on_convoy_unit_item_activated(index: int) -> void:
+	_on_convoy_unit_item_selected(index)
+	if not _convoy_deposit_button.disabled:
+		_on_convoy_deposit_pressed()
+
+
+func _on_convoy_item_selected(index: int) -> void:
+	var convoy_entries: Array = GameState.get_convoy_items()
+	if convoy_entries.is_empty():
+		_selected_convoy_index = -1
+		return
+	_selected_convoy_index = clampi(index, 0, convoy_entries.size() - 1)
+	_refresh_convoy_details()
+	_refresh_convoy_buttons()
+
+
+func _on_convoy_item_activated(index: int) -> void:
+	_on_convoy_item_selected(index)
+	if not _convoy_withdraw_button.disabled:
+		_on_convoy_withdraw_pressed()
+
+
+func _on_convoy_deposit_pressed() -> void:
+	var unit: UnitState = _get_selected_unit()
+	if unit == null:
+		return
+	var extracted_item: Dictionary = unit.extract_item_at(_selected_convoy_unit_item_index)
+	if extracted_item.is_empty():
+		return
+	var item_id: String = str(extracted_item.get("item_id", ""))
+	var uses: int = int(extracted_item.get("uses", 0))
+	GameState.add_convoy_item(item_id, uses)
+	if unit.inventory.is_empty():
+		_selected_item_index = -1
+		_selected_convoy_unit_item_index = -1
+	else:
+		_selected_item_index = clampi(_selected_convoy_unit_item_index, 0, unit.inventory.size() - 1)
+		_selected_convoy_unit_item_index = _selected_item_index
+	_selected_convoy_index = maxi(0, GameState.get_convoy_items().size() - 1)
+	_commit_roster()
+	_refresh_view()
+	_refresh_convoy_modal()
+	_status_label.text = "%s stores %s in the convoy." % [unit.display_name, _get_item_name(item_id)]
+	if unit.inventory.is_empty():
+		if not GameState.get_convoy_items().is_empty():
+			_convoy_list.grab_focus()
+		else:
+			_convoy_close_button.grab_focus()
+	else:
+		_convoy_unit_inventory_list.grab_focus()
+
+
+func _on_convoy_withdraw_pressed() -> void:
+	var unit: UnitState = _get_selected_unit()
+	if unit == null:
+		return
+	var convoy_entries: Array = GameState.get_convoy_items()
+	if _selected_convoy_index < 0 or _selected_convoy_index >= convoy_entries.size():
+		return
+	var entry: Dictionary = convoy_entries[_selected_convoy_index]
+	var item_id: String = str(entry.get("item_id", ""))
+	if not unit.can_receive_item(item_id):
+		_status_label.text = "%s cannot use that weapon type." % unit.display_name
+		_refresh_convoy_modal()
+		return
+	var removed_entry: Dictionary = GameState.remove_convoy_item(_selected_convoy_index)
+	if removed_entry.is_empty():
+		return
+	unit.add_item(item_id, int(removed_entry.get("uses", 0)))
+	_selected_item_index = unit.inventory.size() - 1
+	_selected_convoy_unit_item_index = _selected_item_index
+	var updated_convoy_size: int = GameState.get_convoy_items().size()
+	if updated_convoy_size <= 0:
+		_selected_convoy_index = -1
+	else:
+		_selected_convoy_index = clampi(_selected_convoy_index, 0, updated_convoy_size - 1)
+	_commit_roster()
+	_refresh_view()
+	_refresh_convoy_modal()
+	_status_label.text = "%s withdraws %s from the convoy." % [unit.display_name, _get_item_name(item_id)]
+	_convoy_unit_inventory_list.grab_focus()
+
+
+func _on_convoy_close_pressed() -> void:
+	_close_convoy_modal()
+
+
+func _open_convoy_modal() -> void:
+	if _get_selected_unit() == null:
+		return
+	_trade_modal.visible = false
+	_convoy_modal.visible = true
+	var unit: UnitState = _get_selected_unit()
+	if unit == null or unit.inventory.is_empty():
+		_selected_convoy_unit_item_index = -1
+	else:
+		var preferred_unit_index: int = _selected_item_index
+		if preferred_unit_index < 0 or preferred_unit_index >= unit.inventory.size():
+			preferred_unit_index = 0
+		_selected_convoy_unit_item_index = preferred_unit_index
+	var convoy_entries: Array = GameState.get_convoy_items()
+	if convoy_entries.is_empty():
+		_selected_convoy_index = -1
+	else:
+		_selected_convoy_index = clampi(_selected_convoy_index, 0, convoy_entries.size() - 1)
+	_refresh_convoy_modal()
+	if _selected_convoy_unit_item_index >= 0:
+		_convoy_unit_inventory_list.grab_focus()
+	elif _selected_convoy_index >= 0:
+		_convoy_list.grab_focus()
+	else:
+		_convoy_close_button.grab_focus()
+	_status_label.text = "Store extra gear or withdraw items for the selected ally."
+
+
+func _close_convoy_modal(restore_status: bool = true) -> void:
+	_convoy_modal.visible = false
+	_selected_item_index = _selected_convoy_unit_item_index
+	_refresh_inventory_list()
+	_refresh_item_details()
+	_refresh_buttons()
+	if restore_status:
+		_status_label.text = _default_status_text()
+		_inventory_list.grab_focus()
+
+
+func _refresh_convoy_modal() -> void:
+	var unit: UnitState = _get_selected_unit()
+	var convoy_entries: Array = GameState.get_convoy_items()
+	_convoy_title.text = "Convoy"
+	_convoy_description.text = "Shared storage between chapters. Stored items: %d" % convoy_entries.size()
+	if unit == null:
+		_convoy_unit_name.text = "No Ally Selected"
+		_apply_portrait(null, _convoy_unit_portrait_texture, _convoy_unit_portrait_fallback, "No Ally")
+		_convoy_unit_inventory_list.clear()
+		_convoy_list.clear()
+		_convoy_details.text = "Select an ally before using the convoy."
+		_refresh_convoy_buttons()
+		return
+	_convoy_unit_name.text = unit.display_name
+	_apply_portrait(unit, _convoy_unit_portrait_texture, _convoy_unit_portrait_fallback, unit.display_name)
+	_convoy_unit_inventory_list.clear()
+	for item_index in range(unit.inventory.size()):
+		_convoy_unit_inventory_list.add_item(_format_inventory_entry(unit, item_index))
+	if unit.inventory.is_empty():
+		_selected_convoy_unit_item_index = -1
+	else:
+		_selected_convoy_unit_item_index = clampi(_selected_convoy_unit_item_index, 0, unit.inventory.size() - 1)
+		_convoy_unit_inventory_list.select(_selected_convoy_unit_item_index)
+	_convoy_list.clear()
+	for entry in convoy_entries:
+		var entry_item_id: String = str(entry.get("item_id", ""))
+		var entry_uses: int = int(entry.get("uses", 0))
+		_convoy_list.add_item("%s (%d uses)" % [_get_item_name(entry_item_id), entry_uses])
+	if convoy_entries.is_empty():
+		_selected_convoy_index = -1
+	else:
+		_selected_convoy_index = clampi(_selected_convoy_index, 0, convoy_entries.size() - 1)
+		_convoy_list.select(_selected_convoy_index)
+	_refresh_convoy_details()
+	_refresh_convoy_buttons()
+
+
+func _refresh_convoy_buttons() -> void:
+	var unit: UnitState = _get_selected_unit()
+	var convoy_entries: Array = GameState.get_convoy_items()
+	_convoy_deposit_button.disabled = unit == null or _selected_convoy_unit_item_index < 0 or _selected_convoy_unit_item_index >= unit.inventory.size()
+	var can_withdraw: bool = false
+	if unit != null and _selected_convoy_index >= 0 and _selected_convoy_index < convoy_entries.size():
+		can_withdraw = unit.can_receive_item(str(convoy_entries[_selected_convoy_index].get("item_id", "")))
+	_convoy_withdraw_button.disabled = not can_withdraw
+
+
+func _refresh_convoy_details() -> void:
+	var unit: UnitState = _get_selected_unit()
+	if unit == null:
+		_convoy_details.text = "Select an ally before using the convoy."
+		return
+	var unit_entry_text: String = "No unit item selected."
+	if _selected_convoy_unit_item_index >= 0 and _selected_convoy_unit_item_index < unit.inventory.size():
+		unit_entry_text = "Store: %s" % _build_item_detail_text(str(unit.inventory[_selected_convoy_unit_item_index]), unit.get_item_uses_at(_selected_convoy_unit_item_index))
+	var convoy_entry_text: String = "No convoy item selected."
+	var convoy_entries: Array = GameState.get_convoy_items()
+	if _selected_convoy_index >= 0 and _selected_convoy_index < convoy_entries.size():
+		var convoy_entry: Dictionary = convoy_entries[_selected_convoy_index]
+		var convoy_item_id: String = str(convoy_entry.get("item_id", ""))
+		var convoy_uses: int = int(convoy_entry.get("uses", 0))
+		var withdraw_note: String = "Ready to withdraw."
+		if not unit.can_receive_item(convoy_item_id):
+			withdraw_note = "This ally cannot carry that weapon type."
+		convoy_entry_text = "Withdraw: %s\n%s" % [_build_item_detail_text(convoy_item_id, convoy_uses), withdraw_note]
+	_convoy_details.text = "%s\n\n%s" % [unit_entry_text, convoy_entry_text]
+
+
 func _get_selected_unit() -> UnitState:
 	if _selected_unit_index < 0 or _selected_unit_index >= _units.size():
 		return null
@@ -628,6 +872,26 @@ func _format_inventory_entry(unit: UnitState, item_index: int) -> String:
 	return "%s (%d uses)" % [_get_item_name(item_id), uses]
 
 
+func _build_item_detail_text(item_id: String, uses: int) -> String:
+	var weapon: WeaponData = DataRegistry.get_weapon_data(item_id)
+	if weapon != null:
+		return "%s\nType: %s\nRange: %d-%d\nUses: %d" % [
+			weapon.name,
+			weapon.weapon_type.capitalize(),
+			weapon.min_range,
+			weapon.max_range,
+			uses,
+		]
+	var item: ItemData = DataRegistry.get_item_data(item_id)
+	if item != null:
+		return "%s\nType: %s\nUses: %d" % [
+			item.name,
+			item.item_type.capitalize(),
+			uses,
+		]
+	return "%s\nUses: %d" % [item_id.capitalize(), uses]
+
+
 func _get_item_name(item_id: String) -> String:
 	var weapon: WeaponData = DataRegistry.get_weapon_data(item_id)
 	if weapon != null:
@@ -647,7 +911,7 @@ func _build_objective_text() -> String:
 
 
 func _default_status_text() -> String:
-	return "Set gear, trade items, and assign starting positions before you begin the battle."
+	return "Set gear, use trade or convoy storage, and assign starting positions before you begin the battle."
 
 
 func _apply_portrait(unit: UnitState, texture_rect: TextureRect, fallback_label: Label, fallback_text: String) -> void:

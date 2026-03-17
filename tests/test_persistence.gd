@@ -17,6 +17,7 @@ func _assert_true(condition: bool, message: String, failures: PackedStringArray)
 func _run_non_permadeath_persistence_checks(failures: PackedStringArray) -> void:
 	GameState.start_new_game(false)
 	GameState.add_gold(17)
+	GameState.add_convoy_item("steel_sword", 22)
 	var george := UnitState.from_unit_data(DataRegistry.get_unit_data("george"), Vector2i(0, 0))
 	george.set_current_hp(9)
 	george.xp = 35
@@ -38,8 +39,15 @@ func _run_non_permadeath_persistence_checks(failures: PackedStringArray) -> void
 	_assert_true(GameState.current_chapter_id == "chapter_2", "clearing a chapter should advance the saved chapter ID", failures)
 	_assert_true(GameState.gold == 17, "shared gold should persist across chapter transitions", failures)
 	_assert_true(int(GameState.build_save_payload().get("gold", -1)) == 17, "shared gold should be written into the save payload", failures)
+	var convoy_payload: Array = GameState.build_save_payload().get("convoy_items", [])
+	_assert_true(convoy_payload.size() == 1, "convoy items should be written into the save payload", failures)
+	if convoy_payload.size() == 1 and typeof(convoy_payload[0]) == TYPE_DICTIONARY:
+		var convoy_entry: Dictionary = convoy_payload[0]
+		_assert_true(str(convoy_entry.get("item_id", "")) == "steel_sword", "convoy payload should preserve item ids", failures)
+		_assert_true(int(convoy_entry.get("uses", -1)) == 22, "convoy payload should preserve remaining uses", failures)
 	_assert_true(not GameState.permadeath_enabled, "permadeath should stay disabled for the default new game flow", failures)
 	_assert_true(GameState.fallen_units.is_empty(), "fallen unit tracking should stay empty when permadeath is off", failures)
+	_assert_true(GameState.get_convoy_items().size() == 1, "convoy storage should persist across chapter transitions", failures)
 	var restored_george := UnitState.from_unit_data(DataRegistry.get_unit_data("george"), Vector2i(0, 0))
 	_assert_true(GameState.restore_player_unit_state(restored_george, "george"), "George should be restorable from roster state", failures)
 	_assert_true(restored_george.get_current_hp() == restored_george.get_max_hp(), "restored units should heal to full between chapters", failures)

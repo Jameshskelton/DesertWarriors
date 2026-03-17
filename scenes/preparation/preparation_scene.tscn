@@ -225,6 +225,12 @@ theme_override_font_sizes/font_size = 24
 custom_minimum_size = Vector2(150, 48)
 text = "Trade"
 
+[node name="ConvoyButton" type="Button" parent="MainMargin/MainVBox/BodyHBox/InventoryPanel/InventoryMargin/InventoryVBox/ButtonRow"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+custom_minimum_size = Vector2(150, 48)
+text = "Convoy"
+
 [node name="TransferPanel" type="PanelContainer" parent="MainMargin/MainVBox/BodyHBox"]
 custom_minimum_size = Vector2(420, 0)
 layout_mode = 2
@@ -460,3 +466,143 @@ text = "Trade"
 [node name="TradeCancelButton" type="Button" parent="TradeModal/TradeMargin/TradeVBox/TradeButtonRow"]
 layout_mode = 2
 text = "Cancel"
+
+[node name="ConvoyModal" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 470.0
+offset_top = 136.0
+offset_right = 1450.0
+offset_bottom = 944.0
+z_index = 50
+
+[node name="ConvoyMargin" type="MarginContainer" parent="ConvoyModal"]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 24
+
+[node name="ConvoyVBox" type="VBoxContainer" parent="ConvoyModal/ConvoyMargin"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 14
+
+[node name="ConvoyTitle" type="Label" parent="ConvoyModal/ConvoyMargin/ConvoyVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 42
+horizontal_alignment = 1
+text = "Convoy"
+
+[node name="ConvoyDescription" type="Label" parent="ConvoyModal/ConvoyMargin/ConvoyVBox"]
+layout_mode = 2
+autowrap_mode = 2
+horizontal_alignment = 1
+text = "Store extra gear here between chapters, or pull items back out for the selected ally."
+
+[node name="ConvoyTopRow" type="HBoxContainer" parent="ConvoyModal/ConvoyMargin/ConvoyVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 18
+
+[node name="ConvoyUnitVBox" type="VBoxContainer" parent="ConvoyModal/ConvoyMargin/ConvoyVBox/ConvoyTopRow"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="ConvoyUnitName" type="Label" parent="ConvoyModal/ConvoyMargin/ConvoyVBox/ConvoyTopRow/ConvoyUnitVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+horizontal_alignment = 1
+text = "Selected Ally"
+
+[node name="ConvoyUnitPortraitPanel" type="PanelContainer" parent="ConvoyModal/ConvoyMargin/ConvoyVBox/ConvoyTopRow/ConvoyUnitVBox"]
+custom_minimum_size = Vector2(180, 180)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="ConvoyUnitPortraitMargin" type="MarginContainer" parent="ConvoyModal/ConvoyMargin/ConvoyVBox/ConvoyTopRow/ConvoyUnitVBox/ConvoyUnitPortraitPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="ConvoyUnitPortraitFrame" type="ColorRect" parent="ConvoyModal/ConvoyMargin/ConvoyVBox/ConvoyTopRow/ConvoyUnitVBox/ConvoyUnitPortraitPanel/ConvoyUnitPortraitMargin"]
+custom_minimum_size = Vector2(164, 164)
+layout_mode = 2
+color = Color(0.156863, 0.129412, 0.105882, 1)
+
+[node name="ConvoyUnitPortraitTexture" type="TextureRect" parent="ConvoyModal/ConvoyMargin/ConvoyVBox/ConvoyTopRow/ConvoyUnitVBox/ConvoyUnitPortraitPanel/ConvoyUnitPortraitMargin/ConvoyUnitPortraitFrame"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ConvoyUnitPortraitFallback" type="Label" parent="ConvoyModal/ConvoyMargin/ConvoyVBox/ConvoyTopRow/ConvoyUnitVBox/ConvoyUnitPortraitPanel/ConvoyUnitPortraitMargin/ConvoyUnitPortraitFrame"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 18
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+text = "Portrait"
+
+[node name="ConvoyUnitInventoryList" type="ItemList" parent="ConvoyModal/ConvoyMargin/ConvoyVBox/ConvoyTopRow/ConvoyUnitVBox"]
+custom_minimum_size = Vector2(0, 260)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 24
+
+[node name="ConvoyStorageVBox" type="VBoxContainer" parent="ConvoyModal/ConvoyMargin/ConvoyVBox/ConvoyTopRow"]
+custom_minimum_size = Vector2(0, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="ConvoyStorageTitle" type="Label" parent="ConvoyModal/ConvoyMargin/ConvoyVBox/ConvoyTopRow/ConvoyStorageVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+horizontal_alignment = 1
+text = "Stored Items"
+
+[node name="ConvoyList" type="ItemList" parent="ConvoyModal/ConvoyMargin/ConvoyVBox/ConvoyTopRow/ConvoyStorageVBox"]
+custom_minimum_size = Vector2(0, 452)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 24
+
+[node name="ConvoyDetails" type="Label" parent="ConvoyModal/ConvoyMargin/ConvoyVBox"]
+custom_minimum_size = Vector2(0, 120)
+layout_mode = 2
+autowrap_mode = 2
+text = "Select an item to store or withdraw."
+
+[node name="ConvoyButtonRow" type="HBoxContainer" parent="ConvoyModal/ConvoyMargin/ConvoyVBox"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 16
+
+[node name="ConvoyDepositButton" type="Button" parent="ConvoyModal/ConvoyMargin/ConvoyVBox/ConvoyButtonRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(170, 48)
+text = "Store Item"
+
+[node name="ConvoyWithdrawButton" type="Button" parent="ConvoyModal/ConvoyMargin/ConvoyVBox/ConvoyButtonRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(170, 48)
+text = "Withdraw"
+
+[node name="ConvoyCloseButton" type="Button" parent="ConvoyModal/ConvoyMargin/ConvoyVBox/ConvoyButtonRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(170, 48)
+text = "Close"
