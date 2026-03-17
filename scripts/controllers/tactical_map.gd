@@ -8,6 +8,7 @@ signal restart_requested(chapter_id: String)
 
 const BATTLE_SCENE := preload("res://scenes/battle/battle_scene.tscn")
 const DIALOGUE_SCENE := preload("res://scenes/dialogue/dialogue_scene.tscn")
+const LEVEL_UP_SCENE := preload("res://scenes/level_up/level_up_scene.tscn")
 const CASTLE_TEXTURE := preload("res://assets/terrain/castle.png")
 const COBBLESTONE_TEXTURE := preload("res://assets/terrain/cobblestone.png")
 const GRASSLAND_TEXTURE := preload("res://assets/terrain/grassland.png")
@@ -97,6 +98,14 @@ var _hover_enemy_target_tiles: Dictionary = {}
 var _hover_enemy_target_names: PackedStringArray = PackedStringArray()
 var _hover_enemy_is_boss: bool = false
 var _hover_combat_preview: Dictionary = {}
+var _chapter_xp_gains: Dictionary = {}
+var _chapter_gold_earned: int = 0
+var _chapter_gold_sources: PackedStringArray = PackedStringArray()
+var _chapter_recruits: PackedStringArray = PackedStringArray()
+var _chapter_weapon_breaks: PackedStringArray = PackedStringArray()
+var _chapter_used_items: PackedStringArray = PackedStringArray()
+var _pending_level_up_reports: Array[Dictionary] = []
+var _active_level_up: Control
 var _shop_customer: UnitState
 var _shop_preview_item: String = "upgrade"
 var _inspected_unit: UnitState
@@ -219,6 +228,9 @@ func _load_chapter() -> void:
 	_hover_enemy_target_names.clear()
 	_hover_enemy_is_boss = false
 	_hover_combat_preview.clear()
+	_pending_level_up_reports.clear()
+	_active_level_up = null
+	_reset_chapter_summary_tracking()
 	_event_director.reset()
 	if not _restore_suspend_state(GameState.suspend_state):
 		for entry in _chapter.starting_units:
@@ -287,6 +299,7 @@ func _restore_suspend_state(snapshot: Dictionary) -> bool:
 		_turn_controller.phase = "player"
 	_cursor_tile = _vector2i_from_variant(snapshot.get("cursor_tile", Vector2i(1, _grid_size.y - 2)))
 	_danger_zone_visible = bool(snapshot.get("danger_zone_visible", false))
+	_restore_chapter_summary_tracking(snapshot)
 	return true
 
 
@@ -311,27 +324,34 @@ func _build_suspend_snapshot() -> Dictionary:
 		"danger_zone_visible": _danger_zone_visible,
 		"spawned_reinforcements": _packed_string_array_to_array(_spawned_reinforcements),
 		"handled_events": _packed_string_array_to_array(_event_director.handled_events),
+		"chapter_xp_gains": _chapter_xp_gains.duplicate(true),
+		"chapter_gold_earned": _chapter_gold_earned,
+		"chapter_gold_sources": _packed_string_array_to_array(_chapter_gold_sources),
+		"chapter_recruits": _packed_string_array_to_array(_chapter_recruits),
+		"chapter_weapon_breaks": _packed_string_array_to_array(_chapter_weapon_breaks),
+		"chapter_used_items": _packed_string_array_to_array(_chapter_used_items),
 		"units": units,
 	}
 
 
-func _spawn_unit(entry: Dictionary, allow_missing_player_state: bool = false) -> void:
+func _spawn_unit(entry: Dictionary, allow_missing_player_state: bool = false) -> UnitState:
 	var unit_id: String = str(entry.get("unit_id", ""))
 	var unit_data: UnitData = DataRegistry.get_unit_data(unit_id)
 	if unit_data == null:
-		return
+		return null
 	var position = entry.get("position", Vector2i.ZERO)
 	var faction_override: String = str(entry.get("faction", ""))
 	var state: UnitState = UnitState.from_unit_data(unit_data, position, faction_override)
 	var can_fall_back_to_default_state: bool = allow_missing_player_state or not unit_data.join_event_id.is_empty()
 	if state.faction == "player" and not GameState.restore_player_unit_state(state, unit_id, can_fall_back_to_default_state):
-		return
+		return null
 	if state.faction == "player":
 		state.position = GameState.resolve_preparation_position(_chapter_id, unit_id, state.position)
 	if entry.has("instance_id") and state.faction != "player":
 		state.unit_id = entry["instance_id"]
 	_units.append(state)
 	_refresh_danger_zone()
+	return state
 
 
 func _draw() -> void:
@@ -541,6 +561,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				_update_hover_status()
 				queue_redraw()
 			return
+		return
+	if _active_level_up != null:
 		return
 	if _active_battle != null or _turn_controller.phase != "player":
 		return
@@ -808,7 +830,7 @@ func _try_target_action() -> void:
 		"attack":
 			await _execute_attack(source, target)
 		"staff":
-			_execute_staff(source, target)
+			await _execute_staff(source, target)
 
 
 func _execute_attack(source: UnitState, target: UnitState) -> void:
@@ -840,8 +862,10 @@ func _execute_staff(source: UnitState, target: UnitState) -> void:
 	source.consume_turn()
 	var heal_amount: int = int(outcome.get("heal_amount", 0))
 	_show_map_popup(target.position, "+%d" % heal_amount, MAP_HEAL_POPUP_COLOR)
+	_record_chapter_xp(source, int(outcome.get("xp_awarded", 0)))
 	_update_status("%s heals %s for %d HP." % [outcome.get("user_name", source.display_name), outcome.get("target_name", target.display_name), heal_amount])
 	if bool(outcome.get("weapon_broke", false)):
+		_record_weapon_break(str(outcome.get("user_name", source.display_name)), str(outcome.get("weapon_name", "The staff")))
 		_show_map_popup(source.position, "BREAK", MAP_BREAK_POPUP_COLOR, -32.0 * UI_SCALE)
 		_update_status("%s heals %s for %d HP. %s broke!" % [
 			outcome.get("user_name", source.display_name),
@@ -849,6 +873,8 @@ func _execute_staff(source: UnitState, target: UnitState) -> void:
 			heal_amount,
 			outcome.get("weapon_name", "The staff"),
 		])
+	_queue_level_up_report(_dictionary_or_empty(outcome.get("level_up", {})))
+	await _present_queued_level_up_reports()
 	_finish_unit_action()
 
 
@@ -859,6 +885,7 @@ func _execute_item(source: UnitState) -> void:
 		return
 	source.consume_turn()
 	var heal_amount: int = int(outcome.get("heal_amount", 0))
+	_record_used_item(str(outcome.get("user_name", source.display_name)), str(outcome.get("item_name", "an item")))
 	_show_map_popup(source.position, "+%d" % heal_amount, MAP_HEAL_POPUP_COLOR)
 	_update_status("%s uses %s and recovers %d HP." % [
 		outcome.get("user_name", source.display_name),
@@ -1112,18 +1139,22 @@ func _show_battle_overlay(payload: Dictionary) -> void:
 func _battle_completed() -> void:
 	while true:
 		if _active_battle == null:
+			await _present_queued_level_up_reports()
 			return
 		if not is_instance_valid(_active_battle):
 			_active_battle = null
 			_apply_battle_rewards()
 			_refresh_danger_zone()
 			queue_redraw()
+			await _present_queued_level_up_reports()
 			return
 		if _battle_scene_ready_to_close():
 			_on_battle_finished()
+			await _present_queued_level_up_reports()
 			return
 		if _active_battle.is_queued_for_deletion() or not _active_battle.is_inside_tree() or _active_battle.get_parent() == null:
 			_on_battle_finished()
+			await _present_queued_level_up_reports()
 			return
 		await get_tree().process_frame
 
@@ -1152,14 +1183,15 @@ func _apply_battle_rewards() -> void:
 		return
 	var battle_result: BattleResult = _pending_battle_result
 	_pending_battle_result = null
-	if battle_result.gold_awarded <= 0:
-		return
-	GameState.add_gold(battle_result.gold_awarded)
-	_update_header()
-	if battle_result.gold_sources.size() == 1:
-		_update_status("Earned %d gold from %s." % [battle_result.gold_awarded, battle_result.gold_sources[0]])
-	else:
-		_update_status("Earned %d gold." % battle_result.gold_awarded)
+	_record_battle_summary(battle_result)
+	_queue_level_up_reports(battle_result.level_ups)
+	if battle_result.gold_awarded > 0:
+		GameState.add_gold(battle_result.gold_awarded)
+		_update_header()
+		if battle_result.gold_sources.size() == 1:
+			_update_status("Earned %d gold from %s." % [battle_result.gold_awarded, battle_result.gold_sources[0]])
+		else:
+			_update_status("Earned %d gold." % battle_result.gold_awarded)
 
 
 func _finish_unit_action(allow_village_tile_events: bool = false) -> void:
@@ -1274,7 +1306,9 @@ func _process_turn_events() -> void:
 		var reinforcement_id: String = str(reinforcement.get("instance_id", reinforcement.get("unit_id", "")))
 		if int(reinforcement.get("turn", -1)) == _turn_controller.turn_number and not _spawned_reinforcements.has(reinforcement_id):
 			_spawned_reinforcements.append(reinforcement_id)
-			_spawn_unit(reinforcement, true)
+			var spawned_unit: UnitState = _spawn_unit(reinforcement, true)
+			if spawned_unit != null and spawned_unit.faction == "player":
+				_record_recruit(spawned_unit.display_name)
 			if reinforcement.has("message"):
 				_update_status(str(reinforcement.get("message", "")))
 			if reinforcement.has("dialogue_lines"):
@@ -1325,7 +1359,9 @@ func _handle_tile_events(unit: UnitState, allow_village_tile_events: bool = fals
 func _execute_event(event: Dictionary) -> void:
 	match event.get("action", ""):
 		"spawn_join":
-			_spawn_unit(event.get("spawn", {}), true)
+			var spawned_unit: UnitState = _spawn_unit(event.get("spawn", {}), true)
+			if spawned_unit != null and spawned_unit.faction == "player":
+				_record_recruit(spawned_unit.display_name)
 			_update_status(str(event.get("message", "A new ally joins the cause.")))
 			if event.has("dialogue_lines"):
 				_show_dialogue_overlay(event.get("dialogue_lines", []))
@@ -1395,6 +1431,7 @@ func _check_end_conditions() -> bool:
 
 func _build_summary(success: bool) -> Dictionary:
 	var survivors: PackedStringArray = PackedStringArray()
+	var fallen: PackedStringArray = PackedStringArray()
 	var player_states: Dictionary = {}
 	for unit in _units:
 		if unit.faction != "player":
@@ -1402,6 +1439,8 @@ func _build_summary(success: bool) -> Dictionary:
 		player_states[unit.unit_id] = unit.to_persistent_state()
 		if unit.is_alive():
 			survivors.append(unit.display_name)
+		else:
+			fallen.append(unit.display_name)
 	return {
 		"success": success,
 		"chapter_id": _chapter.id,
@@ -1409,9 +1448,133 @@ func _build_summary(success: bool) -> Dictionary:
 		"turns": _turn_controller.turn_number,
 		"objective": _objective_controller.get_objective_text(_chapter),
 		"survivors": survivors,
+		"fallen": fallen,
+		"xp_gains": _chapter_xp_gains.duplicate(true),
+		"gold_earned": _chapter_gold_earned,
+		"gold_sources": _chapter_gold_sources,
+		"recruits": _chapter_recruits,
+		"weapon_breaks": _chapter_weapon_breaks,
+		"used_items": _chapter_used_items,
 		"player_states": player_states,
 		"next_chapter_id": _chapter.next_chapter_id if _chapter else "",
 	}
+
+
+func _reset_chapter_summary_tracking() -> void:
+	_chapter_xp_gains.clear()
+	_chapter_gold_earned = 0
+	_chapter_gold_sources.clear()
+	_chapter_recruits.clear()
+	_chapter_weapon_breaks.clear()
+	_chapter_used_items.clear()
+
+
+func _restore_chapter_summary_tracking(snapshot: Dictionary) -> void:
+	_chapter_xp_gains = _variant_to_int_dictionary(snapshot.get("chapter_xp_gains", {}))
+	_chapter_gold_earned = maxi(0, int(snapshot.get("chapter_gold_earned", 0)))
+	_chapter_gold_sources = _variant_to_packed_string_array(snapshot.get("chapter_gold_sources", PackedStringArray()))
+	_chapter_recruits = _variant_to_packed_string_array(snapshot.get("chapter_recruits", PackedStringArray()))
+	_chapter_weapon_breaks = _variant_to_packed_string_array(snapshot.get("chapter_weapon_breaks", PackedStringArray()))
+	_chapter_used_items = _variant_to_packed_string_array(snapshot.get("chapter_used_items", PackedStringArray()))
+
+
+func _record_battle_summary(battle_result: BattleResult) -> void:
+	if battle_result == null:
+		return
+	_chapter_gold_earned += maxi(0, int(battle_result.gold_awarded))
+	for source_name in battle_result.gold_sources:
+		_chapter_gold_sources.append(str(source_name))
+	for unit_id_value in battle_result.xp_awards.keys():
+		var unit_id: String = str(unit_id_value)
+		var xp_amount: int = int(battle_result.xp_awards.get(unit_id_value, 0))
+		if xp_amount <= 0:
+			continue
+		var unit: UnitState = _find_unit_by_id(unit_id)
+		if unit == null or unit.faction != "player":
+			continue
+		_record_chapter_xp(unit, xp_amount)
+	for strike_value in battle_result.strikes:
+		if typeof(strike_value) != TYPE_DICTIONARY:
+			continue
+		var strike: Dictionary = strike_value
+		if bool(strike.get("weapon_broke", false)):
+			_record_weapon_break(str(strike.get("attacker_name", "")), str(strike.get("weapon_name", "Weapon")))
+
+
+func _record_chapter_xp(unit: UnitState, amount: int) -> void:
+	if unit == null or unit.faction != "player" or amount <= 0:
+		return
+	var key: String = unit.display_name
+	_chapter_xp_gains[key] = int(_chapter_xp_gains.get(key, 0)) + amount
+
+
+func _record_recruit(unit_name: String) -> void:
+	if unit_name.is_empty() or _chapter_recruits.has(unit_name):
+		return
+	_chapter_recruits.append(unit_name)
+
+
+func _record_weapon_break(unit_name: String, weapon_name: String) -> void:
+	var formatted_name: String = weapon_name
+	if not unit_name.is_empty():
+		formatted_name = "%s's %s" % [unit_name, weapon_name]
+	_chapter_weapon_breaks.append(formatted_name)
+
+
+func _record_used_item(unit_name: String, item_name: String) -> void:
+	var formatted_name: String = item_name
+	if not unit_name.is_empty():
+		formatted_name = "%s used %s" % [unit_name, item_name]
+	_chapter_used_items.append(formatted_name)
+
+
+func _queue_level_up_reports(reports: Array) -> void:
+	for report_value in reports:
+		if typeof(report_value) != TYPE_DICTIONARY:
+			continue
+		_queue_level_up_report(report_value)
+
+
+func _queue_level_up_report(report: Dictionary) -> void:
+	if report.is_empty():
+		return
+	_pending_level_up_reports.append(report.duplicate(true))
+
+
+func _present_queued_level_up_reports() -> void:
+	while not _pending_level_up_reports.is_empty():
+		if _active_level_up != null:
+			while _active_level_up != null:
+				await get_tree().process_frame
+			continue
+		var report: Dictionary = _pending_level_up_reports.pop_front()
+		_close_unit_inspection(false)
+		_action_menu.hide_menu()
+		_forecast_panel.hide_panel()
+		_help_panel.visible = false
+		_system_menu.visible = false
+		_shop_menu.visible = false
+		_end_turn_confirm.visible = false
+		var level_up_scene: Control = LEVEL_UP_SCENE.instantiate()
+		level_up_scene.setup(report)
+		level_up_scene.level_up_finished.connect(Callable(self, "_on_level_up_finished"))
+		_active_level_up = level_up_scene
+		add_child(level_up_scene)
+		while _active_level_up != null:
+			await get_tree().process_frame
+
+
+func _on_level_up_finished() -> void:
+	if _active_level_up != null:
+		_active_level_up.queue_free()
+	_active_level_up = null
+	queue_redraw()
+
+
+func _dictionary_or_empty(value: Variant) -> Dictionary:
+	if typeof(value) == TYPE_DICTIONARY:
+		return (value as Dictionary).duplicate(true)
+	return {}
 
 
 func _all_player_units_acted() -> bool:
@@ -1433,6 +1596,17 @@ func _build_occupied_lookup(excluded: UnitState = null) -> Dictionary:
 func _get_unit_at(tile: Vector2i) -> UnitState:
 	for unit in _units:
 		if unit.position == tile and unit.is_alive() and unit.has_joined:
+			return unit
+	return null
+
+
+func _find_unit_by_id(unit_id: String) -> UnitState:
+	if unit_id.is_empty():
+		return null
+	for unit in _units:
+		if unit == null:
+			continue
+		if unit.unit_id == unit_id or unit.base_unit_id == unit_id:
 			return unit
 	return null
 
@@ -2051,6 +2225,16 @@ func _variant_to_packed_string_array(value: Variant) -> PackedStringArray:
 	elif value is Array:
 		for entry in value:
 			result.append(str(entry))
+	return result
+
+
+func _variant_to_int_dictionary(value: Variant) -> Dictionary:
+	var result: Dictionary = {}
+	if typeof(value) != TYPE_DICTIONARY:
+		return result
+	var dictionary: Dictionary = value
+	for key_value in dictionary.keys():
+		result[str(key_value)] = int(dictionary.get(key_value, 0))
 	return result
 
 

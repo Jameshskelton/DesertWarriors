@@ -30,7 +30,7 @@ grow_vertical = 2
 
 [node name="Panel" type="PanelContainer" parent="Center"]
 layout_mode = 2
-custom_minimum_size = Vector2(810, 570)
+custom_minimum_size = Vector2(900, 640)
 
 [node name="Margin" type="MarginContainer" parent="Center/Panel"]
 layout_mode = 2
@@ -45,23 +45,27 @@ theme_override_constants/separation = 18
 
 [node name="TitleLabel" type="Label" parent="Center/Panel/Margin/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 63
+theme_override_font_sizes/font_size = 54
 text = "Results"
 
 [node name="SummaryLabel" type="Label" parent="Center/Panel/Margin/VBox"]
 layout_mode = 2
 autowrap_mode = 2
+theme_override_font_sizes/font_size = 24
 text = "Summary"
 
 [node name="RosterLabel" type="Label" parent="Center/Panel/Margin/VBox"]
 layout_mode = 2
 autowrap_mode = 2
+theme_override_font_sizes/font_size = 24
 text = "Roster"
 
 [node name="ContinueButton" type="Button" parent="Center/Panel/Margin/VBox"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 28
 text = "Continue to Next Chapter"
 
 [node name="ReturnButton" type="Button" parent="Center/Panel/Margin/VBox"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 28
 text = "Return to Title"

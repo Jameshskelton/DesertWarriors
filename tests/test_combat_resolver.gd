@@ -25,6 +25,7 @@ func run() -> PackedStringArray:
 	_assert_true(int(outcome.get("heal_amount", 0)) > 0, "staff healing should restore HP", failures)
 	_assert_true(wounded_george.get_current_hp() > 8, "healed unit HP should increase", failures)
 	_assert_true(hale.xp == 15, "staff use should grant 15 XP", failures)
+	_assert_true(int(outcome.get("xp_awarded", 0)) == 15, "staff outcomes should report the XP awarded", failures)
 	_assert_true(str(outcome.get("weapon_name", "")) == "Heal Staff", "staff outcomes should report the weapon used", failures)
 	var balt := UnitState.from_unit_data(DataRegistry.get_unit_data("balt"), Vector2i(0, 1))
 	var ranged_brigand := UnitState.from_unit_data(DataRegistry.get_unit_data("brigand_grunt"), Vector2i(0, 2), "enemy")
@@ -59,6 +60,15 @@ func run() -> PackedStringArray:
 	var fragile_staff_outcome: Dictionary = resolver.resolve_staff(fragile_hale, wounded_rowan)
 	_assert_true(fragile_hale.get_equipped_weapon_id().is_empty(), "staff should break after its last use", failures)
 	_assert_true(bool(fragile_staff_outcome.get("weapon_broke", false)), "staff outcomes should note when the staff breaks", failures)
+	var leveling_hale := UnitState.from_unit_data(DataRegistry.get_unit_data("brother_hale"), Vector2i(0, 0))
+	var wounded_bram := UnitState.from_unit_data(DataRegistry.get_unit_data("bram"), Vector2i(0, 1))
+	wounded_bram.set_current_hp(10)
+	leveling_hale.xp = 95
+	var level_up_outcome: Dictionary = resolver.resolve_staff(leveling_hale, wounded_bram)
+	var level_up_report: Dictionary = level_up_outcome.get("level_up", {})
+	_assert_true(not level_up_report.is_empty(), "staff level-ups should produce a report payload", failures)
+	_assert_true(str(level_up_report.get("unit_id", "")) == "brother_hale", "level-up payload should identify the leveling unit", failures)
+	_assert_true(int(level_up_report.get("previous_level", 0)) == 1 and int(level_up_report.get("level", 0)) == 2, "level-up payload should include old and new level", failures)
 	var rich_george := UnitState.from_unit_data(DataRegistry.get_unit_data("george"), Vector2i(0, 0))
 	rich_george.stats["str"] = 99
 	rich_george.stats["skl"] = 99

@@ -114,17 +114,19 @@ func resolve_staff(user: UnitState, target: UnitState) -> Dictionary:
 		return {}
 	var weapon_name: String = weapon.name
 	var weapon_broke: bool = user.get_equipped_weapon_uses() == 1
+	var xp_awarded: int = 15
 	if not user.consume_equipped_weapon_use():
 		return {}
 	var heal_amount: int = int(weapon.heal_power) + int(user.stats.get("mag", 0))
 	var previous_hp := target.get_current_hp()
 	target.set_current_hp(target.get_current_hp() + heal_amount)
 	var actual_heal := target.get_current_hp() - previous_hp
-	var level_up := _grant_xp(user, 15)
+	var level_up := _grant_xp(user, xp_awarded)
 	return {
 		"heal_amount": actual_heal,
 		"target_name": target.display_name,
 		"user_name": user.display_name,
+		"xp_awarded": xp_awarded,
 		"weapon_name": weapon_name,
 		"weapon_broke": weapon_broke,
 		"level_up": level_up,
@@ -161,6 +163,7 @@ func _award_gold(attacker: UnitState, defender: UnitState, result: BattleResult)
 func _grant_xp(unit: UnitState, amount: int) -> Dictionary:
 	if amount <= 0 or unit.faction != "player":
 		return {}
+	var previous_level: int = unit.level
 	unit.xp += amount
 	if unit.xp < 100:
 		return {}
@@ -179,7 +182,11 @@ func _grant_xp(unit: UnitState, amount: int) -> Dictionary:
 			if stat_name == "max_hp":
 				unit.set_current_hp(unit.get_current_hp() + 1)
 	return {
+		"unit_id": unit.base_unit_id if not unit.base_unit_id.is_empty() else unit.unit_id,
 		"unit_name": unit.display_name,
+		"portrait_id": unit.portrait_id,
+		"class_id": unit.class_id,
+		"previous_level": previous_level,
 		"level": unit.level,
 		"gains": gains,
 	}
