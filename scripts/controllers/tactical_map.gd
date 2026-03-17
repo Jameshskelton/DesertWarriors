@@ -23,6 +23,7 @@ const UI_FONT := preload("res://font/new_font.ttf")
 const UI_SCALE := 1.5
 const MAP_UNIT_TEXTURE_DIR := "res://assets/map_units"
 const MAP_UNIT_SPRITE_SCALE := 1.5
+const MAP_UNIT_ANIMATION_INTERVAL := 0.5
 const MOVEMENT_PATH_COLOR := Color(0.462745, 0.815686, 0.960784, 0.72)
 const MOVEMENT_PATH_SHADOW := Color(0.0392157, 0.0745098, 0.121569, 0.28)
 const DANGER_ZONE_BASE_COLOR := Color(0.839216, 0.215686, 0.176471, 0.16)
@@ -80,6 +81,8 @@ var _active_battle: Control
 var _active_dialogue: Control
 var _pending_battle_result: BattleResult
 var _map_unit_texture_cache: Dictionary = {}
+var _map_unit_animation_elapsed: float = 0.0
+var _map_unit_animation_frame: int = 0
 var _spawned_reinforcements: PackedStringArray = PackedStringArray()
 var _danger_zone_visible: bool = false
 var _danger_zone_tiles: Dictionary = {}
@@ -147,6 +150,7 @@ func setup(chapter_id: String) -> void:
 
 func _ready() -> void:
 	add_child(_battle_transition)
+	set_process(true)
 	_help_panel.visible = false
 	_system_menu.visible = false
 	_shop_menu.visible = false
@@ -177,6 +181,15 @@ func _ready() -> void:
 	AudioDirector.play_track("forest_realm")
 
 
+func _process(delta: float) -> void:
+	_map_unit_animation_elapsed += delta
+	if _map_unit_animation_elapsed < MAP_UNIT_ANIMATION_INTERVAL:
+		return
+	_map_unit_animation_elapsed = 0.0
+	_map_unit_animation_frame = 1 - _map_unit_animation_frame
+	queue_redraw()
+
+
 func _load_chapter() -> void:
 	_chapter = DataRegistry.get_chapter_data(_chapter_id)
 	if _chapter == null:
@@ -185,6 +198,8 @@ func _load_chapter() -> void:
 	_grid_size = Vector2i(_chapter.map_width, _chapter.map_height)
 	_terrain_grid = _build_terrain_grid(_chapter)
 	_selection.reset()
+	_map_unit_animation_elapsed = 0.0
+	_map_unit_animation_frame = 0
 	_inspected_unit = null
 	_unit_inspect_panel.visible = false
 	_action_menu.hide_menu()
@@ -1091,6 +1106,9 @@ func _battle_completed() -> void:
 			_refresh_danger_zone()
 			queue_redraw()
 			return
+		if _battle_scene_ready_to_close():
+			_on_battle_finished()
+			return
 		if _active_battle.is_queued_for_deletion() or not _active_battle.is_inside_tree() or _active_battle.get_parent() == null:
 			_on_battle_finished()
 			return
@@ -1105,6 +1123,14 @@ func _on_battle_finished() -> void:
 	_apply_battle_rewards()
 	_refresh_danger_zone()
 	queue_redraw()
+
+
+func _battle_scene_ready_to_close() -> bool:
+	if _active_battle == null or not is_instance_valid(_active_battle):
+		return false
+	if not _active_battle.has_method("is_sequence_finished"):
+		return false
+	return bool(_active_battle.call("is_sequence_finished"))
 
 
 func _apply_battle_rewards() -> void:
@@ -1799,27 +1825,31 @@ func _load_map_unit_texture_for_unit(unit: UnitState) -> Texture2D:
 		if not candidate.is_empty() and not candidates.has(candidate):
 			candidates.append(candidate)
 	for candidate in candidates:
-		var texture: Texture2D = _load_map_unit_texture_by_id(candidate)
+		var texture: Texture2D = _load_map_unit_texture_by_id(candidate, _map_unit_animation_frame)
 		if texture != null:
 			return texture
 	return null
 
 
-func _load_map_unit_texture_by_id(texture_id: String) -> Texture2D:
+func _load_map_unit_texture_by_id(texture_id: String, frame_index: int = 0) -> Texture2D:
 	if texture_id.is_empty():
 		return null
-	if _map_unit_texture_cache.has(texture_id):
-		var cached_texture: Texture2D = _map_unit_texture_cache[texture_id] as Texture2D
+	var cache_key: String = "%s:%d" % [texture_id, frame_index]
+	if _map_unit_texture_cache.has(cache_key):
+		var cached_texture: Texture2D = _map_unit_texture_cache[cache_key] as Texture2D
 		return cached_texture
 	var texture: Texture2D = null
-	for path in [
-		"%s/%s_map_sprite.png" % [MAP_UNIT_TEXTURE_DIR, texture_id],
-		"%s/%s_sprite.png" % [MAP_UNIT_TEXTURE_DIR, texture_id],
-	]:
+	var paths: Array[String] = []
+	if frame_index == 1:
+		paths.append("%s/%s_map_sprite_pos2.png" % [MAP_UNIT_TEXTURE_DIR, texture_id])
+		paths.append("%s/%s_sprite_pos2.png" % [MAP_UNIT_TEXTURE_DIR, texture_id])
+	paths.append("%s/%s_map_sprite.png" % [MAP_UNIT_TEXTURE_DIR, texture_id])
+	paths.append("%s/%s_sprite.png" % [MAP_UNIT_TEXTURE_DIR, texture_id])
+	for path in paths:
 		if ResourceLoader.exists(path):
 			texture = load(path) as Texture2D
 			break
-	_map_unit_texture_cache[texture_id] = texture
+	_map_unit_texture_cache[cache_key] = texture
 	return texture
 
 

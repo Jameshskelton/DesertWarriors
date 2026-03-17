@@ -30,6 +30,7 @@ const FIGHT_ANIMATION_CLASS_FALLBACKS := {
 var _payload: Dictionary = {}
 var _skip_requested: bool = false
 var _sequence_finished: bool = false
+var _finish_signal_sent: bool = false
 var _animation_frame_cache: Dictionary = {}
 var _feedback_tweens: Dictionary = {}
 var _left_portrait: Texture2D
@@ -191,6 +192,17 @@ func _finish_sequence(final_log: String = "") -> void:
 	if final_log.is_empty():
 		final_log = _build_final_log()
 	_battle_log.text = final_log
+	call_deferred("_emit_battle_finished_once")
+
+
+func is_sequence_finished() -> bool:
+	return _sequence_finished
+
+
+func _emit_battle_finished_once() -> void:
+	if _finish_signal_sent:
+		return
+	_finish_signal_sent = true
 	battle_finished.emit()
 
 
