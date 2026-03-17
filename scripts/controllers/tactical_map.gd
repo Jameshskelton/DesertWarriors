@@ -27,8 +27,11 @@ const MOVEMENT_PATH_COLOR := Color(0.462745, 0.815686, 0.960784, 0.72)
 const MOVEMENT_PATH_SHADOW := Color(0.0392157, 0.0745098, 0.121569, 0.28)
 const DANGER_ZONE_BASE_COLOR := Color(0.839216, 0.215686, 0.176471, 0.16)
 const DANGER_ZONE_INTENSE_COLOR := Color(0.960784, 0.333333, 0.27451, 0.28)
+const BOSS_DANGER_FILL_COLOR := Color(0.890196, 0.227451, 0.176471, 0.22)
+const BOSS_DANGER_OUTLINE_COLOR := Color(1.0, 0.843137, 0.470588, 0.94)
 const PLAYER_ATTACK_RANGE_COLOR := Color(0.980392, 0.647059, 0.196078, 0.26)
 const HOVER_ENEMY_THREAT_COLOR := Color(1.0, 0.509804, 0.258824, 0.34)
+const BOSS_HOVER_THREAT_COLOR := Color(1.0, 0.415686, 0.211765, 0.4)
 const HOVER_ENEMY_TARGET_FILL := Color(1.0, 0.866667, 0.364706, 0.24)
 const HOVER_ENEMY_TARGET_OUTLINE := Color(1.0, 0.937255, 0.729412, 0.96)
 const MAP_HEAL_POPUP_COLOR := Color(0.552941, 0.941176, 0.682353, 1.0)
@@ -80,9 +83,11 @@ var _map_unit_texture_cache: Dictionary = {}
 var _spawned_reinforcements: PackedStringArray = PackedStringArray()
 var _danger_zone_visible: bool = false
 var _danger_zone_tiles: Dictionary = {}
+var _boss_danger_tiles: Dictionary = {}
 var _hover_enemy_threat_tiles: Dictionary = {}
 var _hover_enemy_target_tiles: Dictionary = {}
 var _hover_enemy_target_names: PackedStringArray = PackedStringArray()
+var _hover_enemy_is_boss: bool = false
 var _shop_customer: UnitState
 var _shop_preview_item: String = "upgrade"
 var _inspected_unit: UnitState
@@ -186,9 +191,11 @@ func _load_chapter() -> void:
 	_forecast_panel.hide_panel()
 	_spawned_reinforcements.clear()
 	_units.clear()
+	_boss_danger_tiles.clear()
 	_hover_enemy_threat_tiles.clear()
 	_hover_enemy_target_tiles.clear()
 	_hover_enemy_target_names.clear()
+	_hover_enemy_is_boss = false
 	_event_director.reset()
 	if not _restore_suspend_state(GameState.suspend_state):
 		for entry in _chapter.starting_units:
@@ -347,11 +354,23 @@ func _draw_board() -> void:
 					threat_color = DANGER_ZONE_INTENSE_COLOR
 				threat_color.a = threat_alpha
 				draw_rect(rect.grow(-2.0), threat_color)
+			if _danger_zone_visible and _boss_danger_tiles.has(tile):
+				var boss_threat_count: int = int(_boss_danger_tiles.get(tile, 0))
+				var boss_threat_color: Color = BOSS_DANGER_FILL_COLOR
+				boss_threat_color.a = clampf(0.18 + float(mini(boss_threat_count, 3)) * 0.06, 0.18, 0.36)
+				draw_rect(rect.grow(-7.0), boss_threat_color)
+				draw_rect(rect.grow(-4.0), BOSS_DANGER_OUTLINE_COLOR, false, 2.5)
 			if _hover_enemy_threat_tiles.has(tile):
-				draw_rect(rect.grow(-7.0), HOVER_ENEMY_THREAT_COLOR)
+				var hover_threat_color: Color = HOVER_ENEMY_THREAT_COLOR
+				if _hover_enemy_is_boss:
+					hover_threat_color = BOSS_HOVER_THREAT_COLOR
+				draw_rect(rect.grow(-7.0), hover_threat_color)
 			if _hover_enemy_target_tiles.has(tile):
+				var target_outline_color: Color = HOVER_ENEMY_TARGET_OUTLINE
+				if _hover_enemy_is_boss:
+					target_outline_color = BOSS_DANGER_OUTLINE_COLOR
 				draw_rect(rect.grow(-10.0), HOVER_ENEMY_TARGET_FILL)
-				draw_rect(rect.grow(-5.0), HOVER_ENEMY_TARGET_OUTLINE, false, 4.0)
+				draw_rect(rect.grow(-5.0), target_outline_color, false, 4.0)
 			if player_attack_preview_tiles.has(tile):
 				draw_rect(rect.grow(-4.0), PLAYER_ATTACK_RANGE_COLOR)
 			draw_rect(rect, Color(0, 0, 0, 0.2), false, 1.5)
@@ -443,7 +462,10 @@ func _draw_units() -> void:
 		if unit.moved and unit.faction == "player":
 			draw_rect(visual_rect.grow(-4.5), Color(0, 0, 0, 0.4), false, 3.0)
 		if unit.faction == "player" and _hover_enemy_target_tiles.has(unit.position):
-			draw_rect(visual_rect.grow(-2.0), HOVER_ENEMY_TARGET_OUTLINE, false, 4.0)
+			var target_outline_color: Color = HOVER_ENEMY_TARGET_OUTLINE
+			if _hover_enemy_is_boss:
+				target_outline_color = BOSS_DANGER_OUTLINE_COLOR
+			draw_rect(visual_rect.grow(-2.0), target_outline_color, false, 4.0)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -1390,8 +1412,16 @@ func _toggle_danger_zone() -> void:
 func _refresh_danger_zone() -> void:
 	if not _danger_zone_visible:
 		_danger_zone_tiles.clear()
+		_boss_danger_tiles.clear()
 		return
 	_danger_zone_tiles = _danger_zone_service.build_enemy_threat_tiles(_units, _terrain_grid)
+	_boss_danger_tiles = {}
+	for unit in _units:
+		if not _is_boss_unit(unit):
+			continue
+		var boss_threat_tiles: Dictionary = _danger_zone_service.build_threat_tiles_for_unit(unit, _units, _terrain_grid)
+		for tile in boss_threat_tiles.keys():
+			_boss_danger_tiles[tile] = int(_boss_danger_tiles.get(tile, 0)) + int(boss_threat_tiles[tile])
 
 
 func _build_player_attack_preview_tiles() -> Dictionary:
@@ -1465,6 +1495,12 @@ func _show_hover_portrait(unit: UnitState) -> void:
 		unit.get_current_hp(),
 		unit.get_max_hp(),
 	])
+	if _is_boss_unit(unit):
+		var boss_title: String = _get_unit_boss_title(unit)
+		if boss_title.is_empty():
+			detail_lines.append("Boss")
+		else:
+			detail_lines.append("Boss: %s" % boss_title)
 	detail_lines.append(_format_unit_weapon_status(unit))
 	detail_lines.append(_format_unit_potion_status(unit))
 	if unit.faction == "enemy":
@@ -1525,9 +1561,11 @@ func _refresh_hover_enemy_readability(enemy_unit: UnitState) -> void:
 	_hover_enemy_threat_tiles.clear()
 	_hover_enemy_target_tiles.clear()
 	_hover_enemy_target_names.clear()
+	_hover_enemy_is_boss = false
 	if enemy_unit == null:
 		queue_redraw()
 		return
+	_hover_enemy_is_boss = _is_boss_unit(enemy_unit)
 	_hover_enemy_threat_tiles = _danger_zone_service.build_threat_tiles_for_unit(enemy_unit, _units, _terrain_grid)
 	for unit in _units:
 		if unit == null or unit.faction != "player" or not unit.is_alive() or not unit.has_joined:
@@ -1539,8 +1577,12 @@ func _refresh_hover_enemy_readability(enemy_unit: UnitState) -> void:
 
 
 func _build_enemy_hover_status(unit: UnitState) -> String:
+	var display_name: String = unit.display_name
+	var boss_title: String = _get_unit_boss_title(unit)
+	if _is_boss_unit(unit) and not boss_title.is_empty():
+		display_name = "%s (%s)" % [display_name, boss_title]
 	return "%s Lv.%d HP %d/%d | %s" % [
-		unit.display_name,
+		display_name,
 		unit.level,
 		unit.get_current_hp(),
 		unit.get_max_hp(),
@@ -1552,6 +1594,32 @@ func _build_enemy_target_summary() -> String:
 	if _hover_enemy_target_names.is_empty():
 		return "Can target: nobody"
 	return "Can target: %s" % ", ".join(_packed_string_array_to_array(_hover_enemy_target_names))
+
+
+func _is_boss_unit(unit: UnitState) -> bool:
+	return unit != null and unit.has_flag("boss")
+
+
+func _get_unit_boss_title(unit: UnitState) -> String:
+	var unit_data: UnitData = _get_unit_data(unit)
+	if unit_data == null:
+		return ""
+	return unit_data.boss_title
+
+
+func _get_unit_data(unit: UnitState) -> UnitData:
+	if unit == null:
+		return null
+	var candidate_ids := PackedStringArray()
+	if not unit.base_unit_id.is_empty():
+		candidate_ids.append(unit.base_unit_id)
+	if not unit.unit_id.is_empty() and not candidate_ids.has(unit.unit_id):
+		candidate_ids.append(unit.unit_id)
+	for candidate_id in candidate_ids:
+		var unit_data: UnitData = DataRegistry.get_unit_data(candidate_id)
+		if unit_data != null:
+			return unit_data
+	return null
 
 
 func _refresh_unit_inspection() -> void:

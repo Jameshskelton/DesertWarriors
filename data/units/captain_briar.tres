@@ -26,3 +26,4 @@ faction = "enemy"
 ai_profile = "boss"
 join_event_id = ""
 story_flags = PackedStringArray("boss")
+boss_title = "Butcher of the Greenwood"

@@ -1,6 +1,18 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/battle_scene.gd" id="1"]
+
+[sub_resource type="StyleBoxFlat" id="1"]
+bg_color = Color(0.12549, 0.0666667, 0.0588235, 0.96)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.980392, 0.807843, 0.447059, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
 
 [node name="BattleScene" type="Control"]
 layout_mode = 3
@@ -29,6 +41,46 @@ offset_bottom = 99.0
 theme_override_font_sizes/font_size = 63
 horizontal_alignment = 1
 text = "Battle"
+
+[node name="BossBanner" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 570.0
+offset_top = 112.0
+offset_right = 1350.0
+offset_bottom = 244.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("1")
+z_index = 20
+
+[node name="BannerMargin" type="MarginContainer" parent="BossBanner"]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 14
+
+[node name="BannerVBox" type="VBoxContainer" parent="BossBanner/BannerMargin"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Kicker" type="Label" parent="BossBanner/BannerMargin/BannerVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+horizontal_alignment = 1
+text = "Boss Approaches"
+
+[node name="BossName" type="Label" parent="BossBanner/BannerMargin/BannerVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 50
+horizontal_alignment = 1
+text = "Boss"
+
+[node name="BossTitle" type="Label" parent="BossBanner/BannerMargin/BannerVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+horizontal_alignment = 1
+text = "Title"
 
 [node name="LeftPanel" type="PanelContainer" parent="."]
 layout_mode = 0

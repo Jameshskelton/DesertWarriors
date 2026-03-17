@@ -149,7 +149,7 @@ Z / Enter: Select / Confirm
 X / Escape: Cancel / Back
 I: Inspect unit under cursor
 Hover an enemy: Show that enemy's exact threat tiles and current player targets
-V: Toggle enemy danger zone
+V: Toggle enemy danger zone (gold-rimmed tiles mark boss threat)
 P: Open system menu
 T: End-turn confirmation
 Space: Skip battle animation"

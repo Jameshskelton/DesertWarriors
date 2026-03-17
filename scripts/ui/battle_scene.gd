@@ -7,11 +7,16 @@ const PORTRAIT_DIR := "res://assets/portraits"
 const FIGHT_ANIMATION_FRAME_TIME := 1.0 / 18.0
 const POPUP_DURATION := 0.55
 const STRIKE_PAUSE := 0.12
+const BOSS_BANNER_PAUSE := 0.9
 const POPUP_RISE_DISTANCE := 42.0
 const DAMAGE_POPUP_COLOR := Color(1.0, 0.901961, 0.670588, 1.0)
 const MISS_POPUP_COLOR := Color(0.780392, 0.866667, 1.0, 1.0)
 const CRIT_POPUP_COLOR := Color(1.0, 0.509804, 0.356863, 1.0)
 const BREAK_POPUP_COLOR := Color(1.0, 0.764706, 0.423529, 1.0)
+const PLAYER_PANEL_COLOR := Color(0.286275, 0.486275, 0.768627, 1.0)
+const ENEMY_PANEL_COLOR := Color(0.733333, 0.286275, 0.239216, 1.0)
+const BOSS_PANEL_COLOR := Color(0.65098, 0.164706, 0.121569, 1.0)
+const BOSS_ACCENT_COLOR := Color(1.0, 0.839216, 0.470588, 1.0)
 const FIGHT_ANIMATION_CLASS_FALLBACKS := {
 	"brigand": "brigand_grunt",
 	"captain": "captain_grunt",
@@ -38,6 +43,7 @@ var _center_notice_base_position: Vector2 = Vector2.ZERO
 var _left_hp_tween: Tween
 var _right_hp_tween: Tween
 
+@onready var _title_label: Label = $TitleLabel
 @onready var _left_name: Label = $LeftPanel/LeftMargin/LeftVBox/LeftName
 @onready var _left_sprite: ColorRect = $LeftPanel/LeftMargin/LeftVBox/LeftSprite
 @onready var _left_texture: TextureRect = $LeftPanel/LeftMargin/LeftVBox/LeftSprite/Texture
@@ -49,6 +55,10 @@ var _right_hp_tween: Tween
 @onready var _right_hp: ProgressBar = $RightPanel/RightMargin/RightVBox/RightHp
 @onready var _right_stats: Label = $RightPanel/RightMargin/RightVBox/RightStats
 @onready var _battle_log: Label = $BattleLog
+@onready var _boss_banner: PanelContainer = $BossBanner
+@onready var _boss_banner_kicker: Label = $BossBanner/BannerMargin/BannerVBox/Kicker
+@onready var _boss_banner_name: Label = $BossBanner/BannerMargin/BannerVBox/BossName
+@onready var _boss_banner_title: Label = $BossBanner/BannerMargin/BannerVBox/BossTitle
 
 
 func setup(payload: Dictionary) -> void:
@@ -57,6 +67,7 @@ func setup(payload: Dictionary) -> void:
 
 func _ready() -> void:
 	AudioDirector.play_track("battle_theme")
+	_boss_banner.visible = false
 	_build_feedback_labels()
 	_reset_feedback_labels()
 	if not _has_valid_payload():
@@ -84,6 +95,7 @@ func _apply_initial_state() -> void:
 		return
 	_left_name.text = attacker.display_name
 	_right_name.text = defender.display_name
+	_apply_boss_presentation(attacker, defender)
 	_left_sprite.color = _unit_color(attacker)
 	_right_sprite.color = _unit_color(defender)
 	_left_portrait = _load_portrait_for_unit(attacker)
@@ -95,7 +107,7 @@ func _apply_initial_state() -> void:
 	_right_hp.max_value = defender.get_max_hp()
 	_right_hp.value = float(_payload.get("defender_start_hp", defender.get_current_hp()))
 	_refresh_hp_text()
-	_battle_log.text = "%s clashes with %s" % [attacker.display_name, defender.display_name]
+	_battle_log.text = _build_opening_log(attacker, defender)
 	_restore_portraits()
 	_reset_feedback_labels()
 
@@ -110,6 +122,10 @@ func _play_sequence() -> void:
 		_finish_sequence("Battle data missing.")
 		return
 	if result.strikes.is_empty():
+		_finish_sequence()
+		return
+	await _play_intro_banner(attacker, defender)
+	if _sequence_finished or _skip_requested:
 		_finish_sequence()
 		return
 	for strike in result.strikes:
@@ -167,6 +183,7 @@ func _finish_sequence(final_log: String = "") -> void:
 		return
 	_sequence_finished = true
 	_skip_requested = true
+	_boss_banner.visible = false
 	_restore_portraits()
 	_stop_hp_tweens()
 	_reset_feedback_labels()
@@ -221,6 +238,16 @@ func _pause(duration: float) -> void:
 			return
 		await get_tree().process_frame
 		remaining -= get_process_delta_time()
+
+
+func _play_intro_banner(attacker: UnitState, defender: UnitState) -> void:
+	var boss_unit: UnitState = _get_featured_boss_unit(attacker, defender)
+	if boss_unit == null:
+		return
+	_boss_banner.visible = true
+	_boss_banner.modulate = Color(1.0, 1.0, 1.0, 1.0)
+	await _pause(BOSS_BANNER_PAUSE)
+	_boss_banner.visible = false
 
 
 func _play_attack_animation(unit: UnitState, attacking_left: bool) -> void:
@@ -411,9 +438,104 @@ func _load_fight_animation_frames_by_id(animation_id: String) -> Array:
 
 
 func _unit_color(unit: UnitState) -> Color:
+	if _unit_is_boss(unit):
+		return BOSS_PANEL_COLOR
 	if unit.faction == "player":
-		return Color(0.286275, 0.486275, 0.768627, 1.0)
-	return Color(0.733333, 0.286275, 0.239216, 1.0)
+		return PLAYER_PANEL_COLOR
+	return ENEMY_PANEL_COLOR
+
+
+func _apply_boss_presentation(attacker: UnitState, defender: UnitState) -> void:
+	var boss_unit: UnitState = _get_featured_boss_unit(attacker, defender)
+	_title_label.text = "Battle"
+	_title_label.remove_theme_color_override("font_color")
+	_apply_nameplate_style(_left_name, attacker)
+	_apply_nameplate_style(_right_name, defender)
+	_boss_banner.visible = false
+	_boss_banner_kicker.text = ""
+	_boss_banner_name.text = ""
+	_boss_banner_title.text = ""
+	_boss_banner_title.visible = false
+	if boss_unit == null:
+		return
+	_title_label.text = _build_battle_title(attacker, defender)
+	_title_label.add_theme_color_override("font_color", BOSS_ACCENT_COLOR)
+	_boss_banner_kicker.text = _build_boss_kicker(attacker, defender, boss_unit)
+	_boss_banner_name.text = boss_unit.display_name
+	_boss_banner_title.text = _get_unit_boss_title(boss_unit)
+	_boss_banner_title.visible = not _boss_banner_title.text.is_empty()
+
+
+func _apply_nameplate_style(label: Label, unit: UnitState) -> void:
+	label.remove_theme_color_override("font_color")
+	if _unit_is_boss(unit):
+		label.add_theme_color_override("font_color", BOSS_ACCENT_COLOR)
+
+
+func _build_battle_title(attacker: UnitState, defender: UnitState) -> String:
+	if _get_featured_boss_unit(attacker, defender) == null:
+		return "Battle"
+	if _is_george(attacker) or _is_george(defender):
+		return "Boss Duel"
+	return "Boss Battle"
+
+
+func _build_boss_kicker(attacker: UnitState, defender: UnitState, boss_unit: UnitState) -> String:
+	if _is_george(attacker) or _is_george(defender):
+		return "George's Reckoning"
+	if boss_unit.faction == "enemy":
+		return "Boss Approaches"
+	return "A Champion Stands Forward"
+
+
+func _build_opening_log(attacker: UnitState, defender: UnitState) -> String:
+	var boss_unit: UnitState = _get_featured_boss_unit(attacker, defender)
+	if boss_unit == null:
+		return "%s clashes with %s" % [attacker.display_name, defender.display_name]
+	var opposing_unit: UnitState = defender
+	if boss_unit == defender:
+		opposing_unit = attacker
+	return "%s steps forward to face %s." % [opposing_unit.display_name, boss_unit.display_name]
+
+
+func _get_featured_boss_unit(attacker: UnitState, defender: UnitState) -> UnitState:
+	if _unit_is_boss(defender):
+		return defender
+	if _unit_is_boss(attacker):
+		return attacker
+	return null
+
+
+func _unit_is_boss(unit: UnitState) -> bool:
+	return unit != null and unit.has_flag("boss")
+
+
+func _is_george(unit: UnitState) -> bool:
+	if unit == null:
+		return false
+	return unit.base_unit_id == "george" or unit.unit_id == "george" or unit.display_name == "George"
+
+
+func _get_unit_boss_title(unit: UnitState) -> String:
+	var unit_data: UnitData = _get_unit_data(unit)
+	if unit_data == null:
+		return ""
+	return unit_data.boss_title
+
+
+func _get_unit_data(unit: UnitState) -> UnitData:
+	if unit == null:
+		return null
+	var candidate_ids := PackedStringArray()
+	if not unit.base_unit_id.is_empty():
+		candidate_ids.append(unit.base_unit_id)
+	if not unit.unit_id.is_empty() and not candidate_ids.has(unit.unit_id):
+		candidate_ids.append(unit.unit_id)
+	for candidate_id in candidate_ids:
+		var unit_data: UnitData = DataRegistry.get_unit_data(candidate_id)
+		if unit_data != null:
+			return unit_data
+	return null
 
 
 func _load_portrait_for_unit(unit: UnitState) -> Texture2D:

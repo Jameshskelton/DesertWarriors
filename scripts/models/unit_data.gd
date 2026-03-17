@@ -24,6 +24,7 @@ class_name UnitData
 @export var join_event_id := ""
 @export var story_flags: PackedStringArray = PackedStringArray()
 @export var gold_drop := -1
+@export var boss_title := ""
 
 
 func get_id() -> String:
