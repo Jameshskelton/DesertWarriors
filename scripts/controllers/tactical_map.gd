@@ -42,6 +42,12 @@ const HOVER_ENEMY_TARGET_FILL := Color(1.0, 0.866667, 0.364706, 0.24)
 const HOVER_ENEMY_TARGET_OUTLINE := Color(1.0, 0.937255, 0.729412, 0.96)
 const MAP_HEAL_POPUP_COLOR := Color(0.552941, 0.941176, 0.682353, 1.0)
 const MAP_BREAK_POPUP_COLOR := Color(1.0, 0.764706, 0.423529, 1.0)
+const HEADER_CHAPTER_COLOR := Color(0.968627, 0.929412, 0.811765, 1.0)
+const HEADER_TURN_COLOR := Color(0.647059, 0.878431, 1.0, 1.0)
+const HEADER_PHASE_PLAYER_COLOR := Color(0.631373, 0.941176, 0.705882, 1.0)
+const HEADER_PHASE_ENEMY_COLOR := Color(1.0, 0.592157, 0.509804, 1.0)
+const HEADER_OBJECTIVE_COLOR := Color(1.0, 0.764706, 0.470588, 1.0)
+const HEADER_GOLD_COLOR := Color(1.0, 0.878431, 0.447059, 1.0)
 const SHOP_POTION_ITEM_ID := "health_potion"
 const SHOP_POTION_PRICE := 10
 const SHOP_UPGRADE_PRICE := 40
@@ -1649,6 +1655,14 @@ func _update_header() -> void:
 	_phase_label.text = "Player Phase" if _turn_controller.phase == "player" else "Enemy Phase"
 	_objective_label.text = _objective_controller.get_objective_text(_chapter)
 	_gold_label.text = "Gold %d" % GameState.gold
+	_chapter_label.add_theme_color_override("font_color", HEADER_CHAPTER_COLOR)
+	_turn_label.add_theme_color_override("font_color", HEADER_TURN_COLOR)
+	if _turn_controller.phase == "player":
+		_phase_label.add_theme_color_override("font_color", HEADER_PHASE_PLAYER_COLOR)
+	else:
+		_phase_label.add_theme_color_override("font_color", HEADER_PHASE_ENEMY_COLOR)
+	_objective_label.add_theme_color_override("font_color", HEADER_OBJECTIVE_COLOR)
+	_gold_label.add_theme_color_override("font_color", HEADER_GOLD_COLOR)
 
 
 func _update_hint() -> void:

@@ -55,23 +55,44 @@ theme_override_constants/margin_bottom = 15
 
 [node name="HeaderRow" type="HBoxContainer" parent="Header/HeaderMargin"]
 layout_mode = 2
-theme_override_constants/separation = 27
+theme_override_constants/separation = 12
 
 [node name="ChapterLabel" type="Label" parent="Header/HeaderMargin/HeaderRow"]
 layout_mode = 2
+size_flags_horizontal = 3
 text = "Chapter"
+
+[node name="Sep1" type="Label" parent="Header/HeaderMargin/HeaderRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.843137, 0.470588, 1)
+text = "|"
 
 [node name="TurnLabel" type="Label" parent="Header/HeaderMargin/HeaderRow"]
 layout_mode = 2
 text = "Turn 1"
 
+[node name="Sep2" type="Label" parent="Header/HeaderMargin/HeaderRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.843137, 0.470588, 1)
+text = "|"
+
 [node name="PhaseLabel" type="Label" parent="Header/HeaderMargin/HeaderRow"]
 layout_mode = 2
 text = "Player Phase"
 
+[node name="Sep3" type="Label" parent="Header/HeaderMargin/HeaderRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.843137, 0.470588, 1)
+text = "|"
+
 [node name="ObjectiveLabel" type="Label" parent="Header/HeaderMargin/HeaderRow"]
 layout_mode = 2
 text = "Defeat Boss"
+
+[node name="Sep4" type="Label" parent="Header/HeaderMargin/HeaderRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.843137, 0.470588, 1)
+text = "|"
 
 [node name="GoldLabel" type="Label" parent="Header/HeaderMargin/HeaderRow"]
 layout_mode = 2
