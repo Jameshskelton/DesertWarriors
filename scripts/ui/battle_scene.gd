@@ -25,6 +25,7 @@ const FIGHT_ANIMATION_CLASS_FALLBACKS := {
 	"knight": "knight_grunt",
 	"lord": "george",
 	"mage": "ember",
+	"paladin": "george",
 }
 
 var _payload: Dictionary = {}

@@ -47,6 +47,7 @@ func _connect_signals() -> void:
 	$ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer/Chapter2Button.pressed.connect(_on_chapter_2_selected)
 	$ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer/Chapter3Button.pressed.connect(_on_chapter_3_selected)
 	$ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer/Chapter4Button.pressed.connect(_on_chapter_4_selected)
+	$ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer/Chapter5Button.pressed.connect(_on_chapter_5_selected)
 	$PermadeathPanel/PermadeathMargin/PermadeathVBox/ButtonRow/YesButton.pressed.connect(_on_permadeath_yes_pressed)
 	$PermadeathPanel/PermadeathMargin/PermadeathVBox/ButtonRow/NoButton.pressed.connect(_on_permadeath_no_pressed)
 
@@ -165,6 +166,11 @@ func _on_chapter_3_selected() -> void:
 func _on_chapter_4_selected() -> void:
 	GameState.prepare_chapter_select_game("chapter_4")
 	continue_requested.emit("chapter_4")
+
+
+func _on_chapter_5_selected() -> void:
+	GameState.prepare_chapter_select_game("chapter_5")
+	continue_requested.emit("chapter_5")
 
 
 func _close_permadeath_prompt() -> void:

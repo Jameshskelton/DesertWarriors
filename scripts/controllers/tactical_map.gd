@@ -67,6 +67,7 @@ const MAP_UNIT_CLASS_FALLBACKS := {
 	"knight": "knight_grunt",
 	"lord": "george",
 	"mage": "ember",
+	"paladin": "rowan",
 	"priest": "hale",
 }
 

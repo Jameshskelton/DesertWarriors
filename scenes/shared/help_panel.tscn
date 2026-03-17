@@ -84,6 +84,7 @@ layout_mode = 2
 bbcode_enabled = false
 fit_content = true
 text = "Forest: +20 AVOID, +1 DEF
+Sand: Slows movement, no AVOID bonus
 Road: Standard terrain
 River: Impassable terrain
 Village: End movement here, then choose Visit

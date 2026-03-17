@@ -193,6 +193,10 @@ text = "Chapter 3: The Unbroken"
 layout_mode = 2
 text = "Chapter 4: Hunters at the Cloister"
 
+[node name="Chapter5Button" type="Button" parent="ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer"]
+layout_mode = 2
+text = "Chapter 5: The Hercule Desert"
+
 [node name="BackButton2" type="Button" parent="ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox"]
 layout_mode = 2
 text = "Back"

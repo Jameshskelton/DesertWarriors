@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="UnitData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/unit_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "bartram"
+display_name = "Bartram"
+class_id = "knight"
+level = 4
+stats = {
+"def": 11,
+"hp": 30,
+"lck": 4,
+"mag": 0,
+"max_hp": 30,
+"res": 2,
+"skl": 7,
+"spd": 4,
+"str": 10
+}
+xp = 0
+inventory = PackedStringArray("steel_lance", "health_potion")
+portrait_id = "bartram"
+faction = "enemy"
+ai_profile = "boss"
+join_event_id = ""
+story_flags = PackedStringArray("boss")
+boss_title = "Lance of the Dune Road"

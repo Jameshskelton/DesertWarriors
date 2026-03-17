@@ -440,6 +440,8 @@ func _build_chapter_select_cleared_chapters(chapter_id: String) -> PackedStringA
 			return PackedStringArray(["chapter_1", "chapter_2"])
 		"chapter_4":
 			return PackedStringArray(["chapter_1", "chapter_2", "chapter_3"])
+		"chapter_5":
+			return PackedStringArray(["chapter_1", "chapter_2", "chapter_3", "chapter_4"])
 		_:
 			return PackedStringArray()
 
@@ -463,6 +465,8 @@ func _get_chapter_select_unit_ids(chapter_id: String) -> PackedStringArray:
 		"chapter_3":
 			return PackedStringArray(["george", "bram", "brother_hale", "ember", "rowan", "balt"])
 		"chapter_4":
+			return PackedStringArray(["george", "bram", "brother_hale", "ember", "rowan", "balt", "ricodial"])
+		"chapter_5":
 			return PackedStringArray(["george", "bram", "brother_hale", "ember", "rowan", "balt", "ricodial"])
 		_:
 			return PackedStringArray(["george", "bram", "brother_hale"])

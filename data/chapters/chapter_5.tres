@@ -1,0 +1,187 @@
+[gd_resource type="Resource" script_class="ChapterData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/chapter_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "chapter_5"
+display_name = "Chapter 5: The Hercule Desert"
+objective_type = "defeat_boss"
+objective_turns = 0
+map_width = 20
+map_height = 15
+terrain_rows = PackedStringArray("PPSSSSSSSSSSSSSSSSPP", "PSSSSSSSSSSSSSSSSSPP", "PSSSSSSSSFFSSSSSSSPP", "PSSSSSSSFFFFSSSSSSPP", "PSSSSSSSRRSSSSSSSSPP", "PSSSSSRRRRRRSSSSSSPP", "PSSSRRRRRRRRRRSSSSPP", "PRRRRRRRRRRRRRRRRSPP", "PSSSRRRRRRRRRRSSSSPP", "PSSSSSRRRRRRSSSSSSPP", "PSSSSSSSRRSSSSSSSSPP", "PSSSSSSSSSSSSSSSSSPP", "PPSSSSSSSSSSSSSSSSPP", "PPPSSSSSSSSSSSSSSPPP", "PPPPSSSSSSSSSSSSPPPP")
+terrain_legend = {
+"F": "forest",
+"P": "plains",
+"R": "road",
+"S": "sand"
+}
+deployment_slots = 8
+starting_units = [{
+"faction": "player",
+"position": Vector2i(2, 7),
+"unit_id": "george"
+}, {
+"faction": "player",
+"position": Vector2i(1, 8),
+"unit_id": "bram"
+}, {
+"faction": "player",
+"position": Vector2i(1, 7),
+"unit_id": "brother_hale"
+}, {
+"faction": "player",
+"position": Vector2i(0, 6),
+"unit_id": "ember"
+}, {
+"faction": "player",
+"position": Vector2i(2, 8),
+"unit_id": "rowan"
+}, {
+"faction": "player",
+"position": Vector2i(1, 6),
+"unit_id": "balt"
+}, {
+"faction": "player",
+"position": Vector2i(0, 7),
+"unit_id": "ricodial"
+}]
+enemy_units = [{
+"faction": "enemy",
+"instance_id": "desert_brigand_1",
+"position": Vector2i(12, 7),
+"unit_id": "brigand_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "desert_brigand_2",
+"position": Vector2i(14, 6),
+"unit_id": "brigand_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "desert_brigand_3",
+"position": Vector2i(16, 8),
+"unit_id": "brigand_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "desert_hunter_1",
+"position": Vector2i(13, 5),
+"unit_id": "hunter_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "desert_hunter_2",
+"position": Vector2i(15, 9),
+"unit_id": "hunter_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "bartram",
+"position": Vector2i(17, 7),
+"unit_id": "bartram"
+}]
+reinforcements = [{
+"faction": "player",
+"instance_id": "ysult_arrival",
+"dialogue_lines": [{
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "Ysult",
+"text": "There you are! I was beginning to think every fool in the Hercule had decided to die separately."
+}, {
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "George",
+"text": "You know me?"
+}, {
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "Ysult",
+"text": "I rode caravan guard for your father. He once paid me in silver and the much rarer gift of honesty. When word reached the desert that Malrec had sent a knight to herd brigands like hounds, I came to see whether the prince was worth the ride."
+}, {
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "Rowan",
+"text": "And the verdict?"
+}, {
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "Ysult",
+"text": "Still out. But Bartram is extorting every well between here and the northern pass, and I hate bullies more than I hate sand. I am Ysult. Point me at the man with the lance."
+}],
+"message": "Ysult rides in from the southern dunes to break Bartram's hold on the road.",
+"position": Vector2i(3, 11),
+"turn": 3,
+"unit_id": "ysult"
+}]
+event_triggers = [{
+"boss_id": "bartram",
+"dialogue_lines": [{
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "Bartram",
+"text": "So the exile crosses the Hercule at last. Your uncle's coin spends well out here, George. Better than law. Better than mercy."
+}, {
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "George",
+"text": "Then you are no knight. Only a toll keeper with a lance and a grave misunderstanding of honor."
+}, {
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "Bartram",
+"text": "Honor does not fill canteens. I hold the wells, I hold the road, and every bandit in these dunes bows when I lower my spear."
+}, {
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "George",
+"text": "Then I will break your spear and give the road back to the people who actually bleed on it."
+}],
+"id": "bartram_confront",
+"trigger": "boss_confront",
+"unit_id": "george"
+}]
+opening_dialogue = [{
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "Narrator",
+"text": "Beyond Saint Orin's cloister, the land opens into the Hercule Desert: a sea of heat-blanched sand where caravans vanish, wells are fought over like thrones, and law is whatever can survive until sundown."
+}, {
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "Ricodial",
+"text": "I have always maintained that deserts are persuasive arguments for staying indoors. They offer thirst, glare, and the occasional bandit philosopher."
+}, {
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "Bram",
+"text": "Bandits I can manage. Sand in my boots is another enemy entirely."
+}, {
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "Balt",
+"text": "Tracks ahead. Lots of them. Heavy boots, wagon ruts, and horses. Someone is stopping caravans on purpose."
+}, {
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "Rowan",
+"text": "Scouts on the ridges too. Hunters. And brigands waiting near the road. Organized ones."
+}, {
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "Brother Hale",
+"text": "Then hunger has found a patron. Malrec's hand reaches even here."
+}, {
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "George",
+"text": "Then we cut it off here. If the desert road belongs to thieves bought by my uncle, no town beyond these dunes will ever hear another honest word from us."
+}, {
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "Narrator",
+"text": "Ahead, steel flashes above the sand. A lance rises over the bandits like a standard, and the desert begins to close around the company."
+}]
+victory_dialogue = [{
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "Narrator",
+"text": "Bartram falls, and the dune road exhales. The brigands scatter from the wells they had claimed, leaving dropped axes, spilled water, and a silence too sudden to trust."
+}, {
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "Ysult",
+"text": "That should teach the road a better habit. Men like Bartram call extortion order, then act shocked when someone answers with steel."
+}, {
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "George",
+"text": "If Malrec is buying roads the way he buys lords, then every league we free matters. Let the caravans carry more than spice now. Let them carry word that he can be resisted."
+}, {
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "Ember",
+"text": "Word travels faster than wagons when hope is starving. The desert will talk."
+}, {
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "Ricodial",
+"text": "Then let us keep moving before the sun decides to murder us in person. Victories are easier to enjoy with shade."
+}]
+next_chapter_id = null

@@ -233,4 +233,4 @@ victory_dialogue = [{
 "speaker": "Brother Hale",
 "text": "Then let us greet the morning properly. The cloister stands, the hunters flee, and the kingdom has survived one more night without bowing to fear."
 }]
-next_chapter_id = null
+next_chapter_id = "chapter_5"
