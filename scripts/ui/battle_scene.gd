@@ -323,7 +323,6 @@ func _play_intro_banner(attacker: UnitState, defender: UnitState) -> void:
 		return
 	_boss_banner.visible = true
 	_boss_banner.modulate = Color(1.0, 1.0, 1.0, 1.0)
-	AudioDirector.play_sfx("boss_intro")
 	await _pause(BOSS_BANNER_PAUSE)
 	_boss_banner.visible = false
 
