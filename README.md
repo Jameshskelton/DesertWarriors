@@ -123,6 +123,14 @@ Art and media paths:
 - `assets/terrain/`: terrain textures
 - `assets/music/`: overworld and battle music
 
+## Next Steps:
+
+- Add 5 more levels of gameplay
+- Add class evolution system
+- add more diverse enemy unit types
+- add unique weapons
+- add more features to maps
+
 ## Notes
 
 - Dialogue, recruit events, reinforcement waves, and boss confrontations are defined in chapter resource files.
