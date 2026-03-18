@@ -82,6 +82,7 @@ func prepare_chapter_select_game(chapter_id: String) -> void:
 		current_chapter_id = "chapter_1"
 	cleared_chapters = _build_chapter_select_cleared_chapters(current_chapter_id)
 	roster_state = _build_chapter_select_roster_state(current_chapter_id)
+	gold = _build_chapter_select_gold(current_chapter_id)
 
 
 func continue_game() -> bool:
@@ -543,6 +544,13 @@ func _build_chapter_select_roster_state(chapter_id: String) -> Dictionary:
 		state.set_current_hp(state.get_max_hp())
 		roster[unit_id] = state.to_persistent_state()
 	return roster
+
+
+func _build_chapter_select_gold(chapter_id: String) -> int:
+	var chapter_number: int = 1
+	if chapter_id.begins_with("chapter_"):
+		chapter_number = maxi(1, int(chapter_id.trim_prefix("chapter_")))
+	return maxi(0, (chapter_number - 1) * 30)
 
 
 func _get_chapter_select_unit_ids(chapter_id: String) -> PackedStringArray:

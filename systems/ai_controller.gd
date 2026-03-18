@@ -17,6 +17,8 @@ func choose_action(enemy: UnitState, units: Array[UnitState], terrain_grid: Arra
 			players.append(unit)
 	if players.is_empty():
 		return {"type": "wait"}
+	if enemy.ai_profile == "castle_guard":
+		return _choose_castle_guard_action(enemy, players)
 	var enemy_class: ClassData = DataRegistry.get_class_data(enemy.class_id)
 	var reachable := _pathfinding.compute_reachable(
 		enemy.position,
@@ -60,6 +62,29 @@ func choose_action(enemy: UnitState, units: Array[UnitState], terrain_grid: Arra
 		"type": "move_wait",
 		"destination": best_tile,
 		"path": _pathfinding.build_path(enemy.position, best_tile, reachable),
+	}
+
+
+func _choose_castle_guard_action(enemy: UnitState, players: Array[UnitState]) -> Dictionary:
+	var best_attack: Dictionary = {}
+	for player in players:
+		if not _combat.can_unit_attack_from_tile(enemy, player, enemy.position):
+			continue
+		var score: int = _score_attack(enemy, player)
+		if best_attack.is_empty() or score > best_attack.get("score", -999):
+			best_attack = {
+				"type": "move_attack",
+				"score": score,
+				"destination": enemy.position,
+				"target": player,
+				"path": [enemy.position],
+			}
+	if not best_attack.is_empty():
+		return best_attack
+	return {
+		"type": "move_wait",
+		"destination": enemy.position,
+		"path": [enemy.position],
 	}
 
 
