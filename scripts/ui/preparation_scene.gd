@@ -70,6 +70,7 @@ func setup(chapter_id: String) -> void:
 
 func _ready() -> void:
 	_connect_signals()
+	_connect_ui_audio()
 	_configure_focus_navigation()
 	_trade_modal.visible = false
 	_convoy_modal.visible = false
@@ -89,6 +90,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if _trade_modal.visible:
 			_close_trade_modal()
 			return
+		AudioDirector.play_sfx("menu_cancel")
 		return_to_title.emit()
 	if not _trade_modal.visible and event.is_action_pressed("ui_accept") and _inventory_list.has_focus() and _selected_item_index >= 0:
 		_on_inventory_activated(_selected_item_index)
@@ -118,6 +120,45 @@ func _connect_signals() -> void:
 	_convoy_deposit_button.pressed.connect(Callable(self, "_on_convoy_deposit_pressed"))
 	_convoy_withdraw_button.pressed.connect(Callable(self, "_on_convoy_withdraw_pressed"))
 	_convoy_close_button.pressed.connect(Callable(self, "_on_convoy_close_pressed"))
+
+
+func _connect_ui_audio() -> void:
+	for button in [
+		_move_up_button,
+		_move_down_button,
+		_transfer_button,
+		_convoy_button,
+		_assign_button,
+		_begin_button,
+		_return_button,
+		_trade_confirm_button,
+		_trade_cancel_button,
+		_convoy_deposit_button,
+		_convoy_withdraw_button,
+		_convoy_close_button,
+	]:
+		if button == null:
+			continue
+		button.focus_entered.connect(Callable(self, "_play_cursor_sound"))
+	for item_list in [
+		_unit_list,
+		_inventory_list,
+		_deployment_list,
+		_trade_target_list,
+		_convoy_unit_inventory_list,
+		_convoy_list,
+	]:
+		if item_list == null:
+			continue
+		item_list.item_selected.connect(Callable(self, "_on_ui_list_item_selected"))
+
+
+func _play_cursor_sound() -> void:
+	AudioDirector.play_sfx("cursor_tick")
+
+
+func _on_ui_list_item_selected(_index: int) -> void:
+	AudioDirector.play_sfx("cursor_tick")
 
 
 func _configure_focus_navigation() -> void:
@@ -354,11 +395,14 @@ func _on_inventory_activated(index: int) -> void:
 	_refresh_item_details()
 	_refresh_buttons()
 	if not _transfer_button.disabled:
+		AudioDirector.play_sfx("menu_confirm")
 		_transfer_button.grab_focus()
 		_status_label.text = "Trade ready. Press Space or Enter on Trade to choose a partner."
 	elif not _move_down_button.disabled:
+		AudioDirector.play_sfx("menu_confirm")
 		_move_down_button.grab_focus()
 	elif not _move_up_button.disabled:
+		AudioDirector.play_sfx("menu_confirm")
 		_move_up_button.grab_focus()
 
 
@@ -368,6 +412,7 @@ func _on_move_up_pressed() -> void:
 		return
 	if not unit.move_item(_selected_item_index, _selected_item_index - 1):
 		return
+	AudioDirector.play_sfx("menu_confirm")
 	_selected_item_index -= 1
 	_commit_roster()
 	_refresh_view()
@@ -380,6 +425,7 @@ func _on_move_down_pressed() -> void:
 		return
 	if not unit.move_item(_selected_item_index, _selected_item_index + 1):
 		return
+	AudioDirector.play_sfx("menu_confirm")
 	_selected_item_index += 1
 	_commit_roster()
 	_refresh_view()
@@ -418,6 +464,7 @@ func _on_trade_confirm_pressed() -> void:
 		_status_label.text = "%s cannot take that item." % target.display_name
 		_refresh_trade_modal()
 		return
+	AudioDirector.play_sfx("menu_confirm")
 	if unit.inventory.is_empty():
 		_selected_item_index = -1
 	else:
@@ -438,10 +485,12 @@ func _on_trade_cancel_pressed() -> void:
 
 func _on_begin_pressed() -> void:
 	_commit_roster()
+	AudioDirector.play_sfx("menu_confirm")
 	battle_requested.emit(_chapter_id)
 
 
 func _on_return_pressed() -> void:
+	AudioDirector.play_sfx("menu_confirm")
 	return_to_title.emit()
 
 
@@ -463,6 +512,7 @@ func _assign_selected_unit_to_slot() -> void:
 	if current_slot == destination_slot:
 		_status_label.text = "%s is already assigned there." % unit.display_name
 		return
+	AudioDirector.play_sfx("menu_confirm")
 	_deployment_assignments[unit.unit_id] = _serialize_vector2i(destination_slot)
 	if occupying_unit != null:
 		if current_slot != Vector2i(-1, -1):
@@ -481,6 +531,7 @@ func _assign_selected_unit_to_slot() -> void:
 func _open_trade_modal() -> void:
 	if not _can_open_trade_modal():
 		return
+	AudioDirector.play_sfx("menu_confirm")
 	_trade_modal.visible = true
 	_refresh_trade_modal()
 	_trade_target_list.grab_focus()
@@ -489,6 +540,8 @@ func _open_trade_modal() -> void:
 
 func _close_trade_modal(restore_status: bool = true) -> void:
 	_trade_modal.visible = false
+	if restore_status:
+		AudioDirector.play_sfx("menu_cancel")
 	_trade_target_indices.clear()
 	_trade_target_list.clear()
 	if restore_status:
@@ -615,6 +668,7 @@ func _on_convoy_deposit_pressed() -> void:
 	var extracted_item: Dictionary = unit.extract_item_at(_selected_convoy_unit_item_index)
 	if extracted_item.is_empty():
 		return
+	AudioDirector.play_sfx("menu_confirm")
 	var item_id: String = str(extracted_item.get("item_id", ""))
 	var uses: int = int(extracted_item.get("uses", 0))
 	GameState.add_convoy_item(item_id, uses)
@@ -654,6 +708,7 @@ func _on_convoy_withdraw_pressed() -> void:
 	var removed_entry: Dictionary = GameState.remove_convoy_item(_selected_convoy_index)
 	if removed_entry.is_empty():
 		return
+	AudioDirector.play_sfx("menu_confirm")
 	unit.add_item(item_id, int(removed_entry.get("uses", 0)))
 	_selected_item_index = unit.inventory.size() - 1
 	_selected_convoy_unit_item_index = _selected_item_index
@@ -676,6 +731,7 @@ func _on_convoy_close_pressed() -> void:
 func _open_convoy_modal() -> void:
 	if _get_selected_unit() == null:
 		return
+	AudioDirector.play_sfx("menu_confirm")
 	_trade_modal.visible = false
 	_convoy_modal.visible = true
 	var unit: UnitState = _get_selected_unit()
@@ -703,6 +759,7 @@ func _open_convoy_modal() -> void:
 
 func _close_convoy_modal(restore_status: bool = true) -> void:
 	_convoy_modal.visible = false
+	AudioDirector.play_sfx("menu_cancel")
 	_selected_item_index = _selected_convoy_unit_item_index
 	_refresh_inventory_list()
 	_refresh_item_details()

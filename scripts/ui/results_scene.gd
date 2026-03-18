@@ -19,9 +19,19 @@ func setup(summary: Dictionary) -> void:
 func _ready() -> void:
 	_return_button.pressed.connect(_on_return_pressed)
 	_continue_button.pressed.connect(_on_continue_pressed)
+	_return_button.focus_entered.connect(func() -> void:
+		AudioDirector.play_sfx("cursor_tick")
+	)
+	_continue_button.focus_entered.connect(func() -> void:
+		AudioDirector.play_sfx("cursor_tick")
+	)
 	_return_button.grab_focus()
 	
 	var success: bool = bool(_summary.get("success", false))
+	if success:
+		AudioDirector.play_sfx("chapter_clear")
+	else:
+		AudioDirector.play_sfx("battle_loss")
 	_title_label.text = "Chapter Clear" if success else "Battle Lost"
 	_summary_label.text = _build_summary_text(success)
 	_roster_label.text = _build_roster_text()
@@ -41,12 +51,14 @@ func _ready() -> void:
 
 
 func _on_return_pressed() -> void:
+	AudioDirector.play_sfx("menu_confirm")
 	return_to_title.emit()
 
 
 func _on_continue_pressed() -> void:
 	var next_chapter_id: String = _get_next_chapter_id()
 	if not next_chapter_id.is_empty():
+		AudioDirector.play_sfx("menu_confirm")
 		continue_to_next_chapter.emit(next_chapter_id)
 
 

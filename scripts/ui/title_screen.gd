@@ -31,6 +31,7 @@ var _menu_visible: bool = false
 func _ready() -> void:
 	AudioDirector.play_track("title_theme")
 	_connect_signals()
+	_connect_button_audio()
 	_configure_chapter_select_navigation()
 	_apply_settings()
 	_menu_visible = false
@@ -57,6 +58,30 @@ func _connect_signals() -> void:
 	_chapter_5_button.pressed.connect(_on_chapter_5_selected)
 	$PermadeathPanel/PermadeathMargin/PermadeathVBox/ButtonRow/YesButton.pressed.connect(_on_permadeath_yes_pressed)
 	$PermadeathPanel/PermadeathMargin/PermadeathVBox/ButtonRow/NoButton.pressed.connect(_on_permadeath_no_pressed)
+
+
+func _connect_button_audio() -> void:
+	for button in [
+		_new_game_button,
+		_continue_button,
+		_chapter_select_button,
+		_options_button,
+		_quit_button,
+		_chapter_1_button,
+		_chapter_2_button,
+		_chapter_3_button,
+		_chapter_4_button,
+		_chapter_5_button,
+		_chapter_select_back_button,
+		$OptionsPanel/OptionsMargin/OptionsVBox/BackButton,
+		$PermadeathPanel/PermadeathMargin/PermadeathVBox/ButtonRow/YesButton,
+		$PermadeathPanel/PermadeathMargin/PermadeathVBox/ButtonRow/NoButton,
+	]:
+		if button == null:
+			continue
+		button.focus_entered.connect(func() -> void:
+			AudioDirector.play_sfx("cursor_tick")
+		)
 
 
 func _configure_chapter_select_navigation() -> void:
@@ -106,6 +131,7 @@ func _show_menu() -> void:
 	_menu_visible = true
 	_start_prompt.visible = false
 	_menu_panel.visible = true
+	AudioDirector.play_sfx("menu_confirm")
 	_continue_button.disabled = not SaveSystem.has_save()
 	_continue_button.text = "Resume Suspend" if SaveSystem.has_suspend_save() else "Continue"
 	_chapter_select_button.disabled = false
@@ -117,29 +143,35 @@ func _hide_menu() -> void:
 	_menu_panel.visible = false
 	_permadeath_panel.visible = false
 	_start_prompt.visible = true
+	AudioDirector.play_sfx("menu_cancel")
 
 
 func _on_new_game_pressed() -> void:
+	AudioDirector.play_sfx("menu_confirm")
 	_permadeath_panel.visible = true
 	$PermadeathPanel/PermadeathMargin/PermadeathVBox/ButtonRow/NoButton.grab_focus()
 
 
 func _on_continue_pressed() -> void:
 	if GameState.continue_game():
+		AudioDirector.play_sfx("menu_confirm")
 		continue_requested.emit(GameState.current_chapter_id)
 
 
 func _on_chapter_select_pressed() -> void:
+	AudioDirector.play_sfx("menu_confirm")
 	_chapter_select_panel.visible = true
 	_chapter_1_button.grab_focus()
 
 
 func _on_options_pressed() -> void:
+	AudioDirector.play_sfx("menu_confirm")
 	_options_panel.visible = true
 	$OptionsPanel/OptionsMargin/OptionsVBox/BackButton.grab_focus()
 
 
 func _on_quit_pressed() -> void:
+	AudioDirector.play_sfx("menu_confirm")
 	get_tree().quit()
 
 
@@ -167,49 +199,59 @@ func _save_settings() -> void:
 
 func _on_options_back() -> void:
 	_options_panel.visible = false
+	AudioDirector.play_sfx("menu_cancel")
 	_options_button.grab_focus()
 
 
 func _on_chapter_select_back() -> void:
 	_chapter_select_panel.visible = false
+	AudioDirector.play_sfx("menu_cancel")
 	_chapter_select_button.grab_focus()
 
 
 func _on_chapter_1_selected() -> void:
 	GameState.prepare_chapter_select_game("chapter_1")
+	AudioDirector.play_sfx("menu_confirm")
 	continue_requested.emit("chapter_1")
 
 
 func _on_chapter_2_selected() -> void:
 	GameState.prepare_chapter_select_game("chapter_2")
+	AudioDirector.play_sfx("menu_confirm")
 	continue_requested.emit("chapter_2")
 
 
 func _on_chapter_3_selected() -> void:
 	GameState.prepare_chapter_select_game("chapter_3")
+	AudioDirector.play_sfx("menu_confirm")
 	continue_requested.emit("chapter_3")
 
 
 func _on_chapter_4_selected() -> void:
 	GameState.prepare_chapter_select_game("chapter_4")
+	AudioDirector.play_sfx("menu_confirm")
 	continue_requested.emit("chapter_4")
 
 
 func _on_chapter_5_selected() -> void:
 	GameState.prepare_chapter_select_game("chapter_5")
+	AudioDirector.play_sfx("menu_confirm")
 	continue_requested.emit("chapter_5")
 
 
 func _close_permadeath_prompt() -> void:
 	_permadeath_panel.visible = false
+	AudioDirector.play_sfx("menu_cancel")
 	_new_game_button.grab_focus()
 
 
 func _on_permadeath_yes_pressed() -> void:
 	_permadeath_panel.visible = false
+	AudioDirector.play_sfx("menu_confirm")
 	new_game_requested.emit(true)
 
 
 func _on_permadeath_no_pressed() -> void:
 	_permadeath_panel.visible = false
+	AudioDirector.play_sfx("menu_confirm")
 	new_game_requested.emit(false)

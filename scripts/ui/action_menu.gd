@@ -15,6 +15,9 @@ signal action_selected(action_name: String)
 func _ready() -> void:
 	for action_name in _buttons.keys():
 		var button := _buttons[action_name] as Button
+		button.focus_entered.connect(func() -> void:
+			AudioDirector.play_sfx("cursor_tick")
+		)
 		button.pressed.connect(_on_button_pressed.bind(action_name))
 
 
@@ -44,4 +47,5 @@ func _get_first_focusable_action(action_states: Dictionary) -> String:
 
 
 func _on_button_pressed(action_name: String) -> void:
+	AudioDirector.play_sfx("menu_confirm")
 	action_selected.emit(action_name)

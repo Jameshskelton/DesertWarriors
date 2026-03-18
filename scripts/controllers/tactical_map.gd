@@ -179,6 +179,19 @@ func _ready() -> void:
 	_shop_menu.visible = false
 	_end_turn_confirm.visible = false
 	_unit_inspect_panel.visible = false
+	for button in [
+		_help_close_button,
+		_system_suspend_button,
+		_system_restart_button,
+		_system_close_button,
+		_shop_potion_button,
+		_shop_upgrade_button,
+		_shop_leave_button,
+		_end_turn_yes_button,
+		_end_turn_no_button,
+		_inspect_close_button,
+	]:
+		_wire_button_focus_sound(button)
 	if _help_close_button != null:
 		_help_close_button.pressed.connect(func() -> void:
 			_help_panel.visible = false
@@ -202,6 +215,14 @@ func _ready() -> void:
 	_action_menu.action_selected.connect(Callable(self, "_on_action_menu_selected"))
 	_load_chapter()
 	AudioDirector.play_track("forest_realm")
+
+
+func _wire_button_focus_sound(button: Button) -> void:
+	if button == null:
+		return
+	button.focus_entered.connect(func() -> void:
+		AudioDirector.play_sfx("cursor_tick")
+	)
 
 
 func _process(delta: float) -> void:
@@ -605,6 +626,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			_update_hover_status()
 			queue_redraw()
 			return
+	var previous_cursor_tile: Vector2i = _cursor_tile
 	if event.is_action_pressed("ui_up"):
 		_cursor_tile.y = maxi(0, _cursor_tile.y - 1)
 	elif event.is_action_pressed("ui_down"):
@@ -619,6 +641,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_cancel_selection()
 	elif event.is_action_pressed("toggle_danger_zone"):
 		_toggle_danger_zone()
+	if _cursor_tile != previous_cursor_tile:
+		AudioDirector.play_sfx("cursor_tick")
 	_update_movement_preview()
 	queue_redraw()
 	_update_hover_status()
@@ -634,11 +658,13 @@ func _confirm_cursor() -> void:
 			_try_target_action()
 
 
-func _cancel_selection() -> void:
+func _cancel_selection(play_sound: bool = true) -> void:
 	if _selection.mode == SelectionController.Mode.ACTION_MENU or _selection.mode == SelectionController.Mode.TARGETING:
 		if _selection.selected_unit != null:
 			_selection.selected_unit.position = _selection.origin_tile
 			_selection.selected_unit.moved = false
+	if play_sound:
+		AudioDirector.play_sfx("menu_cancel")
 	_action_menu.hide_menu()
 	_forecast_panel.hide_panel()
 	_selection.reset()
@@ -649,6 +675,7 @@ func _cancel_selection() -> void:
 
 func _toggle_system_menu() -> void:
 	if _system_menu.visible:
+		AudioDirector.play_sfx("menu_cancel")
 		_close_system_menu()
 		return
 	if _active_battle != null or _active_dialogue != null:
@@ -663,6 +690,7 @@ func _toggle_system_menu() -> void:
 	_help_panel.visible = false
 	_system_menu.visible = true
 	_system_suspend_button.grab_focus()
+	AudioDirector.play_sfx("menu_confirm")
 
 
 func _close_system_menu() -> void:
@@ -675,11 +703,13 @@ func _open_end_turn_confirm() -> void:
 	_system_menu.visible = false
 	_end_turn_confirm.visible = true
 	_end_turn_yes_button.grab_focus()
+	AudioDirector.play_sfx("menu_confirm")
 	_update_status("End your turn and begin the enemy phase?")
 
 
 func _close_end_turn_confirm() -> void:
 	_end_turn_confirm.visible = false
+	AudioDirector.play_sfx("menu_cancel")
 	_update_status("Continue your turn.")
 
 
@@ -731,8 +761,9 @@ func _close_unit_inspection(refresh_hover: bool = true) -> void:
 
 func _on_end_turn_yes_pressed() -> void:
 	_end_turn_confirm.visible = false
+	AudioDirector.play_sfx("menu_confirm")
 	if _selection.mode != SelectionController.Mode.IDLE:
-		_cancel_selection()
+		_cancel_selection(false)
 	_begin_enemy_phase()
 
 
@@ -746,6 +777,7 @@ func _on_system_suspend_pressed() -> void:
 	if not SaveSystem.save_game(GameState.build_save_payload()):
 		_update_status("Suspend save failed.")
 		return
+	AudioDirector.play_sfx("menu_confirm")
 	_close_system_menu()
 	suspend_requested.emit()
 
@@ -753,6 +785,7 @@ func _on_system_suspend_pressed() -> void:
 func _on_system_restart_pressed() -> void:
 	GameState.clear_suspend_state()
 	SaveSystem.save_game(GameState.build_save_payload())
+	AudioDirector.play_sfx("menu_confirm")
 	_close_system_menu()
 	restart_requested.emit(_chapter_id)
 
@@ -769,6 +802,7 @@ func _select_unit_at_cursor() -> void:
 	_selection.reachability = reachability
 	_selection.highlighted_tiles = reachability.get("costs", {})
 	_update_movement_preview()
+	AudioDirector.play_sfx("menu_confirm")
 	_update_status("%s selected. Choose a destination." % unit.display_name)
 
 
@@ -783,6 +817,7 @@ func _try_move_selected_unit() -> void:
 	selected.moved = true
 	_refresh_danger_zone()
 	_selection.mode = SelectionController.Mode.ACTION_MENU
+	AudioDirector.play_sfx("menu_confirm")
 	_show_action_menu(selected)
 
 
@@ -871,10 +906,12 @@ func _execute_staff(source: UnitState, target: UnitState) -> void:
 		return
 	source.consume_turn()
 	var heal_amount: int = int(outcome.get("heal_amount", 0))
+	AudioDirector.play_sfx("heal")
 	_show_map_popup(target.position, "+%d" % heal_amount, MAP_HEAL_POPUP_COLOR)
 	_record_chapter_xp(source, int(outcome.get("xp_awarded", 0)))
 	_update_status("%s heals %s for %d HP." % [outcome.get("user_name", source.display_name), outcome.get("target_name", target.display_name), heal_amount])
 	if bool(outcome.get("weapon_broke", false)):
+		AudioDirector.play_sfx("weapon_break")
 		_record_weapon_break(str(outcome.get("user_name", source.display_name)), str(outcome.get("weapon_name", "The staff")))
 		_show_map_popup(source.position, "BREAK", MAP_BREAK_POPUP_COLOR, -32.0 * UI_SCALE)
 		_update_status("%s heals %s for %d HP. %s broke!" % [
@@ -896,6 +933,7 @@ func _execute_item(source: UnitState) -> void:
 	source.consume_turn()
 	var heal_amount: int = int(outcome.get("heal_amount", 0))
 	_record_used_item(str(outcome.get("user_name", source.display_name)), str(outcome.get("item_name", "an item")))
+	AudioDirector.play_sfx("heal")
 	_show_map_popup(source.position, "+%d" % heal_amount, MAP_HEAL_POPUP_COLOR)
 	_update_status("%s uses %s and recovers %d HP." % [
 		outcome.get("user_name", source.display_name),
@@ -925,6 +963,7 @@ func _execute_visit(source: UnitState) -> void:
 	if terrain_id == "store":
 		_open_shop_menu(source)
 		return
+	AudioDirector.play_sfx("village_visit")
 	var visit_events: Array[Dictionary] = _event_director.peek_tile_events(source.unit_id, source.position, _chapter)
 	if visit_events.is_empty():
 		_update_status("%s visits the village, but it has no further aid to offer." % source.display_name)
@@ -944,6 +983,7 @@ func _open_shop_menu(source: UnitState) -> void:
 		_shop_preview_item = "potion"
 	_shop_menu.visible = true
 	_refresh_shop_menu()
+	AudioDirector.play_sfx("shop_open")
 	if not _shop_upgrade_button.disabled:
 		_shop_upgrade_button.grab_focus()
 	else:
@@ -1103,6 +1143,7 @@ func _on_shop_buy_potion_pressed() -> void:
 		_refresh_shop_menu()
 		return
 	_shop_customer.add_item(SHOP_POTION_ITEM_ID)
+	AudioDirector.play_sfx("shop_buy")
 	_update_header()
 	_refresh_shop_menu()
 	_update_hover_status()
@@ -1127,6 +1168,7 @@ func _on_shop_buy_upgrade_pressed() -> void:
 		_refresh_shop_menu()
 		return
 	_shop_customer.add_equipped_weapon(upgrade_weapon_id)
+	AudioDirector.play_sfx("shop_buy")
 	_update_header()
 	_refresh_shop_menu()
 	_update_hover_status()
@@ -1134,6 +1176,7 @@ func _on_shop_buy_upgrade_pressed() -> void:
 
 
 func _on_shop_leave_pressed() -> void:
+	AudioDirector.play_sfx("menu_cancel")
 	_close_shop_menu()
 	_finish_unit_action()
 

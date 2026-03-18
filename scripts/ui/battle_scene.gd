@@ -156,7 +156,9 @@ func _play_sequence() -> void:
 		var damage: int = int(strike.get("damage", 0))
 		var target_hp: int = int(strike.get("target_hp", 0))
 		if did_hit:
+			AudioDirector.play_sfx("attack_hit")
 			if did_crit:
+				AudioDirector.play_sfx("crit_sting")
 				_battle_log.text = "CRITICAL! %s loses %d HP" % [defender_name, damage]
 				_start_feedback_tween(_center_notice, "CRITICAL!", CRIT_POPUP_COLOR)
 			else:
@@ -164,6 +166,7 @@ func _play_sequence() -> void:
 			_start_feedback_tween(target_popup, "-%d" % damage, DAMAGE_POPUP_COLOR)
 			_animate_hp_change(target_left, target_hp)
 		else:
+			AudioDirector.play_sfx("miss_whoosh")
 			_battle_log.text = "%s dodges the blow." % defender_name
 			_start_feedback_tween(target_popup, "MISS", MISS_POPUP_COLOR)
 		await _pause(POPUP_DURATION + 0.05)
@@ -171,6 +174,7 @@ func _play_sequence() -> void:
 			break
 		_refresh_hp_text()
 		if bool(strike.get("weapon_broke", false)):
+			AudioDirector.play_sfx("weapon_break")
 			_battle_log.text = "%s breaks!" % str(strike.get("weapon_name", "Weapon"))
 			_start_feedback_tween(attacker_popup, "BREAK", BREAK_POPUP_COLOR)
 			await _pause(POPUP_DURATION)
@@ -259,6 +263,7 @@ func _play_intro_banner(attacker: UnitState, defender: UnitState) -> void:
 		return
 	_boss_banner.visible = true
 	_boss_banner.modulate = Color(1.0, 1.0, 1.0, 1.0)
+	AudioDirector.play_sfx("boss_intro")
 	await _pause(BOSS_BANNER_PAUSE)
 	_boss_banner.visible = false
 
