@@ -10,6 +10,10 @@ var defender_crit := 0
 var counter_allowed := false
 var attacker_follow_up := false
 var defender_follow_up := false
+var attacker_triangle_state := 0
+var defender_triangle_state := 0
+var attacker_triangle_text := ""
+var defender_triangle_text := ""
 
 
 func to_dictionary() -> Dictionary:
@@ -23,4 +27,8 @@ func to_dictionary() -> Dictionary:
 		"counter_allowed": counter_allowed,
 		"attacker_follow_up": attacker_follow_up,
 		"defender_follow_up": defender_follow_up,
+		"attacker_triangle_state": attacker_triangle_state,
+		"defender_triangle_state": defender_triangle_state,
+		"attacker_triangle_text": attacker_triangle_text,
+		"defender_triangle_text": defender_triangle_text,
 	}

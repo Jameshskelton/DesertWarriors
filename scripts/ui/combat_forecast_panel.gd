@@ -10,21 +10,23 @@ extends PanelContainer
 func show_battle_forecast(attacker: UnitState, defender: UnitState, forecast: CombatForecast, terrain: TerrainData) -> void:
 	visible = true
 	_title.text = "Forecast"
-	_attacker.text = "%s  DMG %d  HIT %d  CRT %d\n%s\n%s" % [
+	_attacker.text = "%s  DMG %d  HIT %d  CRT %d\n%s\n%s\n%s" % [
 		attacker.display_name,
 		forecast.attacker_damage,
 		forecast.attacker_hit,
 		forecast.attacker_crit,
 		_format_weapon_status(attacker),
 		_format_potion_status(attacker),
+		_format_triangle_status(forecast.attacker_triangle_text),
 	]
-	_defender.text = "%s  DMG %d  HIT %d  CRT %d\n%s\n%s" % [
+	_defender.text = "%s  DMG %d  HIT %d  CRT %d\n%s\n%s\n%s" % [
 		defender.display_name,
 		forecast.defender_damage,
 		forecast.defender_hit,
 		forecast.defender_crit,
 		_format_weapon_status(defender),
 		_format_potion_status(defender),
+		_format_triangle_status(forecast.defender_triangle_text),
 	]
 	_terrain.text = "%s  AVO +%d  DEF +%d" % [terrain.name, terrain.avoid_bonus, terrain.def_bonus]
 	_set_warning_text(_build_battle_warning(attacker, defender, forecast))
@@ -63,6 +65,12 @@ func _format_potion_status(unit: UnitState) -> String:
 	if potion_count == 1:
 		return "Potion: 1"
 	return "Potions: %d" % potion_count
+
+
+func _format_triangle_status(text: String) -> String:
+	if text.is_empty():
+		return "Triangle: Neutral"
+	return "Triangle: %s" % text
 
 
 func _build_battle_warning(attacker: UnitState, defender: UnitState, forecast: CombatForecast) -> String:

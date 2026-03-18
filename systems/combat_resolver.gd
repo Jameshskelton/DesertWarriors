@@ -40,6 +40,10 @@ func build_forecast_for_tile(attacker: UnitState, defender: UnitState, attacker_
 	var defender_weapon: WeaponData = _get_usable_weapon(defender)
 	if attacker_weapon == null or attacker_weapon.weapon_type == "staff":
 		return forecast
+	forecast.attacker_triangle_state = get_triangle_state(attacker_weapon.weapon_type, _get_weapon_type(defender_weapon))
+	forecast.attacker_triangle_text = get_triangle_text(forecast.attacker_triangle_state)
+	forecast.defender_triangle_state = get_triangle_state(_get_weapon_type(defender_weapon), attacker_weapon.weapon_type)
+	forecast.defender_triangle_text = get_triangle_text(forecast.defender_triangle_state)
 	forecast.attacker_damage = _calculate_damage(attacker, defender, attacker_weapon, defender_terrain)
 	forecast.attacker_hit = _calculate_hit(attacker, defender, attacker_weapon, defender_terrain)
 	forecast.attacker_crit = _calculate_crit(attacker, defender, attacker_weapon)
@@ -78,6 +82,8 @@ func resolve_battle(attacker: UnitState, defender: UnitState, attacker_terrain: 
 		var source_weapon: WeaponData = DataRegistry.get_weapon_data(weapon_id)
 		if source_weapon != null:
 			weapon_name = source_weapon.name
+		var triangle_state: int = get_triangle_state(_get_weapon_type(source_weapon), _get_target_weapon_type(target))
+		var triangle_text: String = get_triangle_text(triangle_state)
 		if not source.consume_equipped_weapon_use():
 			continue
 		var weapon_broke: bool = weapon_uses_before == 1
@@ -95,7 +101,10 @@ func resolve_battle(attacker: UnitState, defender: UnitState, attacker_terrain: 
 			"hit": did_hit,
 			"crit": did_crit,
 			"weapon_name": weapon_name,
+			"weapon_type": _get_weapon_type(source_weapon),
 			"weapon_broke": weapon_broke,
+			"triangle_state": triangle_state,
+			"triangle_text": triangle_text,
 			"target_hp": target.get_current_hp(),
 			"target_max_hp": target.get_max_hp(),
 		})
@@ -240,6 +249,10 @@ func _attack_speed(unit: UnitState, weapon: WeaponData) -> int:
 
 func _get_target_weapon_type(unit: UnitState) -> String:
 	var weapon: WeaponData = _get_usable_weapon(unit)
+	return _get_weapon_type(weapon)
+
+
+func _get_weapon_type(weapon: WeaponData) -> String:
 	if weapon == null:
 		return "neutral"
 	return weapon.weapon_type
@@ -255,16 +268,24 @@ func _get_usable_weapon(unit: UnitState) -> WeaponData:
 
 
 func _triangle_bonus_hit(attacker_type: String, defender_type: String) -> int:
-	if not WEAPON_TRIANGLE.has(attacker_type):
-		return 0
-	if WEAPON_TRIANGLE[attacker_type]["advantage"] == defender_type:
+	var triangle_state: int = get_triangle_state(attacker_type, defender_type)
+	if triangle_state > 0:
 		return 15
-	if WEAPON_TRIANGLE[attacker_type]["disadvantage"] == defender_type:
+	if triangle_state < 0:
 		return -15
 	return 0
 
 
 func _triangle_bonus_damage(attacker_type: String, defender_type: String) -> int:
+	var triangle_state: int = get_triangle_state(attacker_type, defender_type)
+	if triangle_state > 0:
+		return 1
+	if triangle_state < 0:
+		return -1
+	return 0
+
+
+func get_triangle_state(attacker_type: String, defender_type: String) -> int:
 	if not WEAPON_TRIANGLE.has(attacker_type):
 		return 0
 	if WEAPON_TRIANGLE[attacker_type]["advantage"] == defender_type:
@@ -272,3 +293,11 @@ func _triangle_bonus_damage(attacker_type: String, defender_type: String) -> int
 	if WEAPON_TRIANGLE[attacker_type]["disadvantage"] == defender_type:
 		return -1
 	return 0
+
+
+func get_triangle_text(triangle_state: int) -> String:
+	if triangle_state > 0:
+		return "Weapon Advantage"
+	if triangle_state < 0:
+		return "Weapon Disadvantage"
+	return ""

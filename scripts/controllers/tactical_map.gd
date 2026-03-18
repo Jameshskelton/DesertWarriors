@@ -886,6 +886,8 @@ func _execute_attack(source: UnitState, target: UnitState) -> void:
 	var payload := {
 		"attacker": source,
 		"defender": target,
+		"attacker_terrain_id": attacker_terrain.id if attacker_terrain != null else "plains",
+		"defender_terrain_id": defender_terrain.id if defender_terrain != null else "plains",
 		"attacker_start_hp": source.get_current_hp(),
 		"defender_start_hp": target.get_current_hp(),
 		"result": _combat_resolver.resolve_battle(source, target, attacker_terrain, defender_terrain),
@@ -1301,12 +1303,16 @@ func _run_enemy_phase() -> void:
 				var target := action.get("target") as UnitState
 				if target != null and target.is_alive():
 					await _play_pre_battle_dialogue_if_needed(unit, target)
+					var attacker_terrain: TerrainData = _get_terrain_at(unit.position)
+					var defender_terrain: TerrainData = _get_terrain_at(target.position)
 					var payload := {
 						"attacker": unit,
 						"defender": target,
+						"attacker_terrain_id": attacker_terrain.id if attacker_terrain != null else "plains",
+						"defender_terrain_id": defender_terrain.id if defender_terrain != null else "plains",
 						"attacker_start_hp": unit.get_current_hp(),
 						"defender_start_hp": target.get_current_hp(),
-						"result": _combat_resolver.resolve_battle(unit, target, _get_terrain_at(unit.position), _get_terrain_at(target.position)),
+						"result": _combat_resolver.resolve_battle(unit, target, attacker_terrain, defender_terrain),
 					}
 					_pending_battle_result = payload["result"] as BattleResult
 					_battle_transition.begin_battle(payload)

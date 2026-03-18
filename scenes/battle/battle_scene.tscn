@@ -130,6 +130,7 @@ value = 20.0
 
 [node name="LeftStats" type="Label" parent="LeftPanel/LeftMargin/LeftVBox"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 30
 text = "HP"
 
 [node name="RightPanel" type="PanelContainer" parent="."]
@@ -180,15 +181,18 @@ value = 20.0
 
 [node name="RightStats" type="Label" parent="RightPanel/RightMargin/RightVBox"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 30
 text = "HP"
 
 [node name="BattleLog" type="Label" parent="."]
 layout_mode = 0
 offset_left = 336.0
-offset_top = 948.0
+offset_top = 934.0
 offset_right = 1584.0
-offset_bottom = 1023.0
-theme_override_font_sizes/font_size = 54
+offset_bottom = 1038.0
+theme_override_colors/font_outline_color = Color(0.0862745, 0.0509804, 0.0352941, 0.98)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 62
 horizontal_alignment = 1
 autowrap_mode = 2
 text = "Battle Log"
