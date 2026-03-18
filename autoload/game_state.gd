@@ -21,6 +21,7 @@ var is_continuing: bool = false
 var suspend_state: Dictionary = {}
 var preparation_assignments: Dictionary = {}
 var convoy_items: Array = []
+var tutorial_flags: PackedStringArray = PackedStringArray()
 
 
 func _ready() -> void:
@@ -63,6 +64,7 @@ func reset_runtime() -> void:
 	suspend_state.clear()
 	preparation_assignments.clear()
 	convoy_items.clear()
+	tutorial_flags.clear()
 	rng.seed = rng_seed
 	is_continuing = false
 
@@ -106,6 +108,7 @@ func continue_game() -> bool:
 	suspend_state = _normalize_suspend_state(save_data.get("suspend_state", {}))
 	preparation_assignments = _normalize_preparation_assignments(save_data.get("preparation_assignments", {}))
 	convoy_items = _normalize_convoy_items(save_data.get("convoy_items", []))
+	tutorial_flags = _variant_to_packed_string_array(save_data.get("tutorial_flags", PackedStringArray()))
 	
 	# Apply saved roster state
 	roster_state = _normalize_roster_state(save_data.get("roster_state", {}), true)
@@ -315,6 +318,7 @@ func build_save_payload() -> Dictionary:
 		"suspend_state": suspend_state,
 		"preparation_assignments": preparation_assignments,
 		"convoy_items": convoy_items,
+		"tutorial_flags": tutorial_flags,
 	}
 
 
@@ -385,6 +389,20 @@ func remove_convoy_item(index: int) -> Dictionary:
 	var entry: Dictionary = convoy_items[index].duplicate(true)
 	convoy_items.remove_at(index)
 	return entry
+
+
+func has_seen_tutorial(tutorial_id: String) -> bool:
+	return not tutorial_id.is_empty() and tutorial_flags.has(tutorial_id)
+
+
+func should_show_tutorial(tutorial_id: String) -> bool:
+	return not has_seen_tutorial(tutorial_id)
+
+
+func mark_tutorial_seen(tutorial_id: String) -> void:
+	if tutorial_id.is_empty() or tutorial_flags.has(tutorial_id):
+		return
+	tutorial_flags.append(tutorial_id)
 
 
 func _normalize_roster_state(raw_roster: Variant, heal_to_full: bool = false) -> Dictionary:

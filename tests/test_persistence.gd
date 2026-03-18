@@ -16,6 +16,7 @@ func _assert_true(condition: bool, message: String, failures: PackedStringArray)
 
 func _run_non_permadeath_persistence_checks(failures: PackedStringArray) -> void:
 	GameState.start_new_game(false)
+	GameState.mark_tutorial_seen("prep_basics")
 	GameState.add_gold(17)
 	GameState.add_convoy_item("steel_sword", 22)
 	var george := UnitState.from_unit_data(DataRegistry.get_unit_data("george"), Vector2i(0, 0))
@@ -39,6 +40,9 @@ func _run_non_permadeath_persistence_checks(failures: PackedStringArray) -> void
 	_assert_true(GameState.current_chapter_id == "chapter_2", "clearing a chapter should advance the saved chapter ID", failures)
 	_assert_true(GameState.gold == 17, "shared gold should persist across chapter transitions", failures)
 	_assert_true(int(GameState.build_save_payload().get("gold", -1)) == 17, "shared gold should be written into the save payload", failures)
+	var tutorial_flags: PackedStringArray = GameState.build_save_payload().get("tutorial_flags", PackedStringArray())
+	_assert_true(tutorial_flags.has("prep_basics"), "tutorial flags should be written into the save payload", failures)
+	_assert_true(not GameState.should_show_tutorial("prep_basics"), "seen tutorials should not be shown again in the current campaign", failures)
 	var convoy_payload: Array = GameState.build_save_payload().get("convoy_items", [])
 	_assert_true(convoy_payload.size() == 1, "convoy items should be written into the save payload", failures)
 	if convoy_payload.size() == 1 and typeof(convoy_payload[0]) == TYPE_DICTIONARY:

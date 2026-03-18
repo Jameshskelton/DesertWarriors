@@ -88,7 +88,7 @@ Sand: Slows movement, no AVOID bonus
 Road: Standard terrain
 River: Impassable terrain
 Village: End movement here, then choose Visit
-Store: End movement here, then choose Visit to buy a Potion for 10 Gold or a weapon upgrade for 40 Gold
+Store: End movement here, then choose Visit to buy a Potion for 8 Gold or a weapon upgrade for 35 Gold
 Castle: Fortified terrain
 Mountain: Impassable terrain
 Tall Mountain: Costs a full turn to cross

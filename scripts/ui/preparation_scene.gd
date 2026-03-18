@@ -4,6 +4,7 @@ signal battle_requested(chapter_id: String)
 signal return_to_title
 
 const PORTRAIT_DIR := "res://assets/portraits"
+const TUTORIAL_OVERLAY_SCENE := preload("res://scenes/shared/tutorial_overlay.tscn")
 
 var _chapter_id: String = ""
 var _chapter: ChapterData
@@ -17,6 +18,7 @@ var _selected_target_index: int = 0
 var _selected_convoy_unit_item_index: int = -1
 var _selected_convoy_index: int = -1
 var _trade_target_indices: Array[int] = []
+var _active_tutorial: Control
 
 @onready var _title_label: Label = $MainMargin/MainVBox/HeaderPanel/HeaderMargin/HeaderVBox/TitleLabel
 @onready var _subtitle_label: Label = $MainMargin/MainVBox/HeaderPanel/HeaderMargin/HeaderVBox/SubtitleLabel
@@ -76,6 +78,7 @@ func _ready() -> void:
 	_convoy_modal.visible = false
 	_load_preparation_data()
 	_refresh_view()
+	_maybe_show_preparation_tutorial()
 	if _units.is_empty():
 		_begin_button.grab_focus()
 	else:
@@ -83,6 +86,8 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _active_tutorial != null:
+		return
 	if event.is_action_pressed("ui_cancel"):
 		if _convoy_modal.visible:
 			_close_convoy_modal()
@@ -969,6 +974,44 @@ func _build_objective_text() -> String:
 
 func _default_status_text() -> String:
 	return "Set gear, use trade or convoy storage, and assign starting positions before you begin the battle."
+
+
+func _maybe_show_preparation_tutorial() -> void:
+	if _chapter_id != "chapter_1":
+		return
+	if not GameState.should_show_tutorial("prep_basics"):
+		return
+	GameState.mark_tutorial_seen("prep_basics")
+	_show_tutorial_overlay([
+		{
+			"title": "Preparation Basics",
+			"body": "This screen is your staging ground before battle.\n\n- Reorder weapons to change what a unit equips.\n- Trade passes the selected item directly to another ally.\n- Assign starting positions here when the map allows it.",
+		},
+		{
+			"title": "Convoy, Shops, and Durability",
+			"body": "Convoy stores spare weapons and items between chapters.\n\nWeapons, tomes, and staves lose 1 use when they are used. If their uses hit 0, they break.\n\nLater maps have Store tiles where your army spends shared gold on potions and weapon upgrades.",
+		},
+	])
+
+
+func _show_tutorial_overlay(pages: Array[Dictionary]) -> void:
+	if _active_tutorial != null:
+		return
+	var tutorial_overlay = TUTORIAL_OVERLAY_SCENE.instantiate()
+	tutorial_overlay.setup(pages)
+	tutorial_overlay.tutorial_finished.connect(Callable(self, "_on_tutorial_overlay_finished"))
+	_active_tutorial = tutorial_overlay
+	add_child(tutorial_overlay)
+
+
+func _on_tutorial_overlay_finished() -> void:
+	if _active_tutorial != null:
+		_active_tutorial.queue_free()
+		_active_tutorial = null
+	if _units.is_empty():
+		_begin_button.grab_focus()
+	else:
+		_unit_list.grab_focus()
 
 
 func _apply_portrait(unit: UnitState, texture_rect: TextureRect, fallback_label: Label, fallback_text: String) -> void:

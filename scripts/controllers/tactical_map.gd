@@ -9,6 +9,7 @@ signal restart_requested(chapter_id: String)
 const BATTLE_SCENE := preload("res://scenes/battle/battle_scene.tscn")
 const DIALOGUE_SCENE := preload("res://scenes/dialogue/dialogue_scene.tscn")
 const LEVEL_UP_SCENE := preload("res://scenes/level_up/level_up_scene.tscn")
+const TUTORIAL_OVERLAY_SCENE := preload("res://scenes/shared/tutorial_overlay.tscn")
 const CASTLE_TEXTURE := preload("res://assets/terrain/castle.png")
 const COBBLESTONE_TEXTURE := preload("res://assets/terrain/cobblestone.png")
 const GRASSLAND_TEXTURE := preload("res://assets/terrain/grassland.png")
@@ -114,6 +115,7 @@ var _chapter_weapon_breaks: PackedStringArray = PackedStringArray()
 var _chapter_used_items: PackedStringArray = PackedStringArray()
 var _pending_level_up_reports: Array[Dictionary] = []
 var _active_level_up: Control
+var _active_tutorial: Control
 var _shop_customer: UnitState
 var _shop_preview_item: String = "upgrade"
 var _inspected_unit: UnitState
@@ -274,6 +276,7 @@ func _load_chapter() -> void:
 	_update_status(_build_resume_status())
 	_update_hover_status()
 	queue_redraw()
+	_maybe_show_map_tutorial()
 
 
 func _build_terrain_grid(chapter: ChapterData) -> Array:
@@ -548,6 +551,8 @@ func _draw_units() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _active_tutorial != null:
+		return
 	if _active_dialogue != null:
 		return
 	if event.is_action_pressed("open_system_menu"):
@@ -1391,6 +1396,53 @@ func _show_dialogue_overlay(lines: Array) -> void:
 	dialogue_scene.dialogue_finished.connect(Callable(self, "_on_dialogue_overlay_finished"))
 	_active_dialogue = dialogue_scene
 	add_child(dialogue_scene)
+
+
+func _maybe_show_map_tutorial() -> void:
+	if _chapter_id != "chapter_1":
+		return
+	if not GameState.should_show_tutorial("chapter_1_map_basics"):
+		return
+	GameState.mark_tutorial_seen("chapter_1_map_basics")
+	_show_tutorial_overlay([
+		{
+			"title": "Movement and Actions",
+			"body": "Select an ally, choose a destination, and watch the blue arrow preview the exact path they will take.\n\nAfter moving, pick an action like Attack, Item, Visit, or Wait from the action menu.",
+		},
+		{
+			"title": "Terrain and Threat",
+			"body": "Terrain changes the fight. Forests and sand slow movement, roads are easier to cross, and castles offer strong footing.\n\nPress V to toggle the danger zone and check enemy threat before you commit.",
+		},
+		{
+			"title": "Villages and Recruits",
+			"body": "Villages and stores only work if a unit ends movement on the tile and chooses Visit.\n\nIn this chapter, the eastern village can recruit Ember. Keep an eye on weapon uses in the HUD so your gear does not break mid-map.",
+		},
+	])
+
+
+func _show_tutorial_overlay(pages: Array[Dictionary]) -> void:
+	if _active_tutorial != null:
+		return
+	_close_unit_inspection(false)
+	_action_menu.hide_menu()
+	_forecast_panel.hide_panel()
+	_help_panel.visible = false
+	_system_menu.visible = false
+	_shop_menu.visible = false
+	_end_turn_confirm.visible = false
+	var tutorial_overlay = TUTORIAL_OVERLAY_SCENE.instantiate()
+	tutorial_overlay.setup(pages)
+	tutorial_overlay.tutorial_finished.connect(Callable(self, "_on_tutorial_overlay_finished"))
+	_active_tutorial = tutorial_overlay
+	add_child(tutorial_overlay)
+
+
+func _on_tutorial_overlay_finished() -> void:
+	if _active_tutorial != null:
+		_active_tutorial.queue_free()
+		_active_tutorial = null
+	_update_hover_status()
+	queue_redraw()
 
 
 func _on_dialogue_overlay_finished(_next_tag: String) -> void:
