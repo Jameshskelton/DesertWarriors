@@ -104,7 +104,7 @@ reinforcements = [{
 }],
 "message": "Ysult rides in from the southern dunes to break Bartram's hold on the road.",
 "position": Vector2i(3, 11),
-"turn": 3,
+"turn": 2,
 "unit_id": "ysult"
 }]
 event_triggers = [{

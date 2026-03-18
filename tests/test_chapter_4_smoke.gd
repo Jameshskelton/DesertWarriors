@@ -13,7 +13,7 @@ func run() -> PackedStringArray:
 	_assert_equal(chapter.reinforcements.size(), 11, "chapter_4 should define the wave reinforcements plus boss arrival", failures)
 	_assert_equal(str(chapter.terrain_legend.get("B", "")), "cobblestone", "chapter_4 should define monastery cobblestone terrain", failures)
 	var boss_reinforcement: Dictionary = chapter.reinforcements[8]
-	_assert_equal(int(boss_reinforcement.get("turn", -1)), 5, "Lysandra should arrive on turn 5", failures)
+	_assert_equal(int(boss_reinforcement.get("turn", -1)), 6, "Lysandra should arrive on turn 6 after the mid-map pressure builds", failures)
 	var boss_event: Dictionary = chapter.event_triggers[0]
 	_assert_equal(str(boss_event.get("id", "")), "lysandra_quill_confront", "chapter_4 should define Lysandra's boss confrontation event", failures)
 	_assert_equal(str(boss_event.get("boss_id", "")), "lysandra_quill", "chapter_4 boss confrontation should point at Lysandra", failures)

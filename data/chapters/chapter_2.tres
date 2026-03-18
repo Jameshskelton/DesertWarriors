@@ -65,7 +65,7 @@ enemy_units = [{
 "faction": "enemy",
 "instance_id": "knight_1",
 "position": Vector2i(14, 3),
-"unit_id": "knight"
+"unit_id": "brigand_grunt"
 }, {
 "faction": "enemy",
 "instance_id": "knight_2",
@@ -106,7 +106,7 @@ reinforcements = [{
 "instance_id": "scout_3",
 "message": "A royal scout spots your party from the ridge!",
 "position": Vector2i(0, 5),
-"turn": 4,
+"turn": 5,
 "unit_id": "hunter_grunt"
 }]
 event_triggers = [{

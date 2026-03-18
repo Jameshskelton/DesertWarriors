@@ -11,7 +11,7 @@ class_name WeaponData
 @export var weight := 0
 @export var min_range := 1
 @export var max_range := 1
-@export var uses := 45
+@export var uses := 55
 @export var triangle_group := "neutral"
 @export var anim_id := "basic"
 @export var heal_power := 10

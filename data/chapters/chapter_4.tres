@@ -95,45 +95,45 @@ reinforcements = [{
 "instance_id": "tracker_wave_6_west",
 "message": "More hired bows emerge from the woods and test the cloister gates.",
 "position": Vector2i(0, 10),
-"turn": 6,
+"turn": 7,
 "unit_id": "hunter_grunt"
 }, {
 "faction": "enemy",
 "instance_id": "tracker_wave_6_east",
 "position": Vector2i(19, 10),
-"turn": 6,
+"turn": 7,
 "unit_id": "hunter_grunt"
 }, {
 "faction": "enemy",
 "instance_id": "tracker_wave_8_west",
 "message": "The hunt tightens. Fresh mercenaries pour in from both flanks.",
 "position": Vector2i(0, 12),
-"turn": 8,
+"turn": 9,
 "unit_id": "hunter_grunt"
 }, {
 "faction": "enemy",
 "instance_id": "tracker_wave_8_east",
 "position": Vector2i(19, 12),
-"turn": 8,
+"turn": 9,
 "unit_id": "hunter_grunt"
 }, {
 "faction": "enemy",
 "instance_id": "lysandra_quill",
 "message": "Lysandra Quill herself arrives at the southern road with the final hunting party!",
 "position": Vector2i(10, 14),
-"turn": 5,
+"turn": 6,
 "unit_id": "lysandra_quill"
 }, {
 "faction": "enemy",
 "instance_id": "tracker_wave_10_left",
 "position": Vector2i(8, 14),
-"turn": 5,
+"turn": 6,
 "unit_id": "hunter_grunt"
 }, {
 "faction": "enemy",
 "instance_id": "tracker_wave_10_right",
 "position": Vector2i(12, 14),
-"turn": 5,
+"turn": 6,
 "unit_id": "brigand_grunt"
 }]
 event_triggers = [{

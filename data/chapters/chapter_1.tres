@@ -60,7 +60,7 @@ enemy_units = [{
 }, {
 "faction": "enemy",
 "instance_id": "pursuer_1",
-"position": Vector2i(14, 3),
+"position": Vector2i(13, 4),
 "unit_id": "pursuer_armor"
 }, {
 "faction": "enemy",
@@ -101,7 +101,7 @@ reinforcements = [{
 "instance_id": "brigand_ambush",
 "message": "Another brigand slips out from the eastern brush!",
 "position": Vector2i(19, 7),
-"turn": 3,
+"turn": 5,
 "unit_id": "brigand_grunt"
 }]
 event_triggers = [{

@@ -75,7 +75,7 @@ enemy_units = [{
 }, {
 "faction": "enemy",
 "instance_id": "captain_1",
-"position": Vector2i(17, 8),
+"position": Vector2i(18, 8),
 "unit_id": "captain"
 }, {
 "faction": "enemy",
@@ -88,7 +88,7 @@ reinforcements = [{
 "instance_id": "silverguard_6",
 "message": "A brigand bursts from the canyon to join the fray!",
 "position": Vector2i(16, 3),
-"turn": 4,
+"turn": 6,
 "unit_id": "brigand_grunt"
 }]
 event_triggers = [{

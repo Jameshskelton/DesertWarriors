@@ -50,8 +50,8 @@ const HEADER_PHASE_ENEMY_COLOR := Color(1.0, 0.592157, 0.509804, 1.0)
 const HEADER_OBJECTIVE_COLOR := Color(1.0, 0.764706, 0.470588, 1.0)
 const HEADER_GOLD_COLOR := Color(1.0, 0.878431, 0.447059, 1.0)
 const SHOP_POTION_ITEM_ID := "health_potion"
-const SHOP_POTION_PRICE := 10
-const SHOP_UPGRADE_PRICE := 40
+const SHOP_POTION_PRICE := 8
+const SHOP_UPGRADE_PRICE := 35
 const SHOP_UPGRADE_WEAPONS := {
 	"sword": "steel_sword",
 	"lance": "steel_lance",
