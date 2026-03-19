@@ -78,6 +78,11 @@ enemy_units = [{
 "unit_id": "abbot_vermis"
 }]
 reinforcements = [{
+"dialogue_lines": [{
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Balt",
+"text": "Oh! There they are. No sense letting the crown's scouts have all the fun."
+}],
 "faction": "neutral",
 "instance_id": "balt_reinforce",
 "message": "Balt races up from the southern road and starts peppering the crown's scouts with arrows!",
