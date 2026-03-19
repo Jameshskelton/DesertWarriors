@@ -230,6 +230,55 @@ text = "Chapter 5: The Hercule Desert"
 layout_mode = 2
 text = "Back"
 
+[node name="DifficultyPanel" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 522.0
+offset_top = 303.0
+offset_right = 1398.0
+offset_bottom = 777.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_chapter_select_panel")
+
+[node name="DifficultyMargin" type="MarginContainer" parent="DifficultyPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 48
+theme_override_constants/margin_top = 36
+theme_override_constants/margin_right = 48
+theme_override_constants/margin_bottom = 36
+
+[node name="DifficultyVBox" type="VBoxContainer" parent="DifficultyPanel/DifficultyMargin"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="DifficultyTitle" type="Label" parent="DifficultyPanel/DifficultyMargin/DifficultyVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 54
+text = "Difficulty"
+horizontal_alignment = 1
+
+[node name="DifficultyDescription" type="Label" parent="DifficultyPanel/DifficultyMargin/DifficultyVBox"]
+layout_mode = 2
+autowrap_mode = 2
+horizontal_alignment = 1
+text = "Choose how demanding the campaign should be.\n\nEasy: weaker enemies, simpler enemy tactics, and no minibosses like Pursuers or enemy Captains.\nNormal: the current full campaign balance."
+
+[node name="ButtonRow" type="HBoxContainer" parent="DifficultyPanel/DifficultyMargin/DifficultyVBox"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 18
+
+[node name="EasyButton" type="Button" parent="DifficultyPanel/DifficultyMargin/DifficultyVBox/ButtonRow"]
+layout_mode = 2
+text = "Easy"
+
+[node name="NormalButton" type="Button" parent="DifficultyPanel/DifficultyMargin/DifficultyVBox/ButtonRow"]
+layout_mode = 2
+text = "Normal"
+
+[node name="BackButton" type="Button" parent="DifficultyPanel/DifficultyMargin/DifficultyVBox/ButtonRow"]
+layout_mode = 2
+text = "Back"
+
 [node name="PermadeathPanel" type="PanelContainer" parent="."]
 visible = false
 layout_mode = 0

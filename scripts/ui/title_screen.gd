@@ -1,15 +1,18 @@
 extends Control
 
-signal new_game_requested(permadeath_enabled: bool)
+signal new_game_requested(permadeath_enabled: bool, difficulty_mode: String)
 signal continue_requested(chapter_id: String)
 signal chapter_select_requested
 signal options_requested
 
 var _menu_visible: bool = false
+var _pending_difficulty_mode: String = "normal"
+var _difficulty_context: String = ""
 
 @onready var _menu_panel: PanelContainer = $MenuPanel
 @onready var _options_panel: PanelContainer = $OptionsPanel
 @onready var _chapter_select_panel: PanelContainer = $ChapterSelectPanel
+@onready var _difficulty_panel: PanelContainer = $DifficultyPanel
 @onready var _permadeath_panel: PanelContainer = $PermadeathPanel
 @onready var _start_prompt: Label = $StartPrompt
 @onready var _new_game_button: Button = $MenuPanel/MenuMargin/MenuVBox/NewGameButton
@@ -23,6 +26,11 @@ var _menu_visible: bool = false
 @onready var _chapter_4_button: Button = $ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer/Chapter4Button
 @onready var _chapter_5_button: Button = $ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer/Chapter5Button
 @onready var _chapter_select_back_button: Button = $ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/BackButton2
+@onready var _difficulty_easy_button: Button = $DifficultyPanel/DifficultyMargin/DifficultyVBox/ButtonRow/EasyButton
+@onready var _difficulty_normal_button: Button = $DifficultyPanel/DifficultyMargin/DifficultyVBox/ButtonRow/NormalButton
+@onready var _difficulty_back_button: Button = $DifficultyPanel/DifficultyMargin/DifficultyVBox/ButtonRow/BackButton
+@onready var _permadeath_yes_button: Button = $PermadeathPanel/PermadeathMargin/PermadeathVBox/ButtonRow/YesButton
+@onready var _permadeath_no_button: Button = $PermadeathPanel/PermadeathMargin/PermadeathVBox/ButtonRow/NoButton
 @onready var _music_slider: HSlider = $OptionsPanel/OptionsMargin/OptionsVBox/MusicSlider
 @onready var _sfx_slider: HSlider = $OptionsPanel/OptionsMargin/OptionsVBox/SFXSlider
 @onready var _speed_slider: HSlider = $OptionsPanel/OptionsMargin/OptionsVBox/SpeedSlider
@@ -33,9 +41,11 @@ func _ready() -> void:
 	_connect_signals()
 	_connect_button_audio()
 	_configure_chapter_select_navigation()
+	_configure_difficulty_navigation()
 	_apply_settings()
 	_menu_visible = false
 	_menu_panel.visible = false
+	_difficulty_panel.visible = false
 	_permadeath_panel.visible = false
 	_start_prompt.visible = true
 
@@ -56,8 +66,11 @@ func _connect_signals() -> void:
 	_chapter_3_button.pressed.connect(_on_chapter_3_selected)
 	_chapter_4_button.pressed.connect(_on_chapter_4_selected)
 	_chapter_5_button.pressed.connect(_on_chapter_5_selected)
-	$PermadeathPanel/PermadeathMargin/PermadeathVBox/ButtonRow/YesButton.pressed.connect(_on_permadeath_yes_pressed)
-	$PermadeathPanel/PermadeathMargin/PermadeathVBox/ButtonRow/NoButton.pressed.connect(_on_permadeath_no_pressed)
+	_difficulty_easy_button.pressed.connect(_on_difficulty_easy_pressed)
+	_difficulty_normal_button.pressed.connect(_on_difficulty_normal_pressed)
+	_difficulty_back_button.pressed.connect(_on_difficulty_back_pressed)
+	_permadeath_yes_button.pressed.connect(_on_permadeath_yes_pressed)
+	_permadeath_no_button.pressed.connect(_on_permadeath_no_pressed)
 
 
 func _connect_button_audio() -> void:
@@ -73,9 +86,12 @@ func _connect_button_audio() -> void:
 		_chapter_4_button,
 		_chapter_5_button,
 		_chapter_select_back_button,
+		_difficulty_easy_button,
+		_difficulty_normal_button,
+		_difficulty_back_button,
 		$OptionsPanel/OptionsMargin/OptionsVBox/BackButton,
-		$PermadeathPanel/PermadeathMargin/PermadeathVBox/ButtonRow/YesButton,
-		$PermadeathPanel/PermadeathMargin/PermadeathVBox/ButtonRow/NoButton,
+		_permadeath_yes_button,
+		_permadeath_no_button,
 	]:
 		if button == null:
 			continue
@@ -104,6 +120,23 @@ func _configure_chapter_select_navigation() -> void:
 	_chapter_select_back_button.set_focus_neighbor(SIDE_BOTTOM, _chapter_select_back_button.get_path_to(_chapter_1_button))
 
 
+func _configure_difficulty_navigation() -> void:
+	var difficulty_buttons: Array[Button] = [
+		_difficulty_easy_button,
+		_difficulty_normal_button,
+		_difficulty_back_button,
+	]
+	for index in range(difficulty_buttons.size()):
+		var current_button: Button = difficulty_buttons[index]
+		var previous_button: Button = difficulty_buttons[(index - 1 + difficulty_buttons.size()) % difficulty_buttons.size()]
+		var next_button: Button = difficulty_buttons[(index + 1) % difficulty_buttons.size()]
+		current_button.focus_mode = Control.FOCUS_ALL
+		current_button.set_focus_neighbor(SIDE_LEFT, current_button.get_path_to(previous_button))
+		current_button.set_focus_neighbor(SIDE_RIGHT, current_button.get_path_to(next_button))
+		current_button.set_focus_neighbor(SIDE_TOP, current_button.get_path_to(previous_button))
+		current_button.set_focus_neighbor(SIDE_BOTTOM, current_button.get_path_to(next_button))
+
+
 func _apply_settings() -> void:
 	var settings = GameState.settings
 	_music_slider.value = settings.get("music_volume", 0.8)
@@ -117,7 +150,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not _menu_visible and (event.is_action_pressed("ui_accept") or (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT)):
 		_show_menu()
 	elif event.is_action_pressed("ui_cancel"):
-		if _permadeath_panel.visible:
+		if _difficulty_panel.visible:
+			_close_difficulty_prompt()
+		elif _permadeath_panel.visible:
 			_close_permadeath_prompt()
 		elif _options_panel.visible:
 			_on_options_back()
@@ -141,15 +176,16 @@ func _show_menu() -> void:
 func _hide_menu() -> void:
 	_menu_visible = false
 	_menu_panel.visible = false
+	_difficulty_panel.visible = false
 	_permadeath_panel.visible = false
+	_difficulty_context = ""
 	_start_prompt.visible = true
 	AudioDirector.play_sfx("menu_cancel")
 
 
 func _on_new_game_pressed() -> void:
 	AudioDirector.play_sfx("menu_confirm")
-	_permadeath_panel.visible = true
-	$PermadeathPanel/PermadeathMargin/PermadeathVBox/ButtonRow/NoButton.grab_focus()
+	_show_difficulty_prompt("new_game")
 
 
 func _on_continue_pressed() -> void:
@@ -160,8 +196,7 @@ func _on_continue_pressed() -> void:
 
 func _on_chapter_select_pressed() -> void:
 	AudioDirector.play_sfx("menu_confirm")
-	_chapter_select_panel.visible = true
-	_chapter_1_button.grab_focus()
+	_show_difficulty_prompt("chapter_select")
 
 
 func _on_options_pressed() -> void:
@@ -210,48 +245,96 @@ func _on_chapter_select_back() -> void:
 
 
 func _on_chapter_1_selected() -> void:
-	GameState.prepare_chapter_select_game("chapter_1")
-	AudioDirector.play_sfx("menu_confirm")
-	continue_requested.emit("chapter_1")
+	_start_chapter_select("chapter_1")
 
 
 func _on_chapter_2_selected() -> void:
-	GameState.prepare_chapter_select_game("chapter_2")
-	AudioDirector.play_sfx("menu_confirm")
-	continue_requested.emit("chapter_2")
+	_start_chapter_select("chapter_2")
 
 
 func _on_chapter_3_selected() -> void:
-	GameState.prepare_chapter_select_game("chapter_3")
-	AudioDirector.play_sfx("menu_confirm")
-	continue_requested.emit("chapter_3")
+	_start_chapter_select("chapter_3")
 
 
 func _on_chapter_4_selected() -> void:
-	GameState.prepare_chapter_select_game("chapter_4")
-	AudioDirector.play_sfx("menu_confirm")
-	continue_requested.emit("chapter_4")
+	_start_chapter_select("chapter_4")
 
 
 func _on_chapter_5_selected() -> void:
-	GameState.prepare_chapter_select_game("chapter_5")
-	AudioDirector.play_sfx("menu_confirm")
-	continue_requested.emit("chapter_5")
+	_start_chapter_select("chapter_5")
 
 
 func _close_permadeath_prompt() -> void:
 	_permadeath_panel.visible = false
 	AudioDirector.play_sfx("menu_cancel")
-	_new_game_button.grab_focus()
+	_show_difficulty_prompt("new_game", false)
 
 
 func _on_permadeath_yes_pressed() -> void:
 	_permadeath_panel.visible = false
 	AudioDirector.play_sfx("menu_confirm")
-	new_game_requested.emit(true)
+	new_game_requested.emit(true, _pending_difficulty_mode)
 
 
 func _on_permadeath_no_pressed() -> void:
 	_permadeath_panel.visible = false
 	AudioDirector.play_sfx("menu_confirm")
-	new_game_requested.emit(false)
+	new_game_requested.emit(false, _pending_difficulty_mode)
+
+
+func _show_difficulty_prompt(context: String, reset_selection: bool = true) -> void:
+	if reset_selection:
+		_pending_difficulty_mode = "normal"
+	_difficulty_context = context
+	_chapter_select_panel.visible = false
+	_permadeath_panel.visible = false
+	_difficulty_panel.visible = true
+	_focus_selected_difficulty()
+
+
+func _close_difficulty_prompt() -> void:
+	var previous_context: String = _difficulty_context
+	_difficulty_panel.visible = false
+	_difficulty_context = ""
+	AudioDirector.play_sfx("menu_cancel")
+	if previous_context == "chapter_select":
+		_chapter_select_button.grab_focus()
+	else:
+		_new_game_button.grab_focus()
+
+
+func _focus_selected_difficulty() -> void:
+	if _pending_difficulty_mode == "easy":
+		_difficulty_easy_button.grab_focus()
+		return
+	_difficulty_normal_button.grab_focus()
+
+
+func _on_difficulty_easy_pressed() -> void:
+	_apply_difficulty_selection("easy")
+
+
+func _on_difficulty_normal_pressed() -> void:
+	_apply_difficulty_selection("normal")
+
+
+func _on_difficulty_back_pressed() -> void:
+	_close_difficulty_prompt()
+
+
+func _apply_difficulty_selection(selected_mode: String) -> void:
+	_pending_difficulty_mode = "easy" if selected_mode == "easy" else "normal"
+	_difficulty_panel.visible = false
+	AudioDirector.play_sfx("menu_confirm")
+	if _difficulty_context == "chapter_select":
+		_chapter_select_panel.visible = true
+		_chapter_1_button.grab_focus()
+		return
+	_permadeath_panel.visible = true
+	_permadeath_no_button.grab_focus()
+
+
+func _start_chapter_select(chapter_id: String) -> void:
+	GameState.prepare_chapter_select_game(chapter_id, _pending_difficulty_mode)
+	AudioDirector.play_sfx("menu_confirm")
+	continue_requested.emit(chapter_id)

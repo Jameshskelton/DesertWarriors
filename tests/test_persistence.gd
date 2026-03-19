@@ -15,7 +15,7 @@ func _assert_true(condition: bool, message: String, failures: PackedStringArray)
 
 
 func _run_non_permadeath_persistence_checks(failures: PackedStringArray) -> void:
-	GameState.start_new_game(false)
+	GameState.start_new_game(false, "easy")
 	GameState.mark_tutorial_seen("prep_basics")
 	GameState.add_gold(17)
 	GameState.add_convoy_item("steel_sword", 22)
@@ -38,8 +38,10 @@ func _run_non_permadeath_persistence_checks(failures: PackedStringArray) -> void
 	}
 	GameState.apply_chapter_results(summary)
 	_assert_true(GameState.current_chapter_id == "chapter_2", "clearing a chapter should advance the saved chapter ID", failures)
+	_assert_true(GameState.difficulty_mode == "easy", "selected difficulty should persist in the campaign state", failures)
 	_assert_true(GameState.gold == 17, "shared gold should persist across chapter transitions", failures)
 	_assert_true(int(GameState.build_save_payload().get("gold", -1)) == 17, "shared gold should be written into the save payload", failures)
+	_assert_true(str(GameState.build_save_payload().get("difficulty_mode", "")) == "easy", "selected difficulty should be written into the save payload", failures)
 	var tutorial_flags: PackedStringArray = GameState.build_save_payload().get("tutorial_flags", PackedStringArray())
 	_assert_true(tutorial_flags.has("prep_basics"), "tutorial flags should be written into the save payload", failures)
 	_assert_true(not GameState.should_show_tutorial("prep_basics"), "seen tutorials should not be shown again in the current campaign", failures)

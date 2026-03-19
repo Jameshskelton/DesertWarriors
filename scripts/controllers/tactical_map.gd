@@ -379,6 +379,9 @@ func _spawn_unit(entry: Dictionary, allow_missing_player_state: bool = false) ->
 		return null
 	if state.faction == "player":
 		state.position = GameState.resolve_preparation_position(_chapter_id, unit_id, state.position)
+	if GameState.should_skip_enemy_unit_for_difficulty(state):
+		return null
+	GameState.apply_difficulty_to_unit(state)
 	if entry.has("instance_id") and state.faction != "player":
 		state.unit_id = entry["instance_id"]
 	_units.append(state)

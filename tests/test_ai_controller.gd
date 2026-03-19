@@ -4,6 +4,7 @@ extends RefCounted
 func run() -> PackedStringArray:
 	var failures := PackedStringArray()
 	DataRegistry.reload_all()
+	GameState.start_new_game(false, "normal")
 	var controller := AIController.new()
 	var aldric := UnitState.from_unit_data(DataRegistry.get_unit_data("sir_aldric"), Vector2i(1, 1), "enemy")
 	var george := UnitState.from_unit_data(DataRegistry.get_unit_data("george"), Vector2i(4, 1), "player")
@@ -24,6 +25,22 @@ func run() -> PackedStringArray:
 	var brigand := UnitState.from_unit_data(DataRegistry.get_unit_data("brigand_grunt"), Vector2i(1, 0), "enemy")
 	var neutral_action: Dictionary = controller.choose_action(neutral_george, [neutral_george, brigand], terrain_grid)
 	_assert_equal(str(neutral_action.get("type", "")), "move_attack", "neutral allies should target enemies with the normal AI", failures)
+	var hunter := UnitState.from_unit_data(DataRegistry.get_unit_data("hunter_grunt"), Vector2i(0, 0), "enemy")
+	var nearby_bram := UnitState.from_unit_data(DataRegistry.get_unit_data("bram"), Vector2i(1, 0), "player")
+	var farther_george := UnitState.from_unit_data(DataRegistry.get_unit_data("george"), Vector2i(2, 0), "player")
+	var normal_action: Dictionary = controller.choose_action(hunter, [hunter, nearby_bram, farther_george], terrain_grid)
+	var normal_target_value: Variant = normal_action.get("target", null)
+	var normal_target_id: String = ""
+	if normal_target_value is UnitState:
+		normal_target_id = (normal_target_value as UnitState).unit_id
+	_assert_equal(normal_target_id, "george", "normal enemy AI should still prioritize high-value targets", failures)
+	GameState.start_new_game(false, "easy")
+	var easy_action: Dictionary = controller.choose_action(hunter, [hunter, nearby_bram, farther_george], terrain_grid)
+	var easy_target_value: Variant = easy_action.get("target", null)
+	var easy_target_id: String = ""
+	if easy_target_value is UnitState:
+		easy_target_id = (easy_target_value as UnitState).unit_id
+	_assert_equal(easy_target_id, "bram", "easy enemy AI should use the simpler nearest-target behavior", failures)
 	return failures
 
 

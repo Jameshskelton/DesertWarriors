@@ -28,6 +28,8 @@ func choose_action(enemy: UnitState, units: Array[UnitState], terrain_grid: Arra
 		occupied,
 		enemy.faction
 	)
+	if GameState.is_easy_difficulty():
+		return _choose_easy_action(enemy, hostile_units, reachable)
 	var best_attack: Dictionary = {}
 	for tile in reachable.get("costs", {}).keys():
 		for hostile_unit in hostile_units:
@@ -65,6 +67,56 @@ func choose_action(enemy: UnitState, units: Array[UnitState], terrain_grid: Arra
 	}
 
 
+func _choose_easy_action(enemy: UnitState, hostile_units: Array[UnitState], reachable: Dictionary) -> Dictionary:
+	var nearest: UnitState = _find_nearest_hostile(enemy, hostile_units)
+	if nearest == null:
+		return {"type": "wait"}
+	if _combat.can_unit_attack_from_tile(enemy, nearest, enemy.position):
+		return {
+			"type": "move_attack",
+			"destination": enemy.position,
+			"target": nearest,
+			"path": [enemy.position],
+		}
+	var reachable_costs: Dictionary = reachable.get("costs", {})
+	var best_attack_tile: Vector2i = enemy.position
+	var best_attack_cost: int = 999999
+	var best_attack_distance: int = 999999
+	for tile_value in reachable_costs.keys():
+		var tile: Vector2i = tile_value
+		if not _combat.can_unit_attack_from_tile(enemy, nearest, tile):
+			continue
+		var path_cost: int = int(reachable_costs.get(tile_value, 999999))
+		var tile_distance: int = _grid.manhattan(tile, nearest.position)
+		if path_cost < best_attack_cost or (path_cost == best_attack_cost and tile_distance < best_attack_distance):
+			best_attack_tile = tile
+			best_attack_cost = path_cost
+			best_attack_distance = tile_distance
+	if best_attack_cost < 999999:
+		return {
+			"type": "move_attack",
+			"destination": best_attack_tile,
+			"target": nearest,
+			"path": _pathfinding.build_path(enemy.position, best_attack_tile, reachable),
+		}
+	var best_tile: Vector2i = enemy.position
+	var best_distance: int = _grid.manhattan(enemy.position, nearest.position)
+	var best_move_cost: int = 999999
+	for tile_value in reachable_costs.keys():
+		var tile: Vector2i = tile_value
+		var distance: int = _grid.manhattan(tile, nearest.position)
+		var move_cost: int = int(reachable_costs.get(tile_value, 999999))
+		if distance < best_distance or (distance == best_distance and move_cost < best_move_cost):
+			best_distance = distance
+			best_move_cost = move_cost
+			best_tile = tile
+	return {
+		"type": "move_wait",
+		"destination": best_tile,
+		"path": _pathfinding.build_path(enemy.position, best_tile, reachable),
+	}
+
+
 func _choose_castle_guard_action(enemy: UnitState, hostile_units: Array[UnitState]) -> Dictionary:
 	var best_attack: Dictionary = {}
 	for hostile_unit in hostile_units:
@@ -86,6 +138,19 @@ func _choose_castle_guard_action(enemy: UnitState, hostile_units: Array[UnitStat
 		"destination": enemy.position,
 		"path": [enemy.position],
 	}
+
+
+func _find_nearest_hostile(enemy: UnitState, hostile_units: Array[UnitState]) -> UnitState:
+	if hostile_units.is_empty():
+		return null
+	var nearest: UnitState = hostile_units[0]
+	var nearest_distance: int = _grid.manhattan(enemy.position, nearest.position)
+	for hostile_unit in hostile_units:
+		var distance: int = _grid.manhattan(enemy.position, hostile_unit.position)
+		if distance < nearest_distance:
+			nearest = hostile_unit
+			nearest_distance = distance
+	return nearest
 
 
 func _score_attack(attacker: UnitState, defender: UnitState) -> int:

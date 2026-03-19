@@ -1,10 +1,20 @@
 extends Node
 
-const SAVE_VERSION: int = 3
+const SAVE_VERSION: int = 4
 const DEFAULT_SETTINGS: Dictionary = {
 	"battle_speed": 1.0,
 	"music_volume": 0.8,
 	"sfx_volume": 0.9,
+}
+const EASY_ENEMY_STAT_PENALTIES: Dictionary = {
+	"max_hp": 2,
+	"str": 1,
+	"mag": 1,
+	"skl": 1,
+	"spd": 1,
+	"def": 1,
+	"res": 1,
+	"lck": 1,
 }
 
 var current_chapter_id: String = ""
@@ -12,6 +22,7 @@ var roster_state: Dictionary = {}
 var cleared_chapters: PackedStringArray = PackedStringArray()
 var settings: Dictionary = DEFAULT_SETTINGS.duplicate(true)
 var gold: int = 0
+var difficulty_mode: String = "normal"
 var permadeath_enabled: bool = false
 var fallen_units: PackedStringArray = PackedStringArray()
 var rng_seed: int = 424242
@@ -58,6 +69,7 @@ func reset_runtime() -> void:
 	cleared_chapters.clear()
 	settings = DEFAULT_SETTINGS.duplicate(true)
 	gold = 0
+	difficulty_mode = "normal"
 	permadeath_enabled = false
 	fallen_units.clear()
 	last_results.clear()
@@ -69,14 +81,15 @@ func reset_runtime() -> void:
 	is_continuing = false
 
 
-func start_new_game(use_permadeath: bool = false) -> void:
+func start_new_game(use_permadeath: bool = false, selected_difficulty_mode: String = "normal") -> void:
 	reset_runtime()
 	current_chapter_id = "chapter_1"
+	difficulty_mode = _normalize_difficulty_mode(selected_difficulty_mode)
 	permadeath_enabled = use_permadeath
 
 
-func prepare_chapter_select_game(chapter_id: String) -> void:
-	start_new_game(false)
+func prepare_chapter_select_game(chapter_id: String, selected_difficulty_mode: String = "normal") -> void:
+	start_new_game(false, selected_difficulty_mode)
 	current_chapter_id = _normalize_chapter_id(chapter_id)
 	if current_chapter_id.is_empty():
 		current_chapter_id = "chapter_1"
@@ -101,6 +114,7 @@ func continue_game() -> bool:
 	cleared_chapters = save_data.get("cleared_chapters", PackedStringArray())
 	settings = save_data.get("settings", DEFAULT_SETTINGS.duplicate(true)).duplicate(true)
 	gold = maxi(0, int(save_data.get("gold", 0)))
+	difficulty_mode = _normalize_difficulty_mode(save_data.get("difficulty_mode", "normal"))
 	permadeath_enabled = bool(save_data.get("permadeath_enabled", false))
 	fallen_units = _variant_to_packed_string_array(save_data.get("fallen_units", PackedStringArray()))
 	rng_seed = save_data.get("rng_seed", 424242)
@@ -310,6 +324,7 @@ func build_save_payload() -> Dictionary:
 		"cleared_chapters": cleared_chapters,
 		"settings": settings,
 		"gold": gold,
+		"difficulty_mode": difficulty_mode,
 		"permadeath_enabled": permadeath_enabled,
 		"fallen_units": fallen_units,
 		"rng_seed": rng_seed,
@@ -403,6 +418,29 @@ func mark_tutorial_seen(tutorial_id: String) -> void:
 	if tutorial_id.is_empty() or tutorial_flags.has(tutorial_id):
 		return
 	tutorial_flags.append(tutorial_id)
+
+
+func is_easy_difficulty() -> bool:
+	return difficulty_mode == "easy"
+
+
+func should_skip_enemy_unit_for_difficulty(unit: UnitState) -> bool:
+	return unit != null and is_easy_difficulty() and unit.faction == "enemy" and unit.has_flag("miniboss")
+
+
+func apply_difficulty_to_unit(unit: UnitState) -> void:
+	if unit == null or unit.faction != "enemy" or not is_easy_difficulty():
+		return
+	for stat_name_value in EASY_ENEMY_STAT_PENALTIES.keys():
+		var stat_name: String = str(stat_name_value)
+		var penalty: int = int(EASY_ENEMY_STAT_PENALTIES.get(stat_name_value, 0))
+		if penalty <= 0:
+			continue
+		if stat_name == "max_hp":
+			unit.stats["max_hp"] = maxi(1, int(unit.stats.get("max_hp", 1)) - penalty)
+			continue
+		unit.stats[stat_name] = maxi(0, int(unit.stats.get(stat_name, 0)) - penalty)
+	unit.set_current_hp(unit.get_max_hp())
 
 
 func _normalize_roster_state(raw_roster: Variant, heal_to_full: bool = false) -> Dictionary:
@@ -517,6 +555,15 @@ func _normalize_chapter_id(value: Variant) -> String:
 	if chapter_id == "null" or chapter_id == "<null>":
 		return ""
 	return chapter_id
+
+
+func _normalize_difficulty_mode(value: Variant) -> String:
+	if value == null:
+		return "normal"
+	var normalized_value: String = str(value).to_lower()
+	if normalized_value == "easy":
+		return "easy"
+	return "normal"
 
 
 func _build_chapter_select_cleared_chapters(chapter_id: String) -> PackedStringArray:
