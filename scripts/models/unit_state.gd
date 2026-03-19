@@ -62,6 +62,22 @@ func is_alive() -> bool:
 	return not downed and get_current_hp() > 0
 
 
+func is_player_controlled() -> bool:
+	return faction == "player"
+
+
+func is_allied_with(other_faction: String) -> bool:
+	if other_faction.is_empty():
+		return false
+	return _team_for_faction(faction) == _team_for_faction(other_faction)
+
+
+func is_hostile_to(other_faction: String) -> bool:
+	if other_faction.is_empty():
+		return false
+	return not is_allied_with(other_faction)
+
+
 func reset_turn_state() -> void:
 	moved = false
 	acted = false
@@ -419,3 +435,11 @@ func _packed_string_array_to_array(values: PackedStringArray) -> Array[String]:
 	for entry in values:
 		result.append(str(entry))
 	return result
+
+
+func _team_for_faction(faction_name: String) -> String:
+	match faction_name:
+		"player", "neutral":
+			return "allies"
+		_:
+			return faction_name

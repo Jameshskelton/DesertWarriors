@@ -11,7 +11,7 @@ const WEAPON_TRIANGLE := {
 func can_unit_attack_from_tile(attacker: UnitState, defender: UnitState, tile: Vector2i) -> bool:
 	if not attacker.is_alive() or not defender.is_alive():
 		return false
-	if attacker.faction == defender.faction:
+	if attacker.is_allied_with(defender.faction):
 		return false
 	var weapon: WeaponData = _get_usable_weapon(attacker)
 	if weapon == null or weapon.weapon_type == "staff":
@@ -21,7 +21,7 @@ func can_unit_attack_from_tile(attacker: UnitState, defender: UnitState, tile: V
 
 
 func can_unit_heal_from_tile(healer: UnitState, target: UnitState, tile: Vector2i) -> bool:
-	if healer.faction != target.faction or not healer.is_alive() or not target.is_alive():
+	if not healer.is_allied_with(target.faction) or not healer.is_alive() or not target.is_alive():
 		return false
 	var weapon: WeaponData = _get_usable_weapon(healer)
 	if weapon == null or weapon.weapon_type != "staff":
@@ -59,6 +59,8 @@ func build_forecast_for_tile(attacker: UnitState, defender: UnitState, attacker_
 
 func resolve_battle(attacker: UnitState, defender: UnitState, attacker_terrain: TerrainData, defender_terrain: TerrainData) -> BattleResult:
 	var result := BattleResult.new()
+	if attacker == null or defender == null or attacker.is_allied_with(defender.faction):
+		return result
 	var attacker_weapon: WeaponData = _get_usable_weapon(attacker)
 	if attacker_weapon == null or attacker_weapon.weapon_type == "staff":
 		return result
@@ -118,6 +120,8 @@ func resolve_battle(attacker: UnitState, defender: UnitState, attacker_terrain: 
 
 
 func resolve_staff(user: UnitState, target: UnitState) -> Dictionary:
+	if user == null or target == null or not user.is_allied_with(target.faction):
+		return {}
 	var weapon: WeaponData = _get_usable_weapon(user)
 	if weapon == null or weapon.weapon_type != "staff":
 		return {}
@@ -170,7 +174,7 @@ func _award_gold(attacker: UnitState, defender: UnitState, result: BattleResult)
 
 
 func _grant_xp(unit: UnitState, amount: int) -> Dictionary:
-	if amount <= 0 or unit.faction != "player":
+	if amount <= 0 or not unit.is_player_controlled():
 		return {}
 	var previous_level: int = unit.level
 	unit.xp += amount

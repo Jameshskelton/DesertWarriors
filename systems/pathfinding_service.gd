@@ -28,7 +28,7 @@ func compute_reachable(
 			if occupied_tiles.has(next_tile) and next_tile != start:
 				var occupant = occupied_tiles[next_tile]
 				var occupant_state: UnitState = occupant as UnitState
-				if occupant_state == null or moving_faction.is_empty() or occupant_state.faction != moving_faction:
+				if occupant_state == null or moving_faction.is_empty() or not occupant_state.is_allied_with(moving_faction):
 					continue
 				can_stop_on_tile = false
 			var terrain_id: String = terrain_grid[next_tile.y][next_tile.x]
@@ -67,7 +67,7 @@ func _compute_tall_mountain_reachable(
 		if occupied_tiles.has(next_tile):
 			var occupant = occupied_tiles[next_tile]
 			var occupant_state: UnitState = occupant as UnitState
-			if occupant_state == null or moving_faction.is_empty() or occupant_state.faction != moving_faction:
+			if occupant_state == null or moving_faction.is_empty() or not occupant_state.is_allied_with(moving_faction):
 				continue
 			can_stop_on_tile = false
 		var terrain_id: String = _terrain_id_at(next_tile, terrain_grid)

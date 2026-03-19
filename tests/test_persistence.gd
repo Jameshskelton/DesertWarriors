@@ -63,6 +63,8 @@ func _run_non_permadeath_persistence_checks(failures: PackedStringArray) -> void
 	_assert_true(restored_ember.get_current_hp() == restored_ember.get_max_hp(), "restored recruits should also heal to full between chapters", failures)
 	var bram := UnitState.from_unit_data(DataRegistry.get_unit_data("bram"), Vector2i(0, 0))
 	_assert_true(not GameState.restore_player_unit_state(bram, "bram"), "units absent from the persisted roster should not auto-spawn", failures)
+	var unrecruited_balt := UnitState.from_unit_data(DataRegistry.get_unit_data("balt"), Vector2i(0, 0))
+	_assert_true(not GameState.restore_player_unit_state(unrecruited_balt, "balt"), "unrecruited optional allies should not auto-spawn in later chapters", failures)
 	var balt := UnitState.from_unit_data(DataRegistry.get_unit_data("balt"), Vector2i(19, 2))
 	_assert_true(GameState.restore_player_unit_state(balt, "balt", true), "explicit join events should allow new player units to spawn even if they are not yet in the roster", failures)
 	_assert_true(balt.get_current_hp() == balt.get_max_hp(), "newly joined units should keep their default chapter-start HP", failures)

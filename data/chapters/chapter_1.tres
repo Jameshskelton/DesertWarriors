@@ -9,7 +9,7 @@ display_name = "Chapter 1: Exile in the Greenwood"
 objective_type = "defeat_boss"
 map_width = 20
 map_height = 15
-terrain_rows = PackedStringArray("FFFFFFFFFFFFFBBBFFFF", "FFFFRRRRPPFFBBCBFFFF", "FFFRRPPPPPRRBBBBFFFF", "FFFRPPFFFPRRFFFVFFFF", "FFRRPFFFFPPRRFFFFFFF", "FRRPPFFFFPPRRFFFFFFF", "RRPPPPFFFPPRRFFFFFFF", "RPPFFFFFPPPRRFFFFFFF", "RPPFFFFPPPRRFFFFFFFF", "RPPFFFPPPRRFFFFFFFFF", "RPPFPPPRRFFFFFFFFFFF", "RPPPPPRRFFFFFFFFFFFF", "RRPPPRRFFFFFFFFFFFFF", "FRRRRRFFFFFFFFFFFFFF", "FFRRRFFFFFFFFFFFFFFF")
+terrain_rows = PackedStringArray("FFFFFFFFFFFFFBBBFFFF", "FFFFRRRRPPFFBBCBFFFF", "FFFRRPPPPPRRBBBBFFFF", "FFFRPPFFFPRRFFFFFFFF", "FFRRPFFFFPPRRFFFFFFF", "FRRPPFFFFPPRRFFFFFFF", "RRPPPPFFFPPRRFFFFFFF", "RPPFFFFFPPPRRFFFFFFF", "RPPFFFFPPPRRFFFFFFFF", "RPPFFFPPPRRFFFFFFFFF", "RPPFPPPRRFFFFFFFFFFF", "RPPPPPRRFFFFFFFFFFFF", "RRPPPRRFFFFFFFFFFFFF", "FRRRRRFFFFFFFFFFFFFF", "FFRRRVFFFFFFFFFFFFFF")
 terrain_legend = {
 "B": "cobblestone",
 "C": "castle",
@@ -69,7 +69,6 @@ enemy_units = [{
 "unit_id": "captain_briar"
 }]
 reinforcements = [{
-"faction": "player",
 "dialogue_lines": [{
 "chapter": "Chapter 1: Exile in the Greenwood",
 "speaker": "Rowan",
@@ -91,6 +90,7 @@ reinforcements = [{
 "speaker": "Rowan",
 "text": "Gladly. Point me at the crown's dogs."
 }],
+"faction": "player",
 "instance_id": "rowan_arrival",
 "message": "Rowan gallops in from the southern road to reinforce George.",
 "position": Vector2i(0, 10),
@@ -129,11 +129,11 @@ event_triggers = [{
 }],
 "id": "ember_join",
 "message": "Ember steps from the village and vows to burn back George's hunters.",
-"position": Vector2i(15, 3),
+"position": Vector2i(5, 14),
 "spawn": {
 "faction": "player",
 "instance_id": "ember_joined",
-"position": Vector2i(16, 3),
+"position": Vector2i(6, 14),
 "unit_id": "ember"
 },
 "trigger": "tile",
@@ -168,6 +168,68 @@ event_triggers = [{
 "id": "captain_briar_confront",
 "trigger": "boss_confront",
 "unit_id": "george"
+}, {
+"dialogue_lines": [{
+"chapter": "Chapter 1: Exile in the Greenwood",
+"speaker": "George",
+"text": "Briar's hunters move like they own the Greenwood."
+}, {
+"chapter": "Chapter 1: Exile in the Greenwood",
+"speaker": "Bram",
+"text": "They move like men told peasants and trees alike should kneel."
+}, {
+"chapter": "Chapter 1: Exile in the Greenwood",
+"speaker": "George",
+"text": "Then let us remind them the forest still remembers my father."
+}, {
+"chapter": "Chapter 1: Exile in the Greenwood",
+"speaker": "Bram",
+"text": "And that I have not forgotten how to cut down a captain."
+}],
+"id": "chapter_1_talk_george_bram",
+"trigger": "talk",
+"unit_a_id": "george",
+"unit_b_id": "bram"
+}, {
+"dialogue_lines": [{
+"chapter": "Chapter 1: Exile in the Greenwood",
+"speaker": "Brother Hale",
+"text": "The old paths bend kindly here. Even hunted men may find mercy in the Greenwood."
+}, {
+"chapter": "Chapter 1: Exile in the Greenwood",
+"speaker": "George",
+"text": "Mercy would be welcome. Justice will do if it must."
+}, {
+"chapter": "Chapter 1: Exile in the Greenwood",
+"speaker": "Brother Hale",
+"text": "Keep both in your heart, prince. A kingdom rebuilt by rage alone becomes Malrec's image in cleaner clothes."
+}],
+"id": "chapter_1_talk_george_hale",
+"trigger": "talk",
+"unit_a_id": "george",
+"unit_b_id": "brother_hale"
+}, {
+"dialogue_lines": [{
+"chapter": "Chapter 1: Exile in the Greenwood",
+"speaker": "Ember",
+"text": "The village still smokes behind us. Hard to believe people call this the king's peace."
+}, {
+"chapter": "Chapter 1: Exile in the Greenwood",
+"speaker": "Brother Hale",
+"text": "Peace that feeds on the innocent is only fear dressed for court."
+}, {
+"chapter": "Chapter 1: Exile in the Greenwood",
+"speaker": "Ember",
+"text": "Then I am glad George chose to fight in the open. Someone needed to say no where the whole road could hear it."
+}, {
+"chapter": "Chapter 1: Exile in the Greenwood",
+"speaker": "Brother Hale",
+"text": "And now the road is listening."
+}],
+"id": "chapter_1_talk_ember_hale",
+"trigger": "talk",
+"unit_a_id": "ember",
+"unit_b_id": "brother_hale"
 }]
 opening_dialogue = [{
 "chapter": "Chapter 1: Exile in the Greenwood",
@@ -204,7 +266,7 @@ opening_dialogue = [{
 }, {
 "chapter": "Chapter 1: Exile in the Greenwood",
 "speaker": "Narrator",
-"text": "A horn sounds in the north. Royal hunters are already in the Greenwood, tracking the prince through the undergrowth like a prize stag. Ahead, a village smokes on the horizon. Beyond it lies an old monastery, and perhaps the first allies George can truly call his own."
+"text": "A horn sounds in the north. Royal hunters are already in the Greenwood, tracking the prince through the undergrowth like a prize stag. Near the south road, smoke curls from a village crouched beneath the trees. Beyond it lies an old monastery, and perhaps the first allies George can truly call his own."
 }]
 victory_dialogue = [{
 "chapter": "Chapter 1: Exile in the Greenwood",

@@ -12,7 +12,7 @@ func run() -> PackedStringArray:
 	_assert_equal(chapter.starting_units.size(), 3, "chapter_1 should start with 3 allied units", failures)
 	_assert_equal(chapter.enemy_units.size(), 7, "chapter_1 should start with 7 enemy units", failures)
 	_assert_equal(chapter.reinforcements.size(), 2, "chapter_1 should have 2 reinforcement entries", failures)
-	_assert_equal(chapter.event_triggers.size(), 2, "chapter_1 should have 2 event triggers", failures)
+	_assert_equal(chapter.event_triggers.size(), 5, "chapter_1 should have 5 event triggers", failures)
 	for row in chapter.terrain_rows:
 		_assert_equal(row.length(), chapter.map_width, "each terrain row should match map width", failures)
 	return failures

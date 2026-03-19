@@ -166,6 +166,72 @@ event_triggers = [{
 "id": "lysandra_quill_confront",
 "trigger": "boss_confront",
 "unit_id": "george"
+}, {
+"dialogue_lines": [{
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "George",
+"text": "You knew Saint Orin's cloister before all this?"
+}, {
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "Ricodial",
+"text": "I knew its library, its soup, and one elderly monk who cheated viciously at chess."
+}, {
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "George",
+"text": "Then help me keep the walls standing until dawn."
+}, {
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "Ricodial",
+"text": "Gladly. I refuse to let mercenaries turn one of my favorite reading rooms into firewood."
+}],
+"id": "chapter_4_talk_george_ricodial",
+"trigger": "talk",
+"unit_a_id": "george",
+"unit_b_id": "ricodial"
+}, {
+"dialogue_lines": [{
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "Balt",
+"text": "Hunters in both tree lines. They mean to pen us in, don't they?"
+}, {
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "Ember",
+"text": "Aye. So shoot the ones who think walls make us easy prey."
+}, {
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "Balt",
+"text": "Firm, practical, terrifying. You really are growing on me."
+}, {
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "Ember",
+"text": "Survive the night and I'll consider that a compliment."
+}],
+"id": "chapter_4_talk_ember_balt",
+"trigger": "talk",
+"unit_a_id": "ember",
+"unit_b_id": "balt"
+}, {
+"dialogue_lines": [{
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "Bram",
+"text": "Hold the road through the hills. If they break that line, the cloister is done."
+}, {
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "Rowan",
+"text": "Already watching it. If their hunters push, I'll meet them halfway."
+}, {
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "Bram",
+"text": "Good. I prefer allies who understand urgency before I start shouting."
+}, {
+"chapter": "Chapter 4: Hunters at the Cloister",
+"speaker": "Rowan",
+"text": "You shout even when things are going well, Bram."
+}],
+"id": "chapter_4_talk_bram_rowan",
+"trigger": "talk",
+"unit_a_id": "bram",
+"unit_b_id": "rowan"
 }]
 opening_dialogue = [{
 "chapter": "Chapter 4: Hunters at the Cloister",

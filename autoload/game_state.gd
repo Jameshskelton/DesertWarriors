@@ -193,8 +193,7 @@ func build_preparation_roster(chapter_id: String) -> Array[UnitState]:
 		var unit: UnitState = UnitState.from_unit_data(unit_data, Vector2i.ZERO, faction_override)
 		if unit.faction != "player":
 			continue
-		var can_fall_back_to_default_state: bool = not unit_data.join_event_id.is_empty()
-		if not restore_player_unit_state(unit, unit_id, can_fall_back_to_default_state):
+		if not restore_player_unit_state(unit, unit_id):
 			continue
 		unit.position = Vector2i.ZERO
 		unit.reset_turn_state()

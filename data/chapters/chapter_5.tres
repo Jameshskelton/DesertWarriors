@@ -129,6 +129,76 @@ event_triggers = [{
 "id": "bartram_confront",
 "trigger": "boss_confront",
 "unit_id": "george"
+}, {
+"dialogue_lines": [{
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "Ysult",
+"text": "Desert fights are simple. Water matters, shade matters, and fools die proving they know otherwise."
+}, {
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "George",
+"text": "Useful. Anything else?"
+}, {
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "Ysult",
+"text": "Yes. Bartram will expect a prince to chase him straight up the road. Do not indulge him."
+}, {
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "George",
+"text": "Then let us disappoint him thoroughly."
+}],
+"id": "chapter_5_talk_george_ysult",
+"trigger": "talk",
+"unit_a_id": "george",
+"unit_b_id": "ysult"
+}, {
+"dialogue_lines": [{
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "Ricodial",
+"text": "Sand in my boots, sand in my robe, sand in philosophical places."
+}, {
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "Balt",
+"text": "Cheer up. At least the bandits are easy to spot."
+}, {
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "Ricodial",
+"text": "Because of the sand?"
+}, {
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "Balt",
+"text": "Because they're the only men here more irritable than you."
+}, {
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "Ricodial",
+"text": "Outrageously fair."
+}],
+"id": "chapter_5_talk_ricodial_balt",
+"trigger": "talk",
+"unit_a_id": "ricodial",
+"unit_b_id": "balt"
+}, {
+"dialogue_lines": [{
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "Bram",
+"text": "Brigands and hunters under one knight. Bartram keeps ugly company."
+}, {
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "Ember",
+"text": "Men like him always do. They need witnesses for their cruelty."
+}, {
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "Bram",
+"text": "Then let us leave him none but the defeated."
+}, {
+"chapter": "Chapter 5: The Hercule Desert",
+"speaker": "Ember",
+"text": "Now that is a desert wind I can stand behind."
+}],
+"id": "chapter_5_talk_bram_ember",
+"trigger": "talk",
+"unit_a_id": "bram",
+"unit_b_id": "ember"
 }]
 opening_dialogue = [{
 "chapter": "Chapter 5: The Hercule Desert",

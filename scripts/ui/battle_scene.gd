@@ -773,6 +773,8 @@ func _unit_color(unit: UnitState) -> Color:
 		return BOSS_PANEL_COLOR
 	if unit.faction == "player":
 		return PLAYER_PANEL_COLOR
+	if unit.faction == "neutral":
+		return Color(0.698039, 0.752941, 0.435294, 1.0)
 	return ENEMY_PANEL_COLOR
 
 

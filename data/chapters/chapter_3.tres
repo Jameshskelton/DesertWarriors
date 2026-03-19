@@ -147,6 +147,76 @@ event_triggers = [{
 "id": "sir_aldric_confront",
 "trigger": "boss_confront",
 "unit_id": "george"
+}, {
+"dialogue_lines": [{
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Ricodial",
+"text": "The Unbroken glare exactly like court nobles, except with better scars and fewer perfumes."
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "George",
+"text": "Then perhaps we have finally found honest company."
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Ricodial",
+"text": "Honest, yes. Easy, no. We shall have to impress them the old-fashioned way."
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "George",
+"text": "By bleeding for it?"
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Ricodial",
+"text": "Regrettably, yes."
+}],
+"id": "chapter_3_talk_george_ricodial",
+"trigger": "talk",
+"unit_a_id": "george",
+"unit_b_id": "ricodial"
+}, {
+"dialogue_lines": [{
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Ember",
+"text": "Keep low when you cross the cobbles. Aldric's riders will watch every open lane."
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Balt",
+"text": "I can do low. Heroically low."
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Ember",
+"text": "Good. Stay alive long enough and I may even call that courage."
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Balt",
+"text": "I will treasure the possibility."
+}],
+"id": "chapter_3_talk_ember_balt",
+"trigger": "talk",
+"unit_a_id": "ember",
+"unit_b_id": "balt"
+}, {
+"dialogue_lines": [{
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Bram",
+"text": "Aldric still drills his lines well."
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Rowan",
+"text": "Soldiers who hate their own banner often practice harder."
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Bram",
+"text": "Then let them see discipline can serve honor instead of fear."
+}, {
+"chapter": "Chapter 3: The Unbroken",
+"speaker": "Rowan",
+"text": "Good. We win this cleanly, and half the valley may ride with us."
+}],
+"id": "chapter_3_talk_bram_rowan",
+"trigger": "talk",
+"unit_a_id": "bram",
+"unit_b_id": "rowan"
 }]
 opening_dialogue = [{
 "chapter": "Chapter 3: The Unbroken",

@@ -20,6 +20,10 @@ func run() -> PackedStringArray:
 	var attack_action: Dictionary = controller.choose_action(aldric, [aldric, george], terrain_grid)
 	_assert_equal(str(attack_action.get("type", "")), "move_attack", "castle_guard enemies should still attack from their castle tile", failures)
 	_assert_equal(attack_action.get("destination", Vector2i.ZERO), Vector2i(1, 1), "castle_guard attacks should not move off the castle tile", failures)
+	var neutral_george := UnitState.from_unit_data(DataRegistry.get_unit_data("george"), Vector2i(0, 0), "neutral")
+	var brigand := UnitState.from_unit_data(DataRegistry.get_unit_data("brigand_grunt"), Vector2i(1, 0), "enemy")
+	var neutral_action: Dictionary = controller.choose_action(neutral_george, [neutral_george, brigand], terrain_grid)
+	_assert_equal(str(neutral_action.get("type", "")), "move_attack", "neutral allies should target enemies with the normal AI", failures)
 	return failures
 
 

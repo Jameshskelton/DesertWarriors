@@ -47,6 +47,7 @@ const MAP_BREAK_POPUP_COLOR := Color(1.0, 0.764706, 0.423529, 1.0)
 const HEADER_CHAPTER_COLOR := Color(0.968627, 0.929412, 0.811765, 1.0)
 const HEADER_TURN_COLOR := Color(0.647059, 0.878431, 1.0, 1.0)
 const HEADER_PHASE_PLAYER_COLOR := Color(0.631373, 0.941176, 0.705882, 1.0)
+const HEADER_PHASE_NEUTRAL_COLOR := Color(0.933333, 0.901961, 0.556863, 1.0)
 const HEADER_PHASE_ENEMY_COLOR := Color(1.0, 0.592157, 0.509804, 1.0)
 const HEADER_OBJECTIVE_COLOR := Color(1.0, 0.764706, 0.470588, 1.0)
 const HEADER_GOLD_COLOR := Color(1.0, 0.878431, 0.447059, 1.0)
@@ -374,8 +375,7 @@ func _spawn_unit(entry: Dictionary, allow_missing_player_state: bool = false) ->
 	var position = entry.get("position", Vector2i.ZERO)
 	var faction_override: String = str(entry.get("faction", ""))
 	var state: UnitState = UnitState.from_unit_data(unit_data, position, faction_override)
-	var can_fall_back_to_default_state: bool = allow_missing_player_state or not unit_data.join_event_id.is_empty()
-	if state.faction == "player" and not GameState.restore_player_unit_state(state, unit_id, can_fall_back_to_default_state):
+	if state.faction == "player" and not GameState.restore_player_unit_state(state, unit_id, allow_missing_player_state):
 		return null
 	if state.faction == "player":
 		state.position = GameState.resolve_preparation_position(_chapter_id, unit_id, state.position)
@@ -541,9 +541,9 @@ func _draw_units() -> void:
 		else:
 			draw_rect(rect, _unit_color(unit))
 			draw_string(font, rect.position + Vector2(6.0, 18.0) * UI_SCALE, unit.display_name.left(1), HORIZONTAL_ALIGNMENT_LEFT, -1, 24, Color.WHITE)
-		if unit.moved and unit.faction == "player":
+		if unit.moved and unit.is_player_controlled():
 			draw_rect(visual_rect.grow(-4.5), Color(0, 0, 0, 0.4), false, 3.0)
-		if unit.faction == "player" and _hover_enemy_target_tiles.has(unit.position):
+		if unit.is_allied_with("player") and _hover_enemy_target_tiles.has(unit.position):
 			var target_outline_color: Color = HOVER_ENEMY_TARGET_OUTLINE
 			if _hover_enemy_is_boss:
 				target_outline_color = BOSS_DANGER_OUTLINE_COLOR
@@ -726,7 +726,7 @@ func _should_open_inspection_on_click(unit: UnitState) -> bool:
 	if unit == null or not _can_open_unit_inspection():
 		return false
 	if _selection.mode == SelectionController.Mode.IDLE:
-		return unit.faction != "player" or unit.moved
+		return not unit.is_player_controlled() or unit.moved
 	return unit != _selection.selected_unit or unit.position != _selection.origin_tile
 
 
@@ -769,7 +769,7 @@ func _on_end_turn_yes_pressed() -> void:
 	AudioDirector.play_sfx("menu_confirm")
 	if _selection.mode != SelectionController.Mode.IDLE:
 		_cancel_selection(false)
-	_begin_enemy_phase()
+	_begin_neutral_phase_or_enemy_phase()
 
 
 func _on_end_turn_no_pressed() -> void:
@@ -797,7 +797,7 @@ func _on_system_restart_pressed() -> void:
 
 func _select_unit_at_cursor() -> void:
 	var unit := _get_unit_at(_cursor_tile)
-	if unit == null or unit.faction != "player" or unit.moved or not unit.is_alive():
+	if unit == null or not unit.is_player_controlled() or unit.moved or not unit.is_alive():
 		return
 	var class_data: ClassData = DataRegistry.get_class_data(unit.class_id)
 	var reachability := _pathfinding.compute_reachable(unit.position, class_data.move_range, _terrain_grid, class_data.move_type, _build_occupied_lookup(unit), unit.faction)
@@ -831,6 +831,7 @@ func _show_action_menu(unit: UnitState) -> void:
 		"attack": _has_attack_targets(unit),
 		"staff": _has_heal_targets(unit),
 		"item": _has_usable_items(unit),
+		"talk": _has_talk_targets(unit),
 		"wait": true,
 		"cancel": true,
 	}
@@ -857,6 +858,12 @@ func _on_action_menu_selected(action_name: String) -> void:
 			_selection.target_tiles = _valid_heal_tiles(unit)
 			_action_menu.hide_menu()
 			_update_status("Select an ally to heal.")
+		"talk":
+			_selection.mode = SelectionController.Mode.TARGETING
+			_selection.pending_action = "talk"
+			_selection.target_tiles = _valid_talk_tiles(unit)
+			_action_menu.hide_menu()
+			_update_status("Select someone to talk to.")
 		"item":
 			_execute_item(unit)
 		"visit":
@@ -881,6 +888,8 @@ func _try_target_action() -> void:
 			await _execute_attack(source, target)
 		"staff":
 			await _execute_staff(source, target)
+		"talk":
+			_execute_talk(source, target)
 
 
 func _execute_attack(source: UnitState, target: UnitState) -> void:
@@ -930,6 +939,53 @@ func _execute_staff(source: UnitState, target: UnitState) -> void:
 	_queue_level_up_report(_dictionary_or_empty(outcome.get("level_up", {})))
 	await _present_queued_level_up_reports()
 	_finish_unit_action()
+
+
+func _execute_talk(source: UnitState, target: UnitState) -> void:
+	var event: Dictionary = _event_director.consume_talk_event(source, target, _chapter)
+	if event.is_empty():
+		_update_status("%s has nothing new to say to %s right now." % [source.display_name, target.display_name])
+		return
+	source.consume_turn()
+	_apply_talk_event_effects(event, source, target)
+	_selection.target_tiles.clear()
+	if event.has("message"):
+		_update_status(str(event.get("message", "")))
+	else:
+		_update_status("%s talks with %s." % [source.display_name, target.display_name])
+	var dialogue_lines: Array = event.get("dialogue_lines", [])
+	if not dialogue_lines.is_empty():
+		_show_dialogue_overlay(dialogue_lines)
+	_finish_unit_action()
+
+
+func _apply_talk_event_effects(event: Dictionary, source: UnitState, target: UnitState) -> void:
+	var recruit_target_id: String = str(event.get("recruit_target_id", ""))
+	if recruit_target_id.is_empty():
+		return
+	var recruited_unit: UnitState = null
+	for unit in [source, target]:
+		if unit == null:
+			continue
+		if unit.unit_id == recruit_target_id or unit.base_unit_id == recruit_target_id:
+			recruited_unit = unit
+			break
+	if recruited_unit == null:
+		return
+	_recruit_unit(recruited_unit)
+
+
+func _recruit_unit(unit: UnitState) -> void:
+	if unit == null or unit.is_player_controlled():
+		return
+	unit.faction = "player"
+	if not unit.base_unit_id.is_empty():
+		unit.unit_id = unit.base_unit_id
+	unit.reset_turn_state()
+	_record_recruit(unit.display_name)
+	_refresh_danger_zone()
+	_update_hover_status()
+	queue_redraw()
 
 
 func _execute_item(source: UnitState) -> void:
@@ -1266,7 +1322,28 @@ func _finish_unit_action(allow_village_tile_events: bool = false) -> void:
 	if _active_dialogue != null:
 		return
 	if _all_player_units_acted():
-		_begin_enemy_phase()
+		_begin_neutral_phase_or_enemy_phase()
+
+
+func _begin_neutral_phase_or_enemy_phase() -> void:
+	if _has_active_neutral_units():
+		_begin_neutral_phase()
+		return
+	_begin_enemy_phase()
+
+
+func _begin_neutral_phase() -> void:
+	_close_unit_inspection(false)
+	_selection.preview_path.clear()
+	_enemy_preview_path.clear()
+	_turn_controller.enter_neutral_phase()
+	_selection.mode = SelectionController.Mode.ENEMY_PHASE
+	_update_header()
+	_update_status("Ally phase...")
+	await _run_ai_phase("neutral")
+	if _check_end_conditions():
+		return
+	_begin_enemy_phase()
 
 
 func _begin_enemy_phase() -> void:
@@ -1277,7 +1354,7 @@ func _begin_enemy_phase() -> void:
 	_selection.mode = SelectionController.Mode.ENEMY_PHASE
 	_update_header()
 	_update_status("Enemy phase...")
-	await _run_enemy_phase()
+	await _run_ai_phase("enemy")
 	if _check_end_conditions():
 		return
 	_turn_controller.enter_player_phase(_units)
@@ -1292,9 +1369,9 @@ func _begin_enemy_phase() -> void:
 	queue_redraw()
 
 
-func _run_enemy_phase() -> void:
+func _run_ai_phase(phase_faction: String) -> void:
 	for unit in _units:
-		if unit.faction != "enemy" or not unit.is_alive():
+		if unit.faction != phase_faction or not unit.is_alive() or not unit.has_joined:
 			continue
 		var action := _ai_controller.choose_action(unit, _units, _terrain_grid)
 		var action_path: Array[Vector2i] = _extract_action_path(action, unit.position)
@@ -1330,6 +1407,13 @@ func _run_enemy_phase() -> void:
 			return
 	_enemy_preview_path.clear()
 	queue_redraw()
+
+
+func _has_active_neutral_units() -> bool:
+	for unit in _units:
+		if unit != null and unit.faction == "neutral" and unit.is_alive() and unit.has_joined:
+			return true
+	return false
 
 
 func _extract_action_path(action: Dictionary, origin: Vector2i) -> Array[Vector2i]:
@@ -1371,7 +1455,7 @@ func _process_turn_events() -> void:
 		if int(reinforcement.get("turn", -1)) == _turn_controller.turn_number and not _spawned_reinforcements.has(reinforcement_id):
 			_spawned_reinforcements.append(reinforcement_id)
 			var spawned_unit: UnitState = _spawn_unit(reinforcement, true)
-			if spawned_unit != null and spawned_unit.faction == "player":
+			if spawned_unit != null and spawned_unit.is_player_controlled():
 				_record_recruit(spawned_unit.display_name)
 			if reinforcement.has("message"):
 				_update_status(str(reinforcement.get("message", "")))
@@ -1415,7 +1499,7 @@ func _maybe_show_map_tutorial() -> void:
 		},
 		{
 			"title": "Villages and Recruits",
-			"body": "Villages and stores only work if a unit ends movement on the tile and chooses Visit.\n\nIn this chapter, the eastern village can recruit Ember. Keep an eye on weapon uses in the HUD so your gear does not break mid-map.",
+			"body": "Villages and stores only work if a unit ends movement on the tile and chooses Visit.\n\nIn this chapter, the village near your starting position can recruit Ember. Keep an eye on weapon uses in the HUD so your gear does not break mid-map.",
 		},
 	])
 
@@ -1454,7 +1538,7 @@ func _on_dialogue_overlay_finished(_next_tag: String) -> void:
 	if _check_end_conditions():
 		return
 	if _turn_controller.phase == "player" and _selection.mode == SelectionController.Mode.IDLE and _all_player_units_acted():
-		_begin_enemy_phase()
+		_begin_neutral_phase_or_enemy_phase()
 
 
 func _handle_tile_events(unit: UnitState, allow_village_tile_events: bool = false) -> void:
@@ -1471,7 +1555,7 @@ func _execute_event(event: Dictionary) -> void:
 	match event.get("action", ""):
 		"spawn_join":
 			var spawned_unit: UnitState = _spawn_unit(event.get("spawn", {}), true)
-			if spawned_unit != null and spawned_unit.faction == "player":
+			if spawned_unit != null and spawned_unit.is_player_controlled():
 				_record_recruit(spawned_unit.display_name)
 			_update_status(str(event.get("message", "A new ally joins the cause.")))
 			if event.has("dialogue_lines"):
@@ -1492,8 +1576,12 @@ func _has_usable_items(unit: UnitState) -> bool:
 	return _item_service.can_use_any_item(unit)
 
 
+func _has_talk_targets(unit: UnitState) -> bool:
+	return not _valid_talk_tiles(unit).is_empty()
+
+
 func _can_visit_location(unit: UnitState) -> bool:
-	if unit == null or unit.faction != "player":
+	if unit == null or not unit.is_player_controlled():
 		return false
 	var terrain_id: String = _get_terrain_id_at(unit.position)
 	return terrain_id == "village" or terrain_id == "store"
@@ -1525,6 +1613,31 @@ func _valid_heal_tiles(unit: UnitState) -> Array[Vector2i]:
 	return tiles
 
 
+func _valid_talk_tiles(unit: UnitState) -> Array[Vector2i]:
+	var tiles: Array[Vector2i] = []
+	if unit == null or not unit.is_alive():
+		return tiles
+	for target in _units:
+		if not _can_talk_to(unit, target):
+			continue
+		tiles.append(target.position)
+	return tiles
+
+
+func _can_talk_to(source: UnitState, target: UnitState) -> bool:
+	if source == null or target == null or source == target:
+		return false
+	if not source.is_alive() or not target.is_alive() or not source.has_joined or not target.has_joined:
+		return false
+	if not source.is_player_controlled():
+		return false
+	if not source.is_allied_with(target.faction):
+		return false
+	if _grid.manhattan(source.position, target.position) != 1:
+		return false
+	return not _event_director.peek_talk_event(source, target, _chapter).is_empty()
+
+
 func _check_end_conditions() -> bool:
 	if _objective_controller.check_defeat(_units):
 		chapter_failed.emit(_build_summary(false))
@@ -1532,7 +1645,7 @@ func _check_end_conditions() -> bool:
 	if _objective_controller.check_victory(_units, _chapter, _turn_controller.turn_number):
 		if not GameState.permadeath_enabled:
 			for unit in _units:
-				if unit.faction == "player" and unit.downed:
+				if unit.is_player_controlled() and unit.downed:
 					unit.downed = false
 					unit.set_current_hp(maxi(1, int(unit.get_max_hp() / 2)))
 		chapter_cleared.emit(_build_summary(true))
@@ -1545,7 +1658,7 @@ func _build_summary(success: bool) -> Dictionary:
 	var fallen: PackedStringArray = PackedStringArray()
 	var player_states: Dictionary = {}
 	for unit in _units:
-		if unit.faction != "player":
+		if not unit.is_player_controlled():
 			continue
 		player_states[unit.unit_id] = unit.to_persistent_state()
 		if unit.is_alive():
@@ -1601,7 +1714,7 @@ func _record_battle_summary(battle_result: BattleResult) -> void:
 		if xp_amount <= 0:
 			continue
 		var unit: UnitState = _find_unit_by_id(unit_id)
-		if unit == null or unit.faction != "player":
+		if unit == null or not unit.is_player_controlled():
 			continue
 		_record_chapter_xp(unit, xp_amount)
 	for strike_value in battle_result.strikes:
@@ -1613,7 +1726,7 @@ func _record_battle_summary(battle_result: BattleResult) -> void:
 
 
 func _record_chapter_xp(unit: UnitState, amount: int) -> void:
-	if unit == null or unit.faction != "player" or amount <= 0:
+	if unit == null or not unit.is_player_controlled() or amount <= 0:
 		return
 	var key: String = unit.display_name
 	_chapter_xp_gains[key] = int(_chapter_xp_gains.get(key, 0)) + amount
@@ -1690,7 +1803,7 @@ func _dictionary_or_empty(value: Variant) -> Dictionary:
 
 func _all_player_units_acted() -> bool:
 	for unit in _units:
-		if unit.faction == "player" and unit.is_alive() and not unit.acted:
+		if unit.is_player_controlled() and unit.is_alive() and not unit.acted:
 			return false
 	return true
 
@@ -1757,15 +1870,24 @@ func _update_movement_preview() -> void:
 func _update_header() -> void:
 	_chapter_label.text = _chapter.display_name
 	_turn_label.text = "Turn %d" % _turn_controller.turn_number
-	_phase_label.text = "Player Phase" if _turn_controller.phase == "player" else "Enemy Phase"
+	match _turn_controller.phase:
+		"player":
+			_phase_label.text = "Player Phase"
+		"neutral":
+			_phase_label.text = "Ally Phase"
+		_:
+			_phase_label.text = "Enemy Phase"
 	_objective_label.text = _objective_controller.get_objective_text(_chapter)
 	_gold_label.text = "Gold %d" % GameState.gold
 	_chapter_label.add_theme_color_override("font_color", HEADER_CHAPTER_COLOR)
 	_turn_label.add_theme_color_override("font_color", HEADER_TURN_COLOR)
-	if _turn_controller.phase == "player":
-		_phase_label.add_theme_color_override("font_color", HEADER_PHASE_PLAYER_COLOR)
-	else:
-		_phase_label.add_theme_color_override("font_color", HEADER_PHASE_ENEMY_COLOR)
+	match _turn_controller.phase:
+		"player":
+			_phase_label.add_theme_color_override("font_color", HEADER_PHASE_PLAYER_COLOR)
+		"neutral":
+			_phase_label.add_theme_color_override("font_color", HEADER_PHASE_NEUTRAL_COLOR)
+		_:
+			_phase_label.add_theme_color_override("font_color", HEADER_PHASE_ENEMY_COLOR)
 	_objective_label.add_theme_color_override("font_color", HEADER_OBJECTIVE_COLOR)
 	_gold_label.add_theme_color_override("font_color", HEADER_GOLD_COLOR)
 
@@ -1824,7 +1946,7 @@ func _update_hover_status() -> void:
 	var unit := _get_unit_at(_cursor_tile)
 	_refresh_hover_enemy_readability(_resolve_hover_enemy_focus(unit))
 	_hover_combat_preview.clear()
-	if _selection.mode == SelectionController.Mode.UNIT_SELECTED and _selection.selected_unit != null and unit != null and unit.faction != _selection.selected_unit.faction:
+	if _selection.mode == SelectionController.Mode.UNIT_SELECTED and _selection.selected_unit != null and unit != null and _selection.selected_unit.is_hostile_to(unit.faction):
 		_hover_combat_preview = _build_hover_combat_preview(_selection.selected_unit, unit)
 	if unit != null:
 		_show_hover_portrait(unit)
@@ -1833,11 +1955,11 @@ func _update_hover_status() -> void:
 	else:
 		_hide_hover_portrait()
 	if _selection.mode == SelectionController.Mode.TARGETING and _selection.selected_unit != null and unit != null:
-		if _selection.pending_action == "attack" and unit.faction != _selection.selected_unit.faction:
+		if _selection.pending_action == "attack" and _selection.selected_unit.is_hostile_to(unit.faction):
 			var forecast := _combat_resolver.build_forecast(_selection.selected_unit, unit, _get_terrain_at(_selection.selected_unit.position), _get_terrain_at(unit.position))
 			_forecast_panel.show_battle_forecast(_selection.selected_unit, unit, forecast, _get_terrain_at(unit.position))
 			return
-		if _selection.pending_action == "staff" and unit.faction == _selection.selected_unit.faction:
+		if _selection.pending_action == "staff" and _selection.selected_unit.is_allied_with(unit.faction):
 			var weapon: WeaponData = DataRegistry.get_weapon_data(_selection.selected_unit.get_equipped_weapon_id())
 			if weapon == null:
 				_forecast_panel.hide_panel()
@@ -1860,6 +1982,8 @@ func _update_hover_status() -> void:
 func _unit_color(unit: UnitState) -> Color:
 	if unit.faction == "player":
 		return Color(0.286275, 0.486275, 0.768627, 1)
+	if unit.faction == "neutral":
+		return Color(0.694118, 0.717647, 0.364706, 1)
 	return Color(0.733333, 0.286275, 0.239216, 1)
 
 
@@ -1952,7 +2076,7 @@ func _refresh_hover_enemy_readability(enemy_unit: UnitState) -> void:
 	_hover_enemy_is_boss = _is_boss_unit(enemy_unit)
 	_hover_enemy_threat_tiles = _danger_zone_service.build_threat_tiles_for_unit(enemy_unit, _units, _terrain_grid)
 	for unit in _units:
-		if unit == null or unit.faction != "player" or not unit.is_alive() or not unit.has_joined:
+		if unit == null or not enemy_unit.is_hostile_to(unit.faction) or not unit.is_alive() or not unit.has_joined:
 			continue
 		if _hover_enemy_threat_tiles.has(unit.position):
 			_hover_enemy_target_tiles[unit.position] = true
@@ -1992,7 +2116,7 @@ func _build_hover_combat_preview(attacker: UnitState, defender: UnitState) -> Di
 		"defender_name": defender_name,
 		"can_attack": false,
 	}
-	if attacker == null or defender == null or attacker.faction == defender.faction:
+	if attacker == null or defender == null or attacker.is_allied_with(defender.faction):
 		return preview
 	if _selection.reachability.is_empty():
 		return preview

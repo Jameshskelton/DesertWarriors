@@ -69,7 +69,9 @@ text = "To attack an enemy, move next to them and select \"Attack\" from the act
 \n
 Weapon Triangle: Sword beats Axe, Axe beats Lance, Lance beats Sword.
 \n
-Magic attacks use RESISTANCE, physical attacks use DEFENSE."
+Magic attacks use RESISTANCE, physical attacks use DEFENSE.
+\n
+If two allies with a conversation are standing next to each other, the action menu will show \"Talk\"."
 
 [node name="TerrainSection" type="VBoxContainer" parent="HelpMargin/HelpVBox/ScrollContainer/Content"]
 layout_mode = 2

@@ -78,26 +78,9 @@ enemy_units = [{
 "unit_id": "abbot_vermis"
 }]
 reinforcements = [{
-"faction": "player",
+"faction": "neutral",
 "instance_id": "balt_reinforce",
-"dialogue_lines": [{
-"chapter": "Chapter 2: The Old Monastery",
-"speaker": "Balt",
-"text": "Oh my goodness! Those folks look like they're being chased by brigands!"
-}, {
-"chapter": "Chapter 2: The Old Monastery",
-"speaker": "Balt",
-"text": "The crown's scouts have been bullying every pilgrim on this road, and the brothers keep telling me to stay inside the orchard. I have tried staying inside. It is dreadful."
-}, {
-"chapter": "Chapter 2: The Old Monastery",
-"speaker": "George",
-"text": "Then stop trying. If your aim is true, we can use you."
-}, {
-"chapter": "Chapter 2: The Old Monastery",
-"speaker": "Balt",
-"text": "Splendid! I am Balt, and I would be delighted to ruin a few brigands before supper."
-}],
-"message": "Balt races up from the southern road and looses an arrow for the prince's cause!",
+"message": "Balt races up from the southern road and starts peppering the crown's scouts with arrows!",
 "position": Vector2i(9, 14),
 "turn": 2,
 "unit_id": "balt"
@@ -143,6 +126,96 @@ event_triggers = [{
 "id": "abbot_vermis_confront",
 "trigger": "boss_confront",
 "unit_id": "george"
+}, {
+"dialogue_lines": [{
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "George",
+"text": "You were right. Vermis sold the monastery before we reached the gate."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Ember",
+"text": "I wanted to be wrong. Some debts deserve better endings."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "George",
+"text": "Then let us win the place back cleanly. The memory of kindness deserves at least that."
+}],
+"id": "chapter_2_talk_george_ember",
+"trigger": "talk",
+"unit_a_id": "george",
+"unit_b_id": "ember"
+}, {
+"dialogue_lines": [{
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Rowan",
+"text": "Castle walls, open river, hunters on the flanks. Vermis chose his ground well."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Bram",
+"text": "Then we break the flanks and let his stones trap him instead."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Rowan",
+"text": "Direct. I appreciate that in a plan."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Bram",
+"text": "Good. Appreciating it is step one. Keeping up is step two."
+}],
+"id": "chapter_2_talk_bram_rowan",
+"trigger": "talk",
+"unit_a_id": "bram",
+"unit_b_id": "rowan"
+}, {
+"dialogue_lines": [{
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Brother Hale",
+"text": "I remember these bells when they called pilgrims to shelter instead of guards to muster."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Ember",
+"text": "Then let us win the place back before the stones forget what mercy sounded like."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Brother Hale",
+"text": "Gladly. Some sanctuaries deserve cleansing more than sermons."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Ember",
+"text": "Good. I brought fire for both."
+}],
+"id": "chapter_2_talk_hale_ember",
+"trigger": "talk",
+"unit_a_id": "brother_hale",
+"unit_b_id": "ember"
+}, {
+"dialogue_lines": [{
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Balt",
+"text": "Oh! You made it over. I was hoping the prince would look more heroic up close."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "George",
+"text": "That depends who is judging."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Balt",
+"text": "The crown's scouts have been bullying every pilgrim on this road, and the brothers keep telling me to stay inside the orchard. I have tried staying inside. It is dreadful."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "George",
+"text": "Then stop trying. If your aim is true, join us openly."
+}, {
+"chapter": "Chapter 2: The Old Monastery",
+"speaker": "Balt",
+"text": "Splendid! I am Balt, and I would be delighted to ruin a few brigands before supper."
+}],
+"id": "chapter_2_recruit_balt",
+"message": "Balt gladly joins George's company.",
+"recruit_target_id": "balt",
+"trigger": "talk",
+"unit_a_id": "george",
+"unit_b_id": "balt"
 }]
 opening_dialogue = [{
 "chapter": "Chapter 2: The Old Monastery",
