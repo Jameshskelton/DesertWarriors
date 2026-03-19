@@ -2,7 +2,7 @@
 
 ![Title Screen](https://github.com/Jameshskelton/DesertWarriors/blob/main/assets/ui/menu_start.png)
 
-`Desert Warriors` is a Godot 4 tactical RPG campaign inspired by classic Fire Emblem structure. The current build includes five playable chapters, preparation screens, recruit events, shops, persistent gold and inventory state, frame-based battle animations, and data-driven dialogue and map content.
+`Desert Warriors` is a Godot 4 tactical RPG campaign inspired by classic RPGs. The current build includes five playable chapters, preparation screens, recruit events, shops, persistent gold and inventory state, frame-based battle animations, and data-driven dialogue and map content.
 
 ## Current Campaign
 
