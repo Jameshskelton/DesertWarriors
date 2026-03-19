@@ -62,14 +62,14 @@ const SHOP_UPGRADE_WEAPONS := {
 	"staff": "mend_staff",
 }
 const MAP_UNIT_CLASS_FALLBACKS := {
-	"brigand": "brigand_grunt",
+	"marauder": "brigand_grunt",
 	"captain": "captain_grunt",
-	"cavalier": "rowan",
+	"outrider": "rowan",
 	"hunter": "hunter_grunt",
 	"knight": "knight_grunt",
-	"lord": "george",
+	"vanguard": "george",
 	"mage": "ember",
-	"paladin": "rowan",
+	"warden": "rowan",
 	"priest": "hale",
 }
 

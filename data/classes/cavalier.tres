@@ -4,8 +4,8 @@
 
 [resource]
 script = ExtResource("1")
-id = "cavalier"
-display_name = "Cavalier"
+id = "outrider"
+display_name = "Outrider"
 move_type = "cavalry"
 move_range = 7
 base_stats = {
@@ -30,4 +30,4 @@ growth_rates = {
 }
 weapon_types = PackedStringArray("lance")
 can_use_staves = false
-battle_anim_set = "cavalier_lance"
+battle_anim_set = "outrider_lance"

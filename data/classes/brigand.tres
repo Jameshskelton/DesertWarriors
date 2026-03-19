@@ -4,8 +4,8 @@
 
 [resource]
 script = ExtResource("1")
-id = "brigand"
-display_name = "Brigand"
+id = "marauder"
+display_name = "Marauder"
 move_type = "infantry"
 move_range = 5
 base_stats = {
@@ -30,4 +30,4 @@ growth_rates = {
 }
 weapon_types = PackedStringArray("axe")
 can_use_staves = false
-battle_anim_set = "brigand_axe"
+battle_anim_set = "marauder_axe"

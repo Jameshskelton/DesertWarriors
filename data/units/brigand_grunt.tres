@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1")
 id = "brigand_grunt"
-display_name = "Brigand"
-class_id = "brigand"
+display_name = "Marauder"
+class_id = "marauder"
 level = 1
 stats = {
 "def": 3,

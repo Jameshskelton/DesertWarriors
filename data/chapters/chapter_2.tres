@@ -208,7 +208,7 @@ event_triggers = [{
 }, {
 "chapter": "Chapter 2: The Old Monastery",
 "speaker": "Balt",
-"text": "Splendid! I am Balt, and I would be delighted to ruin a few brigands before supper."
+"text": "Splendid! I am Balt, and I would be delighted to ruin a few marauders before supper."
 }],
 "id": "chapter_2_recruit_balt",
 "message": "Balt gladly joins George's company.",

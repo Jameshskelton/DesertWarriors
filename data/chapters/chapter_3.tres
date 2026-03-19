@@ -86,7 +86,7 @@ enemy_units = [{
 reinforcements = [{
 "faction": "enemy",
 "instance_id": "silverguard_6",
-"message": "A brigand bursts from the canyon to join the fray!",
+"message": "A marauder bursts from the canyon to join the fray!",
 "position": Vector2i(16, 3),
 "turn": 6,
 "unit_id": "brigand_grunt"
@@ -108,7 +108,7 @@ event_triggers = [{
 }, {
 "chapter": "Chapter 3: The Unbroken",
 "speaker": "Ricodial",
-"text": "You look like a better banner to me, my prince. Let me join you. I bring respectable fire, indecent optimism, and a memory for every lord who ever dined happily at your father's table."
+"text": "You look like a better banner to me, my prince. Let me join you. I bring respectable fire, indecent optimism, and a memory for every noble who ever dined happily at your father's table."
 }],
 "id": "ricodial_join",
 "message": "Ricodial emerges from the village and gladly rejoins the Verdant cause.",
@@ -233,7 +233,7 @@ opening_dialogue = [{
 }, {
 "chapter": "Chapter 3: The Unbroken",
 "speaker": "Rowan",
-"text": "Even now their lines are disciplined. Those are not brigands pretending to be soldiers. They still remember the work."
+"text": "Even now their lines are disciplined. Those are not marauders pretending to be soldiers. They still remember the work."
 }, {
 "chapter": "Chapter 3: The Unbroken",
 "speaker": "Bram",

@@ -37,14 +37,14 @@ const TERRAIN_BACKGROUND_TEXTURES := {
 	"village": preload("res://assets/terrain/village.png"),
 }
 const FIGHT_ANIMATION_CLASS_FALLBACKS := {
-	"brigand": "brigand_grunt",
+	"marauder": "brigand_grunt",
 	"captain": "captain_grunt",
-	"cavalier": "rowan",
+	"outrider": "rowan",
 	"hunter": "hunter_grunt",
 	"knight": "knight_grunt",
-	"lord": "george",
+	"vanguard": "george",
 	"mage": "ember",
-	"paladin": "george",
+	"warden": "george",
 }
 
 var _payload: Dictionary = {}

@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "ysult"
 display_name = "Ysult"
-class_id = "paladin"
+class_id = "warden"
 level = 3
 stats = {
 "def": 8,

@@ -99,7 +99,7 @@ reinforcements = [{
 }, {
 "faction": "enemy",
 "instance_id": "brigand_ambush",
-"message": "Another brigand slips out from the eastern brush!",
+"message": "Another marauder slips out from the eastern brush!",
 "position": Vector2i(19, 7),
 "turn": 5,
 "unit_id": "brigand_grunt"
@@ -117,7 +117,7 @@ event_triggers = [{
 }, {
 "chapter": "Chapter 1: Exile in the Greenwood",
 "speaker": "Ember",
-"text": "Maybe. But quarrels are cheap. You fought brigands outside my village without demanding food, gold, or obedience. That is rarer than princes."
+"text": "Maybe. But quarrels are cheap. You fought marauders outside my village without demanding food, gold, or obedience. That is rarer than princes."
 }, {
 "chapter": "Chapter 1: Exile in the Greenwood",
 "speaker": "Brother Hale",

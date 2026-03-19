@@ -11,7 +11,7 @@ Teach the player to:
 - use forests for avoid and defense
 - protect George while advancing
 - understand separate battle cutaways
-- value class contrast between lord, knight, priest, cavalry, and mage
+- value class contrast between vanguard, knight, priest, outrider, and mage
 
 ## Chapter Beats
 
@@ -24,7 +24,7 @@ Teach the player to:
 
 ## Encounter Design
 
-- Early brigands pressure the road approach.
+- Early marauders pressure the road approach.
 - Hunters punish careless exposure on open tiles.
 - The pursuer near the village creates the recruit challenge.
 - The boss uses the shrine's defense bonus to force a deliberate finish.

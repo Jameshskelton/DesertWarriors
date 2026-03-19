@@ -112,7 +112,7 @@ text = "Defeating enemies grants Experience Points (XP). Collecting 100 XP level
 \n
 Knights: High HP/DEF growth
 Mages: High MAG growth
-Cavaliers: Balanced growth
+Outriders: Balanced growth
 Hunters: High SKL growth"
 
 [node name="TurnsSection" type="VBoxContainer" parent="HelpMargin/HelpVBox/ScrollContainer/Content"]

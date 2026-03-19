@@ -14,13 +14,13 @@ The project does not currently use `assets/map_units/` or `assets/battle_units/`
 
 | Unit ID | Display Name | Class | Weapon | Portrait Used In Game | Fight Animation Used In Game |
 | --- | --- | --- | --- | --- | --- |
-| `george` | George | `lord` | `bronze_sword` | `assets/portraits/george.png` | `assets/fight_animations/george/` |
+| `george` | George | `vanguard` | `bronze_sword` | `assets/portraits/george.png` | `assets/fight_animations/george/` |
 | `bram` | Bram | `knight` | `iron_lance` | `assets/portraits/bram.png` | `assets/fight_animations/bram/` |
-| `rowan` | Rowan | `cavalier` | `iron_lance` | `assets/portraits/rowan.png` | `assets/fight_animations/rowan/` |
+| `rowan` | Rowan | `outrider` | `iron_lance` | `assets/portraits/rowan.png` | `assets/fight_animations/rowan/` |
 | `ember` | Ember | `mage` | `fire_tome` | `assets/portraits/ember.png` | `assets/fight_animations/ember/` |
 | `brother_hale` | Brother Hale | `priest` | `heal_staff` | `assets/portraits/hale.png` | none yet |
 | `balt` | Balt | `hunter` | `hunter_bow` | `assets/portraits/Balt.png` | `assets/fight_animations/balt/` |
-| `brigand_grunt` | Brigand | `brigand` | `iron_axe` | `assets/portraits/brigand_grunt.png` | `assets/fight_animations/brigand_grunt/` |
+| `brigand_grunt` | Marauder | `marauder` | `iron_axe` | `assets/portraits/brigand_grunt.png` | `assets/fight_animations/brigand_grunt/` |
 | `hunter_grunt` | Hunter | `hunter` | `hunter_bow` | `assets/portraits/hunter_grunt.png` | `assets/fight_animations/hunter_grunt/` |
 | `knight` | Knight | `knight` | `iron_lance` | `assets/portraits/knight_grunt.png` | `assets/fight_animations/knight_grunt/` |
 | `pursuer_armor` | Pursuer | `knight` | `iron_lance` | `assets/portraits/pursuer_armor.png` | `assets/fight_animations/pursuer_armor/` |
@@ -28,7 +28,7 @@ The project does not currently use `assets/map_units/` or `assets/battle_units/`
 | `abbot_vermis` | Abbot Vermis | `captain` | `captain_axe` | `assets/portraits/abbot_vermis.png` | `assets/fight_animations/abbot_vermis/` |
 | `captain` | Captain | `captain` | `captain_axe` | none yet | falls back to `captain_briar` animation |
 | `mage` | Mage | `mage` | `fire_tome` | none yet | falls back to `ember` animation |
-| `sir_aldric` | Sir Aldric | `cavalier` | `iron_lance` | none yet | falls back to `rowan` animation |
+| `sir_aldric` | Sir Aldric | `outrider` | `iron_lance` | none yet | falls back to `rowan` animation |
 
 ## Portrait Assets Currently Present
 
@@ -114,12 +114,12 @@ Battle attack animation loading in `scripts/ui/battle_scene.gd` works like this:
 
 Current class fallbacks:
 
-- `brigand` -> `brigand_grunt`
+- `marauder` -> `brigand_grunt`
 - `captain` -> `captain_briar`
-- `cavalier` -> `rowan`
+- `outrider` -> `rowan`
 - `hunter` -> `hunter_grunt`
 - `knight` -> `knight_grunt`
-- `lord` -> `george`
+- `vanguard` -> `george`
 - `mage` -> `ember`
 
 There is no priest fallback right now, so `Brother Hale` falls back to his portrait instead of an attack animation.

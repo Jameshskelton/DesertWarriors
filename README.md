@@ -20,7 +20,7 @@ Campaign highlights:
 - Allies such as Ember, Rowan, Balt, Ricodial, and Ysult join through chapter events and recruitment scenes.
 - Bosses have confrontation dialogue, enhanced battle presentation, and distinct danger-zone emphasis.
 - Chapter 4 is a survival map with an alternate boss-kill victory condition against `Lysandra Quill`.
-- Chapter 5 pushes the company into the desert against brigands, hunters, and the lance-wielding boss `Bartram`.
+- Chapter 5 pushes the company into the desert against marauders, hunters, and the lance-wielding boss `Bartram`.
 
 ## Current Features
 
@@ -79,9 +79,9 @@ The project is configured for a `1920x1080` base viewport.
 ## Title Screen Flow
 
 - Press `Space` on launch to open the main menu.
-- `New Game` prompts for permadeath on or off.
+- `New Game` prompts for difficulty, then permadeath on or off.
 - `Continue` resumes the saved campaign, or `Resume Suspend` if a suspend save exists.
-- `Chapter Select` always works, even without a prior save, and seeds a chapter-appropriate default roster.
+- `Chapter Select` always works, even without a prior save, and now seeds a chapter-appropriate default roster plus chapter-scaled starting gold.
 
 ## Controls
 

@@ -4,8 +4,8 @@
 
 [resource]
 script = ExtResource("1")
-id = "paladin"
-display_name = "Paladin"
+id = "warden"
+display_name = "Warden"
 move_type = "cavalry"
 move_range = 8
 base_stats = {
@@ -30,4 +30,4 @@ growth_rates = {
 }
 weapon_types = PackedStringArray("sword")
 can_use_staves = false
-battle_anim_set = "lord_sword"
+battle_anim_set = "warden_sword"

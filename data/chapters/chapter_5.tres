@@ -92,7 +92,7 @@ reinforcements = [{
 }, {
 "chapter": "Chapter 5: The Hercule Desert",
 "speaker": "Ysult",
-"text": "I rode caravan guard for your father. He once paid me in silver and the much rarer gift of honesty. When word reached the desert that Malrec had sent a knight to herd brigands like hounds, I came to see whether the prince was worth the ride."
+"text": "I rode caravan guard for your father. He once paid me in silver and the much rarer gift of honesty. When word reached the desert that Malrec had sent a knight to herd marauders like hounds, I came to see whether the prince was worth the ride."
 }, {
 "chapter": "Chapter 5: The Hercule Desert",
 "speaker": "Rowan",
@@ -181,7 +181,7 @@ event_triggers = [{
 "dialogue_lines": [{
 "chapter": "Chapter 5: The Hercule Desert",
 "speaker": "Bram",
-"text": "Brigands and hunters under one knight. Bartram keeps ugly company."
+"text": "Marauders and hunters under one knight. Bartram keeps ugly company."
 }, {
 "chapter": "Chapter 5: The Hercule Desert",
 "speaker": "Ember",
@@ -219,7 +219,7 @@ opening_dialogue = [{
 }, {
 "chapter": "Chapter 5: The Hercule Desert",
 "speaker": "Rowan",
-"text": "Scouts on the ridges too. Hunters. And brigands waiting near the road. Organized ones."
+"text": "Scouts on the ridges too. Hunters. And marauders waiting near the road. Organized ones."
 }, {
 "chapter": "Chapter 5: The Hercule Desert",
 "speaker": "Brother Hale",
@@ -236,7 +236,7 @@ opening_dialogue = [{
 victory_dialogue = [{
 "chapter": "Chapter 5: The Hercule Desert",
 "speaker": "Narrator",
-"text": "Bartram falls, and the dune road exhales. The brigands scatter from the wells they had claimed, leaving dropped axes, spilled water, and a silence too sudden to trust."
+"text": "Bartram falls, and the dune road exhales. The marauders scatter from the wells they had claimed, leaving dropped axes, spilled water, and a silence too sudden to trust."
 }, {
 "chapter": "Chapter 5: The Hercule Desert",
 "speaker": "Ysult",
@@ -244,7 +244,7 @@ victory_dialogue = [{
 }, {
 "chapter": "Chapter 5: The Hercule Desert",
 "speaker": "George",
-"text": "If Malrec is buying roads the way he buys lords, then every league we free matters. Let the caravans carry more than spice now. Let them carry word that he can be resisted."
+"text": "If Malrec is buying roads the way he buys nobles, then every league we free matters. Let the caravans carry more than spice now. Let them carry word that he can be resisted."
 }, {
 "chapter": "Chapter 5: The Hercule Desert",
 "speaker": "Ember",

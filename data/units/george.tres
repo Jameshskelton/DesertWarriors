@@ -6,7 +6,7 @@
 script = ExtResource("1")
 id = "george"
 display_name = "George"
-class_id = "lord"
+class_id = "vanguard"
 level = 1
 stats = {
 "def": 5,
@@ -25,4 +25,4 @@ portrait_id = "george"
 faction = "player"
 ai_profile = "leader"
 join_event_id = ""
-story_flags = PackedStringArray("lord")
+story_flags = PackedStringArray("vanguard")

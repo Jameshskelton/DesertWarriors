@@ -25,12 +25,12 @@ const STAT_LABELS := {
 }
 const CLASS_FLAVOR_TEXT := {
 	"captain": "Command settles heavier on the shoulders, but the blade follows with it.",
-	"cavalier": "The road opens wider for riders who trust their charge.",
+	"outrider": "The open road favors riders who know exactly when to commit.",
 	"hunter": "Distance becomes a weapon when patience and instinct sharpen together.",
 	"knight": "Iron yields only to greater resolve, and today that resolve grew.",
-	"lord": "A prince's burden grows, but so does the strength to carry it.",
+	"vanguard": "Leadership hardens into action when the front line expects you to stand first.",
 	"mage": "Spellcraft answers careful study with sudden flashes of power.",
-	"paladin": "Horse and steel move as one when discipline becomes second nature.",
+	"warden": "Horse and steel move as one when discipline becomes second nature.",
 	"priest": "Grace answers faithful hands with steadier miracles.",
 }
 

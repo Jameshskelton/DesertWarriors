@@ -272,7 +272,7 @@ layout_mode = 2
 size_flags_vertical = 3
 autowrap_mode = 2
 theme_override_font_sizes/font_size = 24
-text = "Faction: Player\nClass: Lord"
+text = "Faction: Player\nClass: Vanguard"
 
 [node name="RightColumn" type="VBoxContainer" parent="UnitInspectPanel/InspectMargin/InspectVBox/ContentRow"]
 layout_mode = 2
