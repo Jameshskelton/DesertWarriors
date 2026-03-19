@@ -49,6 +49,8 @@ const FIGHT_ANIMATION_CLASS_FALLBACKS := {
 
 var _payload: Dictionary = {}
 var _skip_requested: bool = false
+var _skip_input_enabled: bool = false
+var _skip_finish_queued: bool = false
 var _sequence_finished: bool = false
 var _finish_signal_sent: bool = false
 var _animation_frame_cache: Dictionary = {}
@@ -117,6 +119,7 @@ func _ready() -> void:
 		call_deferred("_finish_sequence", "Battle data missing.")
 		return
 	_apply_initial_state()
+	call_deferred("_enable_skip_input")
 	call_deferred("_play_sequence")
 
 
@@ -127,8 +130,20 @@ func _notification(what: int) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("skip_battle"):
-		_skip_requested = true
+	if not event.is_action_pressed("skip_battle"):
+		return
+	get_viewport().set_input_as_handled()
+	if event is InputEventKey and event.echo:
+		return
+	if _sequence_finished:
+		if not _finish_signal_sent:
+			call_deferred("_emit_battle_finished_once")
+		return
+	if not _skip_input_enabled or _skip_finish_queued:
+		return
+	_skip_requested = true
+	_skip_finish_queued = true
+	call_deferred("_force_finish_after_skip")
 
 
 func _apply_initial_state() -> void:
@@ -239,6 +254,7 @@ func _finish_sequence(final_log: String = "") -> void:
 		return
 	_sequence_finished = true
 	_skip_requested = true
+	_skip_finish_queued = false
 	_boss_banner.visible = false
 	_reset_presentation_positions()
 	_reset_hit_flashes()
@@ -254,6 +270,19 @@ func _finish_sequence(final_log: String = "") -> void:
 
 func is_sequence_finished() -> bool:
 	return _sequence_finished
+
+
+func _enable_skip_input() -> void:
+	_skip_input_enabled = true
+
+
+func _force_finish_after_skip() -> void:
+	_skip_finish_queued = false
+	if _sequence_finished:
+		if not _finish_signal_sent:
+			_emit_battle_finished_once()
+		return
+	_finish_sequence()
 
 
 func _emit_battle_finished_once() -> void:
