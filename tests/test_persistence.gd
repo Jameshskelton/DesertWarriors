@@ -70,6 +70,18 @@ func _run_non_permadeath_persistence_checks(failures: PackedStringArray) -> void
 	var balt := UnitState.from_unit_data(DataRegistry.get_unit_data("balt"), Vector2i(19, 2))
 	_assert_true(GameState.restore_player_unit_state(balt, "balt", true), "explicit join events should allow new player units to spawn even if they are not yet in the roster", failures)
 	_assert_true(balt.get_current_hp() == balt.get_max_hp(), "newly joined units should keep their default chapter-start HP", failures)
+	var chapter_6_summary := {
+		"success": true,
+		"chapter_id": "chapter_6",
+		"next_chapter_id": "chapter_7",
+		"player_states": {
+			"george": george.to_persistent_state(),
+		},
+	}
+	GameState.apply_chapter_results(chapter_6_summary)
+	var talis := UnitState.from_unit_data(DataRegistry.get_unit_data("talis"), Vector2i.ZERO)
+	_assert_true(GameState.restore_player_unit_state(talis, "talis"), "story-mandated allies should seed into the roster for the next chapter", failures)
+	_assert_true(talis.get_current_hp() == talis.get_max_hp(), "story-mandated allies should join at full health", failures)
 
 
 func _run_permadeath_persistence_checks(failures: PackedStringArray) -> void:

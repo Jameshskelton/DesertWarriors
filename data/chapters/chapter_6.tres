@@ -68,14 +68,14 @@ enemy_units = [{
 "unit_id": "brigand_grunt"
 }, {
 "faction": "enemy",
-"instance_id": "dune_hunter_1",
+"instance_id": "dune_marauder_4",
 "position": Vector2i(17, 4),
-"unit_id": "hunter_grunt"
+"unit_id": "brigand_grunt"
 }, {
 "faction": "enemy",
-"instance_id": "dune_hunter_2",
+"instance_id": "dune_marauder_5",
 "position": Vector2i(17, 10),
-"unit_id": "hunter_grunt"
+"unit_id": "brigand_grunt"
 }]
 reinforcements = [{
 "faction": "enemy",
@@ -89,14 +89,14 @@ reinforcements = [{
 "instance_id": "dune_wave_2_south",
 "position": Vector2i(12, 14),
 "turn": 2,
-"unit_id": "hunter_grunt"
+"unit_id": "brigand_grunt"
 }, {
 "faction": "enemy",
 "instance_id": "dune_wave_4_north",
-"message": "Hunters crest the dunes and loose into the basin!",
+"message": "Another knot of raiders rushes down into the wash!",
 "position": Vector2i(16, 0),
 "turn": 4,
-"unit_id": "hunter_grunt"
+"unit_id": "brigand_grunt"
 }, {
 "faction": "enemy",
 "instance_id": "dune_wave_4_south",
@@ -115,14 +115,14 @@ reinforcements = [{
 "instance_id": "dune_wave_6_south",
 "position": Vector2i(18, 12),
 "turn": 6,
-"unit_id": "hunter_grunt"
+"unit_id": "brigand_grunt"
 }, {
 "faction": "enemy",
 "instance_id": "dune_wave_8_north",
 "message": "A final wave rushes in as the sun begins to die!",
 "position": Vector2i(19, 5),
 "turn": 8,
-"unit_id": "hunter_grunt"
+"unit_id": "brigand_grunt"
 }, {
 "faction": "enemy",
 "instance_id": "dune_wave_8_south",
@@ -138,7 +138,7 @@ event_triggers = [{
 }, {
 "chapter": "Chapter 6: Teeth of the Dunes",
 "speaker": "Ysult",
-"text": "Then we use the basin. Ten turns, no more. Hold the wash and do not let the hunters circle us."
+"text": "Then we use the basin. Ten turns, no more. Hold the wash and do not let the raiders close the ring."
 }, {
 "chapter": "Chapter 6: Teeth of the Dunes",
 "speaker": "George",
@@ -200,7 +200,7 @@ event_triggers = [{
 opening_dialogue = [{
 "chapter": "Chapter 6: Teeth of the Dunes",
 "speaker": "Narrator",
-"text": "Bartram's death breaks the desert road, but not the hunt. Word races ahead of George's company, and before the caravan paths can offer shelter, fresh marauders and hired hunters force the exiles deeper into the Hercule."
+"text": "Bartram's death breaks the desert road, but not the hunt. Word races ahead of George's company, and before the caravan paths can offer shelter, fresh marauders and hired blades force the exiles deeper into the Hercule."
 }, {
 "chapter": "Chapter 6: Teeth of the Dunes",
 "speaker": "Ysult",
@@ -229,22 +229,34 @@ opening_dialogue = [{
 victory_dialogue = [{
 "chapter": "Chapter 6: Teeth of the Dunes",
 "speaker": "Narrator",
-"text": "By the tenth turn the company is ringed by bodies, broken arrows, and dying light. The hunters draw back for one last rush - and then the desert answers with a blade they never saw coming."
+"text": "By the tenth turn the company is ringed by bodies, broken axes, and dying light. The raiders draw back for one last rush - and then the desert answers with steel they never saw coming."
 }, {
 "chapter": "Chapter 6: Teeth of the Dunes",
 "speaker": "Narrator",
-"text": "A lone warrior cuts through the dusk like a thrown spear, scattering marauders from the wash and opening a path east. No banner flies above them. No name follows."
+"text": "Warriors erupt from the dunes in a sheet of sand and blades, cutting through the marauders and breaking the ring around George's company before the bandits can understand what has found them."
+}, {
+"chapter": "Chapter 6: Teeth of the Dunes",
+"speaker": "Narrator",
+"text": "The stories were true. The Griesha have come: the hidden desert clans who turn wasteland into fortress and silence into ambush."
+}, {
+"chapter": "Chapter 6: Teeth of the Dunes",
+"speaker": "Talis",
+"text": "You held longer than most caravan guards manage with walls at their backs. That earns you water, if not wisdom. I am Talis, blade-chief of this Griesha band."
 }, {
 "chapter": "Chapter 6: Teeth of the Dunes",
 "speaker": "George",
-"text": "Whoever they were, they just saved every life here."
+"text": "Then I owe you every life standing here. My uncle's hounds drove us into this basin. We mean to return the debt to him."
+}, {
+"chapter": "Chapter 6: Teeth of the Dunes",
+"speaker": "Talis",
+"text": "Not tonight, you don't. Come to our camp. The desert is already testing whether you deserve to cross it, and you are not ready to answer yet."
 }, {
 "chapter": "Chapter 6: Teeth of the Dunes",
 "speaker": "Ysult",
-"text": "Then be grateful quickly. Anyone who rides alone into a kill-circle either knows this desert better than we do... or intends to vanish before we can ask questions."
+"text": "She's right. If the Griesha are willing to shelter us, we would be fools to refuse."
 }, {
 "chapter": "Chapter 6: Teeth of the Dunes",
 "speaker": "Narrator",
-"text": "With the strange rescuer already disappearing into the dark, George gathers his companions and follows the narrow path left behind, deeper into the Hercule and toward whatever hand has chosen, for now, to keep him alive."
+"text": "Under Griesha escort, George's company vanishes into the dunes, following Talis toward a hidden camp and the first real refuge they have known since exile."
 }]
-next_chapter_id = null
+next_chapter_id = "chapter_7"

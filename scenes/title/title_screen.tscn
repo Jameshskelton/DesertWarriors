@@ -230,6 +230,10 @@ text = "Chapter 5: The Hercule Desert"
 layout_mode = 2
 text = "Chapter 6: Teeth of the Dunes"
 
+[node name="Chapter7Button" type="Button" parent="ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer"]
+layout_mode = 2
+text = "Chapter 7: Trial by Sand"
+
 [node name="BackButton2" type="Button" parent="ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox"]
 layout_mode = 2
 text = "Back"

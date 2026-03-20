@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="UnitData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/unit_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "talis"
+display_name = "Talis"
+class_id = "vanguard"
+level = 4
+stats = {
+"def": 7,
+"hp": 25,
+"lck": 8,
+"mag": 0,
+"max_hp": 25,
+"res": 4,
+"skl": 10,
+"spd": 11,
+"str": 10
+}
+xp = 0
+inventory = PackedStringArray("steel_sword", "health_potion")
+portrait_id = "talis"
+faction = "player"
+ai_profile = "leader"
+join_event_id = ""
+story_flags = PackedStringArray("story_join_auto")

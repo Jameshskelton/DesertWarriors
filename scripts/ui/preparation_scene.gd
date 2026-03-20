@@ -967,9 +967,13 @@ func _get_item_name(item_id: String) -> String:
 func _build_objective_text() -> String:
 	if _chapter == null:
 		return "Prepare for battle."
+	var deployment_limit: int = int(_chapter.deployment_unit_limit)
+	var deployment_text: String = ""
+	if deployment_limit > 0:
+		deployment_text = "\nDeploy up to %d allies." % deployment_limit
 	if _chapter.objective_type == "survive_turns":
-		return "Objective: Survive %d turns or defeat the boss." % _chapter.objective_turns
-	return "Objective: %s." % _chapter.objective_type.replace("_", " ").capitalize()
+		return "Objective: Survive %d turns or defeat the boss.%s" % [_chapter.objective_turns, deployment_text]
+	return "Objective: %s.%s" % [_chapter.objective_type.replace("_", " ").capitalize(), deployment_text]
 
 
 func _default_status_text() -> String:

@@ -10,6 +10,7 @@ class_name ChapterData
 @export var terrain_rows: PackedStringArray = PackedStringArray()
 @export var terrain_legend: Dictionary = {}
 @export var deployment_slots := 5
+@export var deployment_unit_limit := 0
 @export var starting_units: Array[Dictionary] = []
 @export var enemy_units: Array[Dictionary] = []
 @export var reinforcements: Array[Dictionary] = []

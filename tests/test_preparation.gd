@@ -49,6 +49,19 @@ func run() -> PackedStringArray:
 		var bram_slot: Vector2i = GameState.resolve_preparation_position("chapter_1", "bram", deployment_slots[1])
 		_assert_true(george_slot == deployment_slots[1], "stored preparation deployment should move George to his chosen slot", failures)
 		_assert_true(bram_slot == deployment_slots[0], "stored preparation deployment should swap Bram into the vacated slot", failures)
+	var chapter_1: ChapterData = DataRegistry.get_chapter_data("chapter_1")
+	var original_deployment_limit: int = int(chapter_1.deployment_unit_limit)
+	var original_preparation_assignments: Dictionary = GameState.preparation_assignments.duplicate(true)
+	chapter_1.deployment_unit_limit = 2
+	var limited_slots: Array[Vector2i] = GameState.get_chapter_deployment_slots("chapter_1")
+	_assert_true(limited_slots.size() == 2, "deployment_unit_limit should cap available deployment slots when set", failures)
+	var limited_assignments: Dictionary = GameState.build_preparation_assignments("chapter_1", prep_units)
+	_assert_true(limited_assignments.size() == 2, "limited deployment chapters should bench extra allies in preparation", failures)
+	GameState.store_preparation_assignments("chapter_1", limited_assignments, prep_units)
+	var hale_slot: Vector2i = GameState.resolve_preparation_position("chapter_1", "brother_hale", Vector2i.ZERO)
+	_assert_true(hale_slot == Vector2i(-1, -1), "allies beyond the deployment limit should resolve to the bench", failures)
+	chapter_1.deployment_unit_limit = original_deployment_limit
+	GameState.preparation_assignments = original_preparation_assignments
 	return failures
 
 

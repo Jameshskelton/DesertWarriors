@@ -14,8 +14,7 @@ func run() -> PackedStringArray:
 	_assert_equal(chapter.starting_units.size(), 8, "chapter_6 should start with the full eight-unit roster", failures)
 	_assert_equal(chapter.enemy_units.size(), 5, "chapter_6 should start with five enemies on the map", failures)
 	_assert_equal(chapter.reinforcements.size(), 8, "chapter_6 should define four enemy reinforcement waves", failures)
-	var next_chapter_text: String = str(chapter.next_chapter_id)
-	_assert_true(next_chapter_text.is_empty() or next_chapter_text == "null" or next_chapter_text == "<null>", "chapter_6 should currently end the campaign", failures)
+	_assert_equal(str(chapter.next_chapter_id), "chapter_7", "chapter_6 should now lead into chapter_7", failures)
 	for row in chapter.terrain_rows:
 		_assert_equal(row.length(), chapter.map_width, "each chapter_6 terrain row should match map width", failures)
 	return failures
@@ -24,8 +23,3 @@ func run() -> PackedStringArray:
 func _assert_equal(actual, expected, message: String, failures: PackedStringArray) -> void:
 	if actual != expected:
 		failures.append("%s (expected %s, got %s)" % [message, str(expected), str(actual)])
-
-
-func _assert_true(condition: bool, message: String, failures: PackedStringArray) -> void:
-	if not condition:
-		failures.append(message)

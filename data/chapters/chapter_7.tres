@@ -1,0 +1,144 @@
+[gd_resource type="Resource" script_class="ChapterData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/chapter_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "chapter_7"
+display_name = "Chapter 7: Trial by Sand"
+objective_type = "defeat_boss"
+objective_turns = 0
+map_width = 20
+map_height = 15
+terrain_rows = PackedStringArray("PPPPSSSSSSSSSSSSPPPP", "PPPSSSSSSSSSSSSSSPPP", "PPSSSSSSSSSSSSSSSSPP", "PPSSSSSRRRRSSSSSSSPP", "PPSSSSSRRRRSSSSSSSPP", "PPSSSSSRRRRSSSSSSSPP", "PPSSSSSSRRSSSSSSSSPP", "PPPPSSSSRRSSSSSPPPPP", "PPPPSSSSRRSSSSSPPPPP", "PPSSSSSSRRSSSSSSSSPP", "PPSSSSSRRRRSSSSSSSPP", "PPSSSSSRRRRSSSSSSSPP", "PPSSSSSSSSSSSSSSSSPP", "PPPSSSSSSSSSSSSSSPPP", "PPPPSSSSSSSSSSSSPPPP")
+terrain_legend = {
+"P": "plains",
+"R": "road",
+"S": "sand"
+}
+deployment_slots = 2
+deployment_unit_limit = 2
+starting_units = [{
+"faction": "player",
+"position": Vector2i(2, 7),
+"unit_id": "george"
+}, {
+"faction": "player",
+"position": Vector2i(3, 7),
+"unit_id": "talis"
+}]
+enemy_units = [{
+"faction": "enemy",
+"instance_id": "trial_raider_1",
+"position": Vector2i(11, 6),
+"unit_id": "brigand_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "trial_raider_2",
+"position": Vector2i(12, 8),
+"unit_id": "brigand_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "trial_raider_3",
+"position": Vector2i(14, 5),
+"unit_id": "brigand_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "trial_raider_4",
+"position": Vector2i(14, 9),
+"unit_id": "brigand_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "trial_raider_chief",
+"position": Vector2i(16, 7),
+"unit_id": "raider_chief"
+}]
+reinforcements = []
+event_triggers = [{
+"dialogue_lines": [{
+"chapter": "Chapter 7: Trial by Sand",
+"speaker": "Talis",
+"text": "This is not punishment, George. It is training. Out here, a blade obeys the hand only after the heart has stopped thrashing."
+}, {
+"chapter": "Chapter 7: Trial by Sand",
+"speaker": "George",
+"text": "And you think mine still does."
+}, {
+"chapter": "Chapter 7: Trial by Sand",
+"speaker": "Talis",
+"text": "I think you carry exile, grief, and fury like they are the same weight. If you charge Malrec like that, he will use all three against you."
+}, {
+"chapter": "Chapter 7: Trial by Sand",
+"speaker": "George",
+"text": "Then teach me to master them before I return to face him."
+}, {
+"chapter": "Chapter 7: Trial by Sand",
+"speaker": "Talis",
+"text": "Good. Start with these raiders. Breathe. Choose your cuts. Leave nothing in your sword arm for anger to steal."
+}],
+"id": "chapter_7_talk_george_talis",
+"trigger": "talk",
+"unit_a_id": "george",
+"unit_b_id": "talis"
+}, {
+"boss_id": "raider_chief",
+"dialogue_lines": [{
+"chapter": "Chapter 7: Trial by Sand",
+"speaker": "Raider Chief",
+"text": "Two swords only? Either the Griesha have grown arrogant, or you've brought me children to rob."
+}, {
+"chapter": "Chapter 7: Trial by Sand",
+"speaker": "Talis",
+"text": "Neither. Just enough steel to prove a lesson."
+}, {
+"chapter": "Chapter 7: Trial by Sand",
+"speaker": "George",
+"text": "Then let this lesson begin with you."
+}],
+"id": "chapter_7_raider_chief_confront",
+"trigger": "boss_confront",
+"unit_id": "george"
+}]
+opening_dialogue = [{
+"chapter": "Chapter 7: Trial by Sand",
+"speaker": "Narrator",
+"text": "The Griesha camp lies hidden between walls of wind-cut stone, invisible until the desert chooses to reveal it. There George meets the people who have endured the Hercule long enough to make myth seem practical."
+}, {
+"chapter": "Chapter 7: Trial by Sand",
+"speaker": "Talis",
+"text": "If you plan to march back against Malrec, prince, then first you will learn how not to drown in your own fury."
+}, {
+"chapter": "Chapter 7: Trial by Sand",
+"speaker": "George",
+"text": "You offer shelter and an insult in the same breath."
+}, {
+"chapter": "Chapter 7: Trial by Sand",
+"speaker": "Talis",
+"text": "I offer honesty. Come. A raider pack is moving near our outer wells. You and I will break it together, and I will see whether your blade listens when your temper does not."
+}, {
+"chapter": "Chapter 7: Trial by Sand",
+"speaker": "Narrator",
+"text": "So begins George's first trial under the Griesha: no army, no title, no shield wall - only sand, steel, and the hard discipline of surviving the desert on its own terms."
+}]
+victory_dialogue = [{
+"chapter": "Chapter 7: Trial by Sand",
+"speaker": "Talis",
+"text": "Better. You still strike hardest when anger reaches your shoulders, but you recovered before it ruled you."
+}, {
+"chapter": "Chapter 7: Trial by Sand",
+"speaker": "George",
+"text": "I wanted to rush the chief. You knew it."
+}, {
+"chapter": "Chapter 7: Trial by Sand",
+"speaker": "Talis",
+"text": "Of course I did. Malrec will know it too, if you do not learn to master that impulse. Control is not the death of fire, George. It is the hearth that keeps it useful."
+}, {
+"chapter": "Chapter 7: Trial by Sand",
+"speaker": "George",
+"text": "Then I will keep training until my anger answers to me, not the other way around."
+}, {
+"chapter": "Chapter 7: Trial by Sand",
+"speaker": "Narrator",
+"text": "With the raiders scattered and the lesson only beginning, George returns to the Griesha camp beside Talis, carrying a steadier blade and the first outline of a new path back toward Malrec."
+}]
+next_chapter_id = null

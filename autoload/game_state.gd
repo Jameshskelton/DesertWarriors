@@ -168,6 +168,7 @@ func apply_chapter_results(summary: Dictionary) -> void:
 			roster_state[unit_id] = _normalize_roster_entry(unit_id, serialized_state, should_heal_roster)
 	var next_chapter_id: String = _normalize_chapter_id(summary.get("next_chapter_id", ""))
 	if bool(summary.get("success", false)) and not next_chapter_id.is_empty():
+		_seed_story_joining_units_for_chapter(next_chapter_id, should_heal_roster)
 		current_chapter_id = next_chapter_id
 
 
@@ -239,6 +240,9 @@ func get_chapter_deployment_slots(chapter_id: String) -> Array[Vector2i]:
 		var slot_position: Vector2i = _vector2i_from_variant(entry.get("position", Vector2i.ZERO))
 		if not slots.has(slot_position):
 			slots.append(slot_position)
+	var deployment_limit: int = int(chapter.deployment_unit_limit)
+	if deployment_limit > 0 and slots.size() > deployment_limit:
+		return slots.slice(0, deployment_limit)
 	return slots
 
 
@@ -306,14 +310,19 @@ func store_preparation_assignments(chapter_id: String, assignments: Dictionary, 
 
 func resolve_preparation_position(chapter_id: String, unit_id: String, fallback_position: Vector2i) -> Vector2i:
 	var chapter_key: String = _normalize_chapter_id(chapter_id)
-	if chapter_key.is_empty() or not preparation_assignments.has(chapter_key):
+	if chapter_key.is_empty():
+		return fallback_position
+	var slots: Array[Vector2i] = get_chapter_deployment_slots(chapter_key)
+	if not slots.is_empty() and not preparation_assignments.has(chapter_key):
+		return Vector2i(-1, -1)
+	if not preparation_assignments.has(chapter_key):
 		return fallback_position
 	var assignments_value: Variant = preparation_assignments.get(chapter_key, {})
 	if typeof(assignments_value) != TYPE_DICTIONARY:
-		return fallback_position
+		return Vector2i(-1, -1) if not slots.is_empty() else fallback_position
 	var assignments: Dictionary = assignments_value
 	if not assignments.has(unit_id):
-		return fallback_position
+		return Vector2i(-1, -1) if not slots.is_empty() else fallback_position
 	return _vector2i_from_variant(assignments.get(unit_id, fallback_position))
 
 
@@ -578,6 +587,8 @@ func _build_chapter_select_cleared_chapters(chapter_id: String) -> PackedStringA
 			return PackedStringArray(["chapter_1", "chapter_2", "chapter_3", "chapter_4"])
 		"chapter_6":
 			return PackedStringArray(["chapter_1", "chapter_2", "chapter_3", "chapter_4", "chapter_5"])
+		"chapter_7":
+			return PackedStringArray(["chapter_1", "chapter_2", "chapter_3", "chapter_4", "chapter_5", "chapter_6"])
 		_:
 			return PackedStringArray()
 
@@ -613,8 +624,34 @@ func _get_chapter_select_unit_ids(chapter_id: String) -> PackedStringArray:
 			return PackedStringArray(["george", "bram", "brother_hale", "ember", "rowan", "balt", "ricodial"])
 		"chapter_6":
 			return PackedStringArray(["george", "bram", "brother_hale", "ember", "rowan", "balt", "ricodial", "ysult"])
+		"chapter_7":
+			return PackedStringArray(["george", "bram", "brother_hale", "ember", "rowan", "balt", "ricodial", "ysult", "talis"])
 		_:
 			return PackedStringArray(["george", "bram", "brother_hale"])
+
+
+func _seed_story_joining_units_for_chapter(chapter_id: String, heal_to_full: bool) -> void:
+	var chapter: ChapterData = DataRegistry.get_chapter_data(_normalize_chapter_id(chapter_id))
+	if chapter == null:
+		return
+	for entry_value in chapter.starting_units:
+		if typeof(entry_value) != TYPE_DICTIONARY:
+			continue
+		var entry: Dictionary = entry_value
+		if str(entry.get("faction", "")) != "player":
+			continue
+		var unit_id: String = str(entry.get("unit_id", ""))
+		if unit_id.is_empty() or roster_state.has(unit_id):
+			continue
+		if permadeath_enabled and fallen_units.has(unit_id):
+			continue
+		var unit_data: UnitData = DataRegistry.get_unit_data(unit_id)
+		if unit_data == null or not unit_data.story_flags.has("story_join_auto"):
+			continue
+		var state: UnitState = UnitState.from_unit_data(unit_data, Vector2i.ZERO)
+		if heal_to_full:
+			state.set_current_hp(state.get_max_hp())
+		roster_state[unit_id] = _normalize_roster_entry(unit_id, state.to_persistent_state(), heal_to_full)
 
 
 func _vector2i_from_variant(value: Variant) -> Vector2i:

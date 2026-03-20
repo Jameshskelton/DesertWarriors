@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="UnitData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/unit_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "raider_chief"
+display_name = "Raider Chief"
+class_id = "marauder"
+level = 3
+stats = {
+"def": 5,
+"hp": 24,
+"lck": 3,
+"mag": 0,
+"max_hp": 24,
+"res": 1,
+"skl": 6,
+"spd": 6,
+"str": 9
+}
+xp = 0
+inventory = PackedStringArray("iron_axe", "health_potion")
+portrait_id = "brigand_grunt"
+faction = "enemy"
+ai_profile = "rush"
+join_event_id = ""
+story_flags = PackedStringArray("boss")
+gold_drop = 25
