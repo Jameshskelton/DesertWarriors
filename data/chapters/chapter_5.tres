@@ -254,4 +254,4 @@ victory_dialogue = [{
 "speaker": "Ricodial",
 "text": "Then let us keep moving before the sun decides to murder us in person. Victories are easier to enjoy with shade."
 }]
-next_chapter_id = null
+next_chapter_id = "chapter_6"

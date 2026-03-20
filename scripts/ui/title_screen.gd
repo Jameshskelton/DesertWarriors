@@ -25,6 +25,7 @@ var _difficulty_context: String = ""
 @onready var _chapter_3_button: Button = $ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer/Chapter3Button
 @onready var _chapter_4_button: Button = $ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer/Chapter4Button
 @onready var _chapter_5_button: Button = $ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer/Chapter5Button
+@onready var _chapter_6_button: Button = $ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/ChaptersContainer/Chapter6Button
 @onready var _chapter_select_back_button: Button = $ChapterSelectPanel/ChapterSelectMargin/ChapterSelectVBox/BackButton2
 @onready var _difficulty_easy_button: Button = $DifficultyPanel/DifficultyMargin/DifficultyVBox/ButtonRow/EasyButton
 @onready var _difficulty_normal_button: Button = $DifficultyPanel/DifficultyMargin/DifficultyVBox/ButtonRow/NormalButton
@@ -66,6 +67,7 @@ func _connect_signals() -> void:
 	_chapter_3_button.pressed.connect(_on_chapter_3_selected)
 	_chapter_4_button.pressed.connect(_on_chapter_4_selected)
 	_chapter_5_button.pressed.connect(_on_chapter_5_selected)
+	_chapter_6_button.pressed.connect(_on_chapter_6_selected)
 	_difficulty_easy_button.pressed.connect(_on_difficulty_easy_pressed)
 	_difficulty_normal_button.pressed.connect(_on_difficulty_normal_pressed)
 	_difficulty_back_button.pressed.connect(_on_difficulty_back_pressed)
@@ -85,6 +87,7 @@ func _connect_button_audio() -> void:
 		_chapter_3_button,
 		_chapter_4_button,
 		_chapter_5_button,
+		_chapter_6_button,
 		_chapter_select_back_button,
 		_difficulty_easy_button,
 		_difficulty_normal_button,
@@ -107,6 +110,7 @@ func _configure_chapter_select_navigation() -> void:
 		_chapter_3_button,
 		_chapter_4_button,
 		_chapter_5_button,
+		_chapter_6_button,
 	]
 	for index in range(chapter_buttons.size()):
 		var current_button: Button = chapter_buttons[index]
@@ -116,7 +120,7 @@ func _configure_chapter_select_navigation() -> void:
 		current_button.set_focus_neighbor(SIDE_TOP, current_button.get_path_to(up_target))
 		current_button.set_focus_neighbor(SIDE_BOTTOM, current_button.get_path_to(down_target))
 	_chapter_select_back_button.focus_mode = Control.FOCUS_ALL
-	_chapter_select_back_button.set_focus_neighbor(SIDE_TOP, _chapter_select_back_button.get_path_to(_chapter_5_button))
+	_chapter_select_back_button.set_focus_neighbor(SIDE_TOP, _chapter_select_back_button.get_path_to(_chapter_6_button))
 	_chapter_select_back_button.set_focus_neighbor(SIDE_BOTTOM, _chapter_select_back_button.get_path_to(_chapter_1_button))
 
 
@@ -262,6 +266,10 @@ func _on_chapter_4_selected() -> void:
 
 func _on_chapter_5_selected() -> void:
 	_start_chapter_select("chapter_5")
+
+
+func _on_chapter_6_selected() -> void:
+	_start_chapter_select("chapter_6")
 
 
 func _close_permadeath_prompt() -> void:

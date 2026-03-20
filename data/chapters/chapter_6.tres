@@ -1,0 +1,250 @@
+[gd_resource type="Resource" script_class="ChapterData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/models/chapter_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "chapter_6"
+display_name = "Chapter 6: Teeth of the Dunes"
+objective_type = "survive_turns"
+objective_turns = 10
+map_width = 20
+map_height = 15
+terrain_rows = PackedStringArray("PPPPSSSSSSSSSSSSPPPP", "PPPSSSSSSSSSSSSSSPPP", "PPSSSSSMMSSMMSSSSSPP", "PPSSSSMMMMRMMMMSSSPP", "PPSSSMMMMSRMMMSSSSPP", "PPSSSSSSSRRSSSSSSSPP", "PPSSSSSRRRRRRSSSSSSP", "PSSSSSRRRRRRRRSSSSSP", "PPSSSSSRRRRRRSSSSSSP", "PPSSSSSSSRRSSSSSSSPP", "PPSSSMMMMSRMMMSSSSPP", "PPSSSSMMMMRMMMMSSSPP", "PPSSSSSMMSSMMSSSSSPP", "PPPSSSSSSSSSSSSSSPPP", "PPPPSSSSSSSSSSSSPPPP")
+terrain_legend = {
+"M": "mountain",
+"P": "plains",
+"R": "road",
+"S": "sand"
+}
+deployment_slots = 8
+starting_units = [{
+"faction": "player",
+"position": Vector2i(2, 7),
+"unit_id": "george"
+}, {
+"faction": "player",
+"position": Vector2i(1, 6),
+"unit_id": "bram"
+}, {
+"faction": "player",
+"position": Vector2i(1, 8),
+"unit_id": "brother_hale"
+}, {
+"faction": "player",
+"position": Vector2i(0, 6),
+"unit_id": "ember"
+}, {
+"faction": "player",
+"position": Vector2i(2, 8),
+"unit_id": "rowan"
+}, {
+"faction": "player",
+"position": Vector2i(0, 8),
+"unit_id": "balt"
+}, {
+"faction": "player",
+"position": Vector2i(1, 7),
+"unit_id": "ricodial"
+}, {
+"faction": "player",
+"position": Vector2i(3, 7),
+"unit_id": "ysult"
+}]
+enemy_units = [{
+"faction": "enemy",
+"instance_id": "dune_marauder_1",
+"position": Vector2i(14, 5),
+"unit_id": "brigand_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "dune_marauder_2",
+"position": Vector2i(16, 7),
+"unit_id": "brigand_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "dune_marauder_3",
+"position": Vector2i(14, 9),
+"unit_id": "brigand_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "dune_hunter_1",
+"position": Vector2i(17, 4),
+"unit_id": "hunter_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "dune_hunter_2",
+"position": Vector2i(17, 10),
+"unit_id": "hunter_grunt"
+}]
+reinforcements = [{
+"faction": "enemy",
+"instance_id": "dune_wave_2_north",
+"message": "More marauders pour down the northern ridges!",
+"position": Vector2i(12, 0),
+"turn": 2,
+"unit_id": "brigand_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "dune_wave_2_south",
+"position": Vector2i(12, 14),
+"turn": 2,
+"unit_id": "hunter_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "dune_wave_4_north",
+"message": "Hunters crest the dunes and loose into the basin!",
+"position": Vector2i(16, 0),
+"turn": 4,
+"unit_id": "hunter_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "dune_wave_4_south",
+"position": Vector2i(16, 14),
+"turn": 4,
+"unit_id": "brigand_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "dune_wave_6_north",
+"message": "The desert closes tighter. Fresh blades spill in from the high sand.",
+"position": Vector2i(18, 2),
+"turn": 6,
+"unit_id": "brigand_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "dune_wave_6_south",
+"position": Vector2i(18, 12),
+"turn": 6,
+"unit_id": "hunter_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "dune_wave_8_north",
+"message": "A final wave rushes in as the sun begins to die!",
+"position": Vector2i(19, 5),
+"turn": 8,
+"unit_id": "hunter_grunt"
+}, {
+"faction": "enemy",
+"instance_id": "dune_wave_8_south",
+"position": Vector2i(19, 9),
+"turn": 8,
+"unit_id": "brigand_grunt"
+}]
+event_triggers = [{
+"dialogue_lines": [{
+"chapter": "Chapter 6: Teeth of the Dunes",
+"speaker": "George",
+"text": "Bartram's fall bought us a road, not a refuge. Malrec's men are still at our heels."
+}, {
+"chapter": "Chapter 6: Teeth of the Dunes",
+"speaker": "Ysult",
+"text": "Then we use the basin. Ten turns, no more. Hold the wash and do not let the hunters circle us."
+}, {
+"chapter": "Chapter 6: Teeth of the Dunes",
+"speaker": "George",
+"text": "Ten turns in the teeth of the desert? You do know how to make a plan sound cheerful."
+}, {
+"chapter": "Chapter 6: Teeth of the Dunes",
+"speaker": "Ysult",
+"text": "Cheer is a luxury. Survival is the work."
+}],
+"id": "chapter_6_talk_george_ysult",
+"trigger": "talk",
+"unit_a_id": "george",
+"unit_b_id": "ysult"
+}, {
+"dialogue_lines": [{
+"chapter": "Chapter 6: Teeth of the Dunes",
+"speaker": "Ember",
+"text": "Hunters above us, marauders below us, and enough sand to bury a kingdom."
+}, {
+"chapter": "Chapter 6: Teeth of the Dunes",
+"speaker": "Brother Hale",
+"text": "Then let us at least make them work for the burial."
+}, {
+"chapter": "Chapter 6: Teeth of the Dunes",
+"speaker": "Ember",
+"text": "That is the bleakest encouragement I have heard all week."
+}, {
+"chapter": "Chapter 6: Teeth of the Dunes",
+"speaker": "Brother Hale",
+"text": "And yet it moved you."
+}],
+"id": "chapter_6_talk_ember_hale",
+"trigger": "talk",
+"unit_a_id": "ember",
+"unit_b_id": "brother_hale"
+}, {
+"dialogue_lines": [{
+"chapter": "Chapter 6: Teeth of the Dunes",
+"speaker": "Balt",
+"text": "Tracks everywhere. They're driving us, not just chasing us."
+}, {
+"chapter": "Chapter 6: Teeth of the Dunes",
+"speaker": "Bram",
+"text": "Then we bloody the hand on the whip and make them hesitate."
+}, {
+"chapter": "Chapter 6: Teeth of the Dunes",
+"speaker": "Balt",
+"text": "Simple. Brutal. Efficient. You and Ysult really do sound alike."
+}, {
+"chapter": "Chapter 6: Teeth of the Dunes",
+"speaker": "Bram",
+"text": "That may be the nicest thing anyone has said to me in days."
+}],
+"id": "chapter_6_talk_balt_bram",
+"trigger": "talk",
+"unit_a_id": "balt",
+"unit_b_id": "bram"
+}]
+opening_dialogue = [{
+"chapter": "Chapter 6: Teeth of the Dunes",
+"speaker": "Narrator",
+"text": "Bartram's death breaks the desert road, but not the hunt. Word races ahead of George's company, and before the caravan paths can offer shelter, fresh marauders and hired hunters force the exiles deeper into the Hercule."
+}, {
+"chapter": "Chapter 6: Teeth of the Dunes",
+"speaker": "Ysult",
+"text": "Too many riders behind us and too much open sand ahead. We do not outrun this. We endure it."
+}, {
+"chapter": "Chapter 6: Teeth of the Dunes",
+"speaker": "Rowan",
+"text": "There's a dry wash ahead, hemmed in by stone. Bad ground for a march. Better ground for a stand."
+}, {
+"chapter": "Chapter 6: Teeth of the Dunes",
+"speaker": "Ricodial",
+"text": "I object in principle to any plan whose best feature is 'slightly harder to die in.'"
+}, {
+"chapter": "Chapter 6: Teeth of the Dunes",
+"speaker": "Brother Hale",
+"text": "Principle noted. Hold it until sunset all the same."
+}, {
+"chapter": "Chapter 6: Teeth of the Dunes",
+"speaker": "George",
+"text": "Then we hold here for ten turns. If Malrec wants the desert itself to bury us, he can wait while we teach it patience."
+}, {
+"chapter": "Chapter 6: Teeth of the Dunes",
+"speaker": "Narrator",
+"text": "Steel answers from the dunes. Shapes move along the ridges, and the basin below fills with the promise of another long night."
+}]
+victory_dialogue = [{
+"chapter": "Chapter 6: Teeth of the Dunes",
+"speaker": "Narrator",
+"text": "By the tenth turn the company is ringed by bodies, broken arrows, and dying light. The hunters draw back for one last rush - and then the desert answers with a blade they never saw coming."
+}, {
+"chapter": "Chapter 6: Teeth of the Dunes",
+"speaker": "Narrator",
+"text": "A lone warrior cuts through the dusk like a thrown spear, scattering marauders from the wash and opening a path east. No banner flies above them. No name follows."
+}, {
+"chapter": "Chapter 6: Teeth of the Dunes",
+"speaker": "George",
+"text": "Whoever they were, they just saved every life here."
+}, {
+"chapter": "Chapter 6: Teeth of the Dunes",
+"speaker": "Ysult",
+"text": "Then be grateful quickly. Anyone who rides alone into a kill-circle either knows this desert better than we do... or intends to vanish before we can ask questions."
+}, {
+"chapter": "Chapter 6: Teeth of the Dunes",
+"speaker": "Narrator",
+"text": "With the strange rescuer already disappearing into the dark, George gathers his companions and follows the narrow path left behind, deeper into the Hercule and toward whatever hand has chosen, for now, to keep him alive."
+}]
+next_chapter_id = null
