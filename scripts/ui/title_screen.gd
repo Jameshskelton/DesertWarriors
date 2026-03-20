@@ -44,6 +44,7 @@ func _ready() -> void:
 	_connect_button_audio()
 	_configure_chapter_select_navigation()
 	_configure_difficulty_navigation()
+	_configure_permadeath_navigation()
 	_apply_settings()
 	_menu_visible = false
 	_menu_panel.visible = false
@@ -138,6 +139,22 @@ func _configure_difficulty_navigation() -> void:
 		var current_button: Button = difficulty_buttons[index]
 		var previous_button: Button = difficulty_buttons[(index - 1 + difficulty_buttons.size()) % difficulty_buttons.size()]
 		var next_button: Button = difficulty_buttons[(index + 1) % difficulty_buttons.size()]
+		current_button.focus_mode = Control.FOCUS_ALL
+		current_button.set_focus_neighbor(SIDE_LEFT, current_button.get_path_to(previous_button))
+		current_button.set_focus_neighbor(SIDE_RIGHT, current_button.get_path_to(next_button))
+		current_button.set_focus_neighbor(SIDE_TOP, current_button.get_path_to(previous_button))
+		current_button.set_focus_neighbor(SIDE_BOTTOM, current_button.get_path_to(next_button))
+
+
+func _configure_permadeath_navigation() -> void:
+	var permadeath_buttons: Array[Button] = [
+		_permadeath_yes_button,
+		_permadeath_no_button,
+	]
+	for index in range(permadeath_buttons.size()):
+		var current_button: Button = permadeath_buttons[index]
+		var previous_button: Button = permadeath_buttons[(index - 1 + permadeath_buttons.size()) % permadeath_buttons.size()]
+		var next_button: Button = permadeath_buttons[(index + 1) % permadeath_buttons.size()]
 		current_button.focus_mode = Control.FOCUS_ALL
 		current_button.set_focus_neighbor(SIDE_LEFT, current_button.get_path_to(previous_button))
 		current_button.set_focus_neighbor(SIDE_RIGHT, current_button.get_path_to(next_button))
