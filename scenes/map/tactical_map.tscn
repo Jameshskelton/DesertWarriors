@@ -101,7 +101,7 @@ text = "Gold 0"
 [node name="Footer" type="PanelContainer" parent="."]
 layout_mode = 0
 offset_left = 27.0
-offset_top = 930.0
+offset_top = 888.0
 offset_right = 1890.0
 offset_bottom = 1053.0
 
@@ -114,14 +114,23 @@ theme_override_constants/margin_bottom = 15
 
 [node name="FooterVBox" type="VBoxContainer" parent="Footer/FooterMargin"]
 layout_mode = 2
-theme_override_constants/separation = 6
+size_flags_vertical = 3
+theme_override_constants/separation = 8
 
 [node name="StatusLabel" type="Label" parent="Footer/FooterMargin/FooterVBox"]
 layout_mode = 2
+size_flags_horizontal = 3
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 26
 text = "Move the cursor and select George."
 
 [node name="HintLabel" type="Label" parent="Footer/FooterMargin/FooterVBox"]
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 22
+vertical_alignment = 1
 text = "Enter/Space confirm, Esc cancel, I inspect, V danger zone off, P system menu, select a unit for attack range, T end turn."
 
 [node name="ActionMenu" parent="." instance=ExtResource("2")]

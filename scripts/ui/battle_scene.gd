@@ -53,6 +53,7 @@ var _skip_input_enabled: bool = false
 var _skip_finish_queued: bool = false
 var _sequence_finished: bool = false
 var _finish_signal_sent: bool = false
+var _close_requested: bool = false
 var _animation_frame_cache: Dictionary = {}
 var _feedback_tweens: Dictionary = {}
 var _left_portrait: Texture2D
@@ -137,7 +138,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if _sequence_finished:
 		if not _finish_signal_sent:
-			call_deferred("_emit_battle_finished_once")
+			_request_close()
 		return
 	if not _skip_input_enabled or _skip_finish_queued:
 		return
@@ -265,7 +266,7 @@ func _finish_sequence(final_log: String = "") -> void:
 	if final_log.is_empty():
 		final_log = _build_final_log()
 	_set_battle_log_text(final_log)
-	call_deferred("_emit_battle_finished_once")
+	_request_close()
 
 
 func is_sequence_finished() -> bool:
@@ -280,7 +281,7 @@ func _force_finish_after_skip() -> void:
 	_skip_finish_queued = false
 	if _sequence_finished:
 		if not _finish_signal_sent:
-			_emit_battle_finished_once()
+			_close_battle_scene()
 		return
 	_finish_sequence()
 
@@ -290,6 +291,19 @@ func _emit_battle_finished_once() -> void:
 		return
 	_finish_signal_sent = true
 	battle_finished.emit()
+
+
+func _request_close() -> void:
+	if _close_requested:
+		return
+	_close_requested = true
+	call_deferred("_close_battle_scene")
+
+
+func _close_battle_scene() -> void:
+	_emit_battle_finished_once()
+	if not is_queued_for_deletion():
+		queue_free()
 
 
 func _has_valid_payload() -> bool:

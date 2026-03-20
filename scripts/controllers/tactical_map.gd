@@ -1269,10 +1269,6 @@ func _battle_completed() -> void:
 			queue_redraw()
 			await _present_queued_level_up_reports()
 			return
-		if _battle_scene_ready_to_close():
-			_on_battle_finished()
-			await _present_queued_level_up_reports()
-			return
 		if _active_battle.is_queued_for_deletion() or not _active_battle.is_inside_tree() or _active_battle.get_parent() == null:
 			_on_battle_finished()
 			await _present_queued_level_up_reports()
@@ -1289,14 +1285,6 @@ func _on_battle_finished() -> void:
 	_apply_battle_rewards()
 	_refresh_danger_zone()
 	queue_redraw()
-
-
-func _battle_scene_ready_to_close() -> bool:
-	if _active_battle == null or not is_instance_valid(_active_battle):
-		return false
-	if not _active_battle.has_method("is_sequence_finished"):
-		return false
-	return bool(_active_battle.call("is_sequence_finished"))
 
 
 func _apply_battle_rewards() -> void:
